@@ -1,0 +1,47 @@
+# ─── Python (backend y simulador) ───
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ─── Node y React Native (móvil) ───
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.expo/
+.expo-shared/
+dist/
+build/
+*.jks
+*.keystore
+
+# ─── Entornos y secretos ───
+# Nunca subir credenciales, tokens ni certificados
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+
+# ─── Editores ───
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Sistema operativo ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Ofimática ───
+# Archivos temporales que crea Word/Excel al abrir un documento
+~$*
