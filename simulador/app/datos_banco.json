@@ -1,0 +1,2897 @@
+[
+ {
+  "transactionID": "TXN-202510-0011",
+  "bookingDateTime": "2025-10-01 16:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 86426.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0010",
+  "bookingDateTime": "2025-10-03 11:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 48118.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0017",
+  "bookingDateTime": "2025-10-04 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 25328.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0002",
+  "bookingDateTime": "2025-10-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0005",
+  "bookingDateTime": "2025-10-06 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0003",
+  "bookingDateTime": "2025-10-06 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0014",
+  "bookingDateTime": "2025-10-07 20:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 11349.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0012",
+  "bookingDateTime": "2025-10-08 15:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 20212.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0016",
+  "bookingDateTime": "2025-10-09 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 75217.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0007",
+  "bookingDateTime": "2025-10-11 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 33793.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0015",
+  "bookingDateTime": "2025-10-13 09:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 37541.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0006",
+  "bookingDateTime": "2025-10-13 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0008",
+  "bookingDateTime": "2025-10-17 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 22484.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0009",
+  "bookingDateTime": "2025-10-19 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18652.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0004",
+  "bookingDateTime": "2025-10-20 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0019",
+  "bookingDateTime": "2025-10-23 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 6003.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202510-0013",
+  "bookingDateTime": "2025-10-23 14:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17105.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202510-0018",
+  "bookingDateTime": "2025-10-27 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 26700.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202510-0001",
+  "bookingDateTime": "2025-10-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202511-0024",
+  "bookingDateTime": "2025-11-05 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0021",
+  "bookingDateTime": "2025-11-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0036",
+  "bookingDateTime": "2025-11-05 11:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18239.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0038",
+  "bookingDateTime": "2025-11-05 16:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 10978.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0022",
+  "bookingDateTime": "2025-11-05 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0030",
+  "bookingDateTime": "2025-11-06 16:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9354.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0034",
+  "bookingDateTime": "2025-11-07 22:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 28934.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0026",
+  "bookingDateTime": "2025-11-10 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 36178.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0025",
+  "bookingDateTime": "2025-11-12 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0031",
+  "bookingDateTime": "2025-11-13 12:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42433.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0041",
+  "bookingDateTime": "2025-11-13 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 33674.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202511-0037",
+  "bookingDateTime": "2025-11-14 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 62447.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0027",
+  "bookingDateTime": "2025-11-15 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23807.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0028",
+  "bookingDateTime": "2025-11-16 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16958.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0035",
+  "bookingDateTime": "2025-11-16 14:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 8681.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0023",
+  "bookingDateTime": "2025-11-20 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0029",
+  "bookingDateTime": "2025-11-22 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23960.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0033",
+  "bookingDateTime": "2025-11-26 13:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32546.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0040",
+  "bookingDateTime": "2025-11-26 18:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 27543.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0032",
+  "bookingDateTime": "2025-11-27 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9752.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0039",
+  "bookingDateTime": "2025-11-28 09:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 56120.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202511-0020",
+  "bookingDateTime": "2025-11-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202512-0051",
+  "bookingDateTime": "2025-12-01 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 36403.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0057",
+  "bookingDateTime": "2025-12-03 19:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19535.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0046",
+  "bookingDateTime": "2025-12-05 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0043",
+  "bookingDateTime": "2025-12-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0044",
+  "bookingDateTime": "2025-12-05 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0059",
+  "bookingDateTime": "2025-12-06 12:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42760.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0056",
+  "bookingDateTime": "2025-12-08 08:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15295.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0047",
+  "bookingDateTime": "2025-12-12 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0048",
+  "bookingDateTime": "2025-12-14 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 40762.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0055",
+  "bookingDateTime": "2025-12-16 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 11947.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0049",
+  "bookingDateTime": "2025-12-16 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23256.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0050",
+  "bookingDateTime": "2025-12-17 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16513.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0062",
+  "bookingDateTime": "2025-12-17 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 10930.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202512-0052",
+  "bookingDateTime": "2025-12-17 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 28489.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0061",
+  "bookingDateTime": "2025-12-22 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 27472.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "CL*SERV 2210"
+ },
+ {
+  "transactionID": "TXN-202512-0045",
+  "bookingDateTime": "2025-12-22 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0054",
+  "bookingDateTime": "2025-12-25 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15813.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0058",
+  "bookingDateTime": "2025-12-25 10:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 77296.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0060",
+  "bookingDateTime": "2025-12-25 19:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 55857.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0053",
+  "bookingDateTime": "2025-12-27 18:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 8504.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202512-0042",
+  "bookingDateTime": "2025-12-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202601-0072",
+  "bookingDateTime": "2026-01-03 16:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 10562.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0075",
+  "bookingDateTime": "2026-01-04 09:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19609.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0064",
+  "bookingDateTime": "2026-01-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0065",
+  "bookingDateTime": "2026-01-05 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0067",
+  "bookingDateTime": "2026-01-05 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0080",
+  "bookingDateTime": "2026-01-06 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 33318.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202601-0079",
+  "bookingDateTime": "2026-01-07 16:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 12593.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0078",
+  "bookingDateTime": "2026-01-11 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 12147.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0068",
+  "bookingDateTime": "2026-01-12 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0070",
+  "bookingDateTime": "2026-01-13 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17396.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0069",
+  "bookingDateTime": "2026-01-13 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 33898.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0076",
+  "bookingDateTime": "2026-01-14 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42064.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0073",
+  "bookingDateTime": "2026-01-16 11:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 22711.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0074",
+  "bookingDateTime": "2026-01-16 11:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 68354.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0066",
+  "bookingDateTime": "2026-01-20 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0071",
+  "bookingDateTime": "2026-01-20 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16048.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0077",
+  "bookingDateTime": "2026-01-21 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17193.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202601-0081",
+  "bookingDateTime": "2026-01-28 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 7940.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "CL*SERV 2210"
+ },
+ {
+  "transactionID": "TXN-202601-0063",
+  "bookingDateTime": "2026-01-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202602-0098",
+  "bookingDateTime": "2026-02-03 18:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 67923.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0097",
+  "bookingDateTime": "2026-02-03 21:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23981.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0106",
+  "bookingDateTime": "2026-02-03 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19009.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202602-0083",
+  "bookingDateTime": "2026-02-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0084",
+  "bookingDateTime": "2026-02-05 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0086",
+  "bookingDateTime": "2026-02-05 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0105",
+  "bookingDateTime": "2026-02-07 16:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32361.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0091",
+  "bookingDateTime": "2026-02-07 21:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21921.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0088",
+  "bookingDateTime": "2026-02-09 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 40313.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0107",
+  "bookingDateTime": "2026-02-10 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31716.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202602-0094",
+  "bookingDateTime": "2026-02-10 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 26978.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0093",
+  "bookingDateTime": "2026-02-10 14:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 25072.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0087",
+  "bookingDateTime": "2026-02-12 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0092",
+  "bookingDateTime": "2026-02-13 08:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16690.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0102",
+  "bookingDateTime": "2026-02-13 10:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 13491.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0100",
+  "bookingDateTime": "2026-02-14 18:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32089.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0089",
+  "bookingDateTime": "2026-02-16 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 24940.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0095",
+  "bookingDateTime": "2026-02-18 08:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5873.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0099",
+  "bookingDateTime": "2026-02-19 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 55591.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0096",
+  "bookingDateTime": "2026-02-19 15:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18727.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0104",
+  "bookingDateTime": "2026-02-20 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 22400.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0085",
+  "bookingDateTime": "2026-02-20 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0090",
+  "bookingDateTime": "2026-02-21 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15597.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0101",
+  "bookingDateTime": "2026-02-22 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15821.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0103",
+  "bookingDateTime": "2026-02-25 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 6152.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202602-0082",
+  "bookingDateTime": "2026-02-28 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202603-0109",
+  "bookingDateTime": "2026-03-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0110",
+  "bookingDateTime": "2026-03-05 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0112",
+  "bookingDateTime": "2026-03-05 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0123",
+  "bookingDateTime": "2026-03-06 19:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15038.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0118",
+  "bookingDateTime": "2026-03-07 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 41685.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0114",
+  "bookingDateTime": "2026-03-09 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42820.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0120",
+  "bookingDateTime": "2026-03-09 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23024.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0122",
+  "bookingDateTime": "2026-03-11 20:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 56753.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0113",
+  "bookingDateTime": "2026-03-12 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0124",
+  "bookingDateTime": "2026-03-14 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 7665.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0115",
+  "bookingDateTime": "2026-03-14 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17670.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0121",
+  "bookingDateTime": "2026-03-14 21:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5444.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0116",
+  "bookingDateTime": "2026-03-16 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15231.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0117",
+  "bookingDateTime": "2026-03-18 10:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 13232.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0111",
+  "bookingDateTime": "2026-03-20 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0119",
+  "bookingDateTime": "2026-03-21 21:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 20561.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0125",
+  "bookingDateTime": "2026-03-23 22:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 50755.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202603-0126",
+  "bookingDateTime": "2026-03-27 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 39210.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202603-0108",
+  "bookingDateTime": "2026-03-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202604-0128",
+  "bookingDateTime": "2026-04-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0131",
+  "bookingDateTime": "2026-04-06 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0129",
+  "bookingDateTime": "2026-04-06 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0149",
+  "bookingDateTime": "2026-04-07 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 72154.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0146",
+  "bookingDateTime": "2026-04-09 10:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17507.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0133",
+  "bookingDateTime": "2026-04-11 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 44064.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0142",
+  "bookingDateTime": "2026-04-12 12:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 27304.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0132",
+  "bookingDateTime": "2026-04-13 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0134",
+  "bookingDateTime": "2026-04-13 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18896.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0137",
+  "bookingDateTime": "2026-04-14 08:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32135.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0135",
+  "bookingDateTime": "2026-04-15 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 20017.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0145",
+  "bookingDateTime": "2026-04-17 14:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 4904.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0150",
+  "bookingDateTime": "2026-04-17 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 38287.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202604-0130",
+  "bookingDateTime": "2026-04-20 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0147",
+  "bookingDateTime": "2026-04-20 14:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 35557.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0148",
+  "bookingDateTime": "2026-04-20 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32622.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0143",
+  "bookingDateTime": "2026-04-22 11:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 36512.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0136",
+  "bookingDateTime": "2026-04-24 10:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 36299.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0140",
+  "bookingDateTime": "2026-04-26 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 20535.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0138",
+  "bookingDateTime": "2026-04-26 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19143.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0144",
+  "bookingDateTime": "2026-04-28 09:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 11753.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0141",
+  "bookingDateTime": "2026-04-28 15:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 28079.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0139",
+  "bookingDateTime": "2026-04-28 19:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 12742.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202604-0127",
+  "bookingDateTime": "2026-04-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202605-0169",
+  "bookingDateTime": "2026-05-05 08:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16023.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0155",
+  "bookingDateTime": "2026-05-05 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0152",
+  "bookingDateTime": "2026-05-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0153",
+  "bookingDateTime": "2026-05-05 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0162",
+  "bookingDateTime": "2026-05-06 17:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17306.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0161",
+  "bookingDateTime": "2026-05-07 14:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 30194.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0167",
+  "bookingDateTime": "2026-05-10 16:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21120.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0157",
+  "bookingDateTime": "2026-05-11 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 35172.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0156",
+  "bookingDateTime": "2026-05-12 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0172",
+  "bookingDateTime": "2026-05-13 15:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 11994.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0160",
+  "bookingDateTime": "2026-05-13 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15083.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0164",
+  "bookingDateTime": "2026-05-14 20:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 23236.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0165",
+  "bookingDateTime": "2026-05-15 18:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 36750.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0159",
+  "bookingDateTime": "2026-05-17 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16627.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0158",
+  "bookingDateTime": "2026-05-18 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 22846.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0154",
+  "bookingDateTime": "2026-05-20 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0170",
+  "bookingDateTime": "2026-05-20 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 34923.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0171",
+  "bookingDateTime": "2026-05-21 17:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 43538.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0173",
+  "bookingDateTime": "2026-05-21 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32607.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0168",
+  "bookingDateTime": "2026-05-22 12:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 34429.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0174",
+  "bookingDateTime": "2026-05-25 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17341.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "SERVIPAG CGE 0092"
+ },
+ {
+  "transactionID": "TXN-202605-0166",
+  "bookingDateTime": "2026-05-26 22:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 41589.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0163",
+  "bookingDateTime": "2026-05-27 08:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 52606.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202605-0151",
+  "bookingDateTime": "2026-05-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202606-0191",
+  "bookingDateTime": "2026-06-03 14:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18842.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0188",
+  "bookingDateTime": "2026-06-03 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 27683.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0176",
+  "bookingDateTime": "2026-06-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0179",
+  "bookingDateTime": "2026-06-05 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0177",
+  "bookingDateTime": "2026-06-05 20:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0185",
+  "bookingDateTime": "2026-06-06 19:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 34747.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0190",
+  "bookingDateTime": "2026-06-08 14:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31147.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0197",
+  "bookingDateTime": "2026-06-09 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 34827.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "PAGO PSP 4471 STGO"
+ },
+ {
+  "transactionID": "TXN-202606-0181",
+  "bookingDateTime": "2026-06-09 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 34188.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0189",
+  "bookingDateTime": "2026-06-11 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 8267.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0180",
+  "bookingDateTime": "2026-06-12 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0193",
+  "bookingDateTime": "2026-06-13 22:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 38864.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0192",
+  "bookingDateTime": "2026-06-15 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42110.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0194",
+  "bookingDateTime": "2026-06-16 08:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 29784.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0187",
+  "bookingDateTime": "2026-06-16 18:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 50992.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0182",
+  "bookingDateTime": "2026-06-18 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 20634.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0184",
+  "bookingDateTime": "2026-06-20 21:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 37952.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0183",
+  "bookingDateTime": "2026-06-21 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19207.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0178",
+  "bookingDateTime": "2026-06-22 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0196",
+  "bookingDateTime": "2026-06-24 16:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19998.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0186",
+  "bookingDateTime": "2026-06-25 11:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18547.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0195",
+  "bookingDateTime": "2026-06-28 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 37636.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202606-0175",
+  "bookingDateTime": "2026-06-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202607-0199",
+  "bookingDateTime": "2026-07-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0200",
+  "bookingDateTime": "2026-07-06 14:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0217",
+  "bookingDateTime": "2026-07-06 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18743.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0202",
+  "bookingDateTime": "2026-07-06 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0220",
+  "bookingDateTime": "2026-07-07 09:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 7339.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0215",
+  "bookingDateTime": "2026-07-08 10:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 29936.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0214",
+  "bookingDateTime": "2026-07-08 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 55719.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0209",
+  "bookingDateTime": "2026-07-09 14:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 28871.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0211",
+  "bookingDateTime": "2026-07-09 21:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 35411.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0218",
+  "bookingDateTime": "2026-07-10 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18222.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0210",
+  "bookingDateTime": "2026-07-11 13:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 29117.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0222",
+  "bookingDateTime": "2026-07-12 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31074.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202607-0203",
+  "bookingDateTime": "2026-07-13 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0208",
+  "bookingDateTime": "2026-07-14 10:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9954.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0204",
+  "bookingDateTime": "2026-07-15 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 41408.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0205",
+  "bookingDateTime": "2026-07-18 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 24524.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0216",
+  "bookingDateTime": "2026-07-19 11:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31793.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0206",
+  "bookingDateTime": "2026-07-19 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 14594.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0207",
+  "bookingDateTime": "2026-07-19 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 26003.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0201",
+  "bookingDateTime": "2026-07-20 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0213",
+  "bookingDateTime": "2026-07-21 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32714.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0219",
+  "bookingDateTime": "2026-07-22 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 66990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0212",
+  "bookingDateTime": "2026-07-24 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 37935.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202607-0221",
+  "bookingDateTime": "2026-07-28 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 10933.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "PAGO PSP 4471 STGO"
+ },
+ {
+  "transactionID": "TXN-202607-0198",
+  "bookingDateTime": "2026-07-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202608-0225",
+  "bookingDateTime": "2026-08-05 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0224",
+  "bookingDateTime": "2026-08-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0227",
+  "bookingDateTime": "2026-08-05 18:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0238",
+  "bookingDateTime": "2026-08-07 13:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31152.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0229",
+  "bookingDateTime": "2026-08-09 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 42899.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0235",
+  "bookingDateTime": "2026-08-09 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 30981.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0243",
+  "bookingDateTime": "2026-08-10 11:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 30945.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0247",
+  "bookingDateTime": "2026-08-10 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18108.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "PAGO PSP 4471 STGO"
+ },
+ {
+  "transactionID": "TXN-202608-0228",
+  "bookingDateTime": "2026-08-12 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0230",
+  "bookingDateTime": "2026-08-12 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 24871.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0246",
+  "bookingDateTime": "2026-08-12 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 32736.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202608-0241",
+  "bookingDateTime": "2026-08-14 15:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19600.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0237",
+  "bookingDateTime": "2026-08-16 21:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 26917.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0240",
+  "bookingDateTime": "2026-08-17 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 30817.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0245",
+  "bookingDateTime": "2026-08-17 13:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 87140.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0234",
+  "bookingDateTime": "2026-08-19 12:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 12044.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0236",
+  "bookingDateTime": "2026-08-19 17:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 31023.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0226",
+  "bookingDateTime": "2026-08-20 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0231",
+  "bookingDateTime": "2026-08-20 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19493.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0239",
+  "bookingDateTime": "2026-08-20 19:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 15106.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0244",
+  "bookingDateTime": "2026-08-22 17:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 13753.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0242",
+  "bookingDateTime": "2026-08-23 15:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 4565.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0232",
+  "bookingDateTime": "2026-08-24 16:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 28182.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Unimarc",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0233",
+  "bookingDateTime": "2026-08-25 15:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 72091.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202608-0223",
+  "bookingDateTime": "2026-08-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ },
+ {
+  "transactionID": "TXN-202609-0249",
+  "bookingDateTime": "2026-09-05 10:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 268400.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Pago de arriendo",
+  "merchantDetails": {
+   "name": "Inmobiliaria Los Robles",
+   "category": "Vivienda"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0259",
+  "bookingDateTime": "2026-09-05 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 22146.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0258",
+  "bookingDateTime": "2026-09-06 12:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 17600.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0252",
+  "bookingDateTime": "2026-09-07 13:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Smart Fit",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0250",
+  "bookingDateTime": "2026-09-07 19:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 9900.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Netflix",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0266",
+  "bookingDateTime": "2026-09-10 09:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 30525.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0269",
+  "bookingDateTime": "2026-09-10 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 6947.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "PAGO PSP 4471 STGO"
+ },
+ {
+  "transactionID": "TXN-202609-0260",
+  "bookingDateTime": "2026-09-10 19:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 79340.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0264",
+  "bookingDateTime": "2026-09-13 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 52815.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0253",
+  "bookingDateTime": "2026-09-14 09:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 2700.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "iCloud",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0254",
+  "bookingDateTime": "2026-09-14 17:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 44853.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "CGE",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0262",
+  "bookingDateTime": "2026-09-15 13:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 21683.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0268",
+  "bookingDateTime": "2026-09-15 22:45:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 29743.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Copec",
+   "category": "Transporte"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0255",
+  "bookingDateTime": "2026-09-17 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 18409.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Essal",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0256",
+  "bookingDateTime": "2026-09-20 16:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16391.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Abastible",
+   "category": "Servicios"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0251",
+  "bookingDateTime": "2026-09-21 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 5990.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Spotify",
+   "category": "Entretenimiento"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0265",
+  "bookingDateTime": "2026-09-22 08:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 8888.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Farmacia Ahumada",
+   "category": "Salud"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0270",
+  "bookingDateTime": "2026-09-25 11:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 16829.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "TRANSBANK*CL 8829"
+ },
+ {
+  "transactionID": "TXN-202609-0267",
+  "bookingDateTime": "2026-09-25 14:15:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 83494.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Falabella",
+   "category": "Vestuario"
+  }
+ },
+ {
+  "transactionID": "TXN-202609-0257",
+  "bookingDateTime": "2026-09-27 11:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 29908.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  },
+  "_pendiente": true,
+  "_monto_final": 34366.0
+ },
+ {
+  "transactionID": "TXN-202609-0261",
+  "bookingDateTime": "2026-09-28 08:30:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 45762.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Lider",
+   "category": "Alimentos"
+  },
+  "_pendiente": true,
+  "_monto_final": 49128.0
+ },
+ {
+  "transactionID": "TXN-202609-0263",
+  "bookingDateTime": "2026-09-28 15:00:00+00:00",
+  "transactionsType": "Cargo",
+  "amount": 19469.0,
+  "currency": "CLP",
+  "merchantDetails": {
+   "name": "Uber Eats",
+   "category": "Restaurantes"
+  },
+  "_pendiente": true,
+  "_monto_final": 20950.0
+ },
+ {
+  "transactionID": "TXN-202609-0248",
+  "bookingDateTime": "2026-09-30 09:05:00+00:00",
+  "transactionsType": "Abono",
+  "amount": 850000.0,
+  "currency": "CLP",
+  "paymentPurposeCode": "Abono de remuneracion"
+ }
+]
