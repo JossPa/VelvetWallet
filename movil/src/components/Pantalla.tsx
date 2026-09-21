@@ -13,21 +13,25 @@ import { colores, espacio, fuente, radio } from "@/constants/tema";
 
 type Props = {
   titulo: string;
+  /** Chip de texto a la derecha del título. */
   etiqueta?: string;
+  /** Control a la derecha del título (reemplaza al chip), p. ej. el selector de mes. */
+  accesorio?: ReactNode;
   children?: ReactNode;
 };
 
-export function Pantalla({ titulo, etiqueta, children }: Props) {
+export function Pantalla({ titulo, etiqueta, accesorio, children }: Props) {
   return (
     <SafeAreaView style={estilos.area} edges={["top"]}>
       <ScrollView contentContainerStyle={estilos.contenido}>
         <View style={estilos.cabecera}>
           <Text style={estilos.titulo}>{titulo}</Text>
-          {etiqueta ? (
-            <View style={estilos.chip}>
-              <Text style={estilos.chipTexto}>{etiqueta}</Text>
-            </View>
-          ) : null}
+          {accesorio ??
+            (etiqueta ? (
+              <View style={estilos.chip}>
+                <Text style={estilos.chipTexto}>{etiqueta}</Text>
+              </View>
+            ) : null)}
         </View>
         {children}
       </ScrollView>
