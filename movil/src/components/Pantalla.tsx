@@ -5,8 +5,9 @@
  * de estado del teléfono. `etiqueta` es el chip de la derecha del mockup
  * ("Agosto", "3 conectadas", "1 activa").
  */
+import { Ionicons } from "@expo/vector-icons";
 import { ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colores, espacio, fuente, radio } from "@/constants/tema";
@@ -17,15 +18,24 @@ type Props = {
   etiqueta?: string;
   /** Control a la derecha del título (reemplaza al chip), p. ej. el selector de mes. */
   accesorio?: ReactNode;
+  /** Si se entrega, muestra la flecha de volver a la izquierda del título. */
+  onAtras?: () => void;
   children?: ReactNode;
 };
 
-export function Pantalla({ titulo, etiqueta, accesorio, children }: Props) {
+export function Pantalla({ titulo, etiqueta, accesorio, onAtras, children }: Props) {
   return (
     <SafeAreaView style={estilos.area} edges={["top"]}>
       <ScrollView contentContainerStyle={estilos.contenido}>
         <View style={estilos.cabecera}>
-          <Text style={estilos.titulo}>{titulo}</Text>
+          <View style={estilos.tituloConAtras}>
+            {onAtras ? (
+              <Pressable onPress={onAtras} hitSlop={12} style={estilos.atras}>
+                <Ionicons name="chevron-back" size={26} color={colores.texto} />
+              </Pressable>
+            ) : null}
+            <Text style={estilos.titulo}>{titulo}</Text>
+          </View>
           {accesorio ??
             (etiqueta ? (
               <View style={estilos.chip}>
@@ -69,6 +79,8 @@ const estilos = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: espacio.xl,
   },
+  tituloConAtras: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
+  atras: { marginLeft: -espacio.s, marginRight: espacio.xs },
   titulo: {
     color: colores.texto,
     fontFamily: fuente.titulo,

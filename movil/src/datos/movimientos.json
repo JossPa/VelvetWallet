@@ -13,7 +13,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c86f668a",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0263",
@@ -29,7 +32,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b76ace99",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0261",
@@ -45,7 +51,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b56acb73",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0257",
@@ -61,7 +70,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/4b72735a",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0267",
@@ -77,7 +89,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bb6ad4e5",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0270",
@@ -93,7 +108,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ba6d11e9",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0265",
@@ -109,7 +127,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b96ad1bf",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0251",
@@ -125,7 +146,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/457269e8",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0256",
@@ -141,7 +165,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/4c7274ed",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0255",
@@ -157,7 +184,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/49727034",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0268",
@@ -173,7 +203,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bc6ad678",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0262",
@@ -189,7 +222,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b66acd06",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0254",
@@ -205,7 +241,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/4a7271c7",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0253",
@@ -221,7 +260,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/47726d0e",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0264",
@@ -237,7 +279,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b86ad02c",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0260",
@@ -253,7 +298,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b46ac9e0",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0269",
@@ -269,7 +317,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bd6ad80b",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0266",
@@ -285,7 +336,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ba6ad352",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0250",
@@ -301,7 +355,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/46726b7b",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0252",
@@ -317,7 +374,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/48726ea1",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0258",
@@ -333,7 +393,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3e725ee3",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0259",
@@ -349,7 +412,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3d725d50",
+    "correcciones": []
   },
   {
     "id": "TXN-202609-0249",
@@ -365,7 +431,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-09-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c96f681d",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0223",
@@ -381,7 +450,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bdbc0bc4",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0233",
@@ -397,7 +469,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bdb9cd2d",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0232",
@@ -413,7 +488,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-24T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bcb9cb9a",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0242",
@@ -429,7 +507,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-23T23:10:00.000Z",
+    "payloadCrudoRef": "tx/36b6ba11",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0244",
@@ -445,7 +526,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/38b6bd37",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0239",
@@ -461,7 +545,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b3b9bd6f",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0231",
@@ -477,7 +564,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bbb9ca07",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0226",
@@ -493,7 +583,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/babc070b",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0236",
@@ -509,7 +602,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b8b9c54e",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0234",
@@ -525,7 +621,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b6b9c228",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0245",
@@ -541,7 +640,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/37b6bba4",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0240",
@@ -557,7 +659,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/34b6b6eb",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0237",
@@ -573,7 +678,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b9b9c6e1",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0241",
@@ -589,7 +697,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/33b6b558",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0246",
@@ -605,7 +716,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3ab6c05d",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0230",
@@ -621,7 +735,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bab9c874",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0228",
@@ -637,7 +754,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b8bc03e5",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0247",
@@ -653,7 +773,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/39b6beca",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0243",
@@ -669,7 +792,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/35b6b87e",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0235",
@@ -685,7 +811,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b7b9c3bb",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0229",
@@ -701,7 +830,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b7bc0252",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0238",
@@ -717,7 +849,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b2b9bbdc",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0227",
@@ -733,7 +868,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/b9bc0578",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0224",
@@ -749,7 +887,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bcbc0a31",
+    "correcciones": []
   },
   {
     "id": "TXN-202608-0225",
@@ -765,7 +906,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-08-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bbbc089e",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0198",
@@ -781,7 +925,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/eaaf2fcc",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0221",
@@ -797,7 +944,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/18c71979",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0212",
@@ -813,7 +963,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-24T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2fc4ff17",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0219",
@@ -829,7 +982,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/28c4f412",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0213",
@@ -845,7 +1001,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2ec4fd84",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0201",
@@ -861,7 +1020,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2cc2bbc7",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0207",
@@ -877,7 +1039,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2ac2b8a1",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0206",
@@ -893,7 +1058,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/29c2b70e",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0216",
@@ -909,7 +1077,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2bc4f8cb",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0205",
@@ -925,7 +1096,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-18T23:10:00.000Z",
+    "payloadCrudoRef": "tx/28c2b57b",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0204",
@@ -941,7 +1115,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/27c2b3e8",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0208",
@@ -957,7 +1134,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/23c2ad9c",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0203",
@@ -973,7 +1153,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2ec2beed",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0222",
@@ -989,7 +1172,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/15c714c0",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0210",
@@ -1005,7 +1191,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/31c5023d",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0218",
@@ -1021,7 +1210,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/29c4f5a5",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0211",
@@ -1037,7 +1229,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/30c500aa",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0209",
@@ -1053,7 +1248,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/24c2af2f",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0214",
@@ -1069,7 +1267,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-08T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2dc4fbf1",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0215",
@@ -1085,7 +1286,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-08T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2cc4fa5e",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0220",
@@ -1101,7 +1305,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/17c717e6",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0202",
@@ -1117,7 +1324,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2dc2bd5a",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0217",
@@ -1133,7 +1343,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2ac4f738",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0200",
@@ -1149,7 +1362,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2bc2ba34",
+    "correcciones": []
   },
   {
     "id": "TXN-202607-0199",
@@ -1165,7 +1381,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-07-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ebaf315f",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0175",
@@ -1181,7 +1400,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/65ea63dc",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0195",
@@ -1197,7 +1419,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/79db78ce",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0186",
@@ -1213,7 +1438,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f6d86bfe",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0196",
@@ -1229,7 +1457,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-24T23:10:00.000Z",
+    "payloadCrudoRef": "tx/78db773b",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0178",
@@ -1245,7 +1476,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/6aea6bbb",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0183",
@@ -1261,7 +1495,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fbd873dd",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0184",
@@ -1277,7 +1514,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f4d868d8",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0182",
@@ -1293,7 +1533,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-18T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fad8724a",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0187",
@@ -1309,7 +1552,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f7d86d91",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0194",
@@ -1325,7 +1571,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7adb7a61",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0192",
@@ -1341,7 +1590,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7cdb7d87",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0193",
@@ -1357,7 +1609,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7bdb7bf4",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0180",
@@ -1373,7 +1628,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f8d86f24",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0189",
@@ -1389,7 +1647,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f1d8641f",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0181",
@@ -1405,7 +1666,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f9d870b7",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0197",
@@ -1421,7 +1685,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/77db75a8",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0190",
@@ -1437,7 +1704,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-08T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7edb80ad",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0185",
@@ -1453,7 +1723,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f5d86a6b",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0177",
@@ -1469,7 +1742,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/67ea6702",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0179",
@@ -1485,7 +1761,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/69ea6a28",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0176",
@@ -1501,7 +1780,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/68ea6895",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0188",
@@ -1517,7 +1799,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f0d8628c",
+    "correcciones": []
   },
   {
     "id": "TXN-202606-0191",
@@ -1533,7 +1818,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-06-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7ddb7f1a",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0151",
@@ -1549,7 +1837,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1b8d115d",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0163",
@@ -1565,7 +1856,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/118ac308",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0166",
@@ -1581,7 +1875,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-26T23:10:00.000Z",
+    "payloadCrudoRef": "tx/168acae7",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0174",
@@ -1597,7 +1894,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/12888604",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0168",
@@ -1613,7 +1913,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0c8abb29",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0173",
@@ -1629,7 +1932,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/11888471",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0171",
@@ -1645,7 +1951,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0f88814b",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0170",
@@ -1661,7 +1970,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0e887fb8",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0154",
@@ -1677,7 +1989,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/168d097e",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0158",
@@ -1693,7 +2008,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-18T23:10:00.000Z",
+    "payloadCrudoRef": "tx/128d0332",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0159",
@@ -1709,7 +2027,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/138d04c5",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0165",
@@ -1725,7 +2046,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/178acc7a",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0164",
@@ -1741,7 +2065,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/188ace0d",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0160",
@@ -1757,7 +2084,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/148ac7c1",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0172",
@@ -1773,7 +2103,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/108882de",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0156",
@@ -1789,7 +2122,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/148d0658",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0157",
@@ -1805,7 +2141,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/158d07eb",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0167",
@@ -1821,7 +2160,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/158ac954",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0161",
@@ -1837,7 +2179,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/138ac62e",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0162",
@@ -1853,7 +2198,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/128ac49b",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0153",
@@ -1869,7 +2217,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/198d0e37",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0152",
@@ -1885,7 +2236,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/188d0ca4",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0155",
@@ -1901,7 +2255,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/178d0b11",
+    "correcciones": []
   },
   {
     "id": "TXN-202605-0169",
@@ -1917,7 +2274,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-05-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0b8ab996",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0127",
@@ -1933,7 +2293,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f9002341",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0139",
@@ -1949,7 +2312,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f7025eb2",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0141",
@@ -1965,7 +2331,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/eefb9655",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0144",
@@ -1981,7 +2350,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/e9fb8e76",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0138",
@@ -1997,7 +2369,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-26T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f8026045",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0140",
@@ -2013,7 +2388,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-26T23:10:00.000Z",
+    "payloadCrudoRef": "tx/edfb94c2",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0136",
@@ -2029,7 +2407,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-24T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fa02636b",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0143",
@@ -2045,7 +2426,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ecfb932f",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0148",
@@ -2061,7 +2445,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f5fba15a",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0147",
@@ -2077,7 +2464,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/e8fb8ce3",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0130",
@@ -2093,7 +2483,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/00026cdd",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0150",
@@ -2109,7 +2502,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f3fddccb",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0145",
@@ -2125,7 +2521,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/eafb9009",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0135",
@@ -2141,7 +2540,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fb0264fe",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0137",
@@ -2157,7 +2559,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f90261d8",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0134",
@@ -2173,7 +2578,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fc026691",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0132",
@@ -2189,7 +2597,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fe0269b7",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0142",
@@ -2205,7 +2616,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ebfb919c",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0133",
@@ -2221,7 +2635,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/fd026824",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0146",
@@ -2237,7 +2654,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/e7fb8b50",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0149",
@@ -2253,7 +2673,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f6fba2ed",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0129",
@@ -2269,7 +2692,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f30019cf",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0131",
@@ -2285,7 +2711,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/ff026b4a",
+    "correcciones": []
   },
   {
     "id": "TXN-202604-0128",
@@ -2301,7 +2730,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-04-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/f200183c",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0108",
@@ -2317,7 +2749,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0db270d9",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0126",
@@ -2333,7 +2768,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/87b7ae15",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0125",
@@ -2349,7 +2787,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-23T23:10:00.000Z",
+    "payloadCrudoRef": "tx/84b7a95c",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0119",
@@ -2365,7 +2806,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/08b02a63",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0111",
@@ -2381,7 +2825,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/10b036fb",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0117",
@@ -2397,7 +2844,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-18T23:10:00.000Z",
+    "payloadCrudoRef": "tx/16b0406d",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0116",
@@ -2413,7 +2863,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/15b03eda",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0121",
@@ -2429,7 +2882,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/80b7a310",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0115",
@@ -2445,7 +2901,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/14b03d47",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0124",
@@ -2461,7 +2920,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/85b7aaef",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0113",
@@ -2477,7 +2939,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/12b03a21",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0122",
@@ -2493,7 +2958,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/83b7a7c9",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0120",
@@ -2509,7 +2977,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/81b7a4a3",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0114",
@@ -2525,7 +2996,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/13b03bb4",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0118",
@@ -2541,7 +3015,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/07b028d0",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0123",
@@ -2557,7 +3034,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/82b7a636",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0112",
@@ -2573,7 +3053,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/11b0388e",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0110",
@@ -2589,7 +3072,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0fb03568",
+    "correcciones": []
   },
   {
     "id": "TXN-202603-0109",
@@ -2605,7 +3091,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-03-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/0cb26f46",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0082",
@@ -2621,7 +3110,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a3d1cf71",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0103",
@@ -2637,7 +3129,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/364e0bc1",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0101",
@@ -2653,7 +3148,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/344e089b",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0090",
@@ -2669,7 +3167,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/9bcf8442",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0085",
@@ -2685,7 +3186,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a4d1d104",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0104",
@@ -2701,7 +3205,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/374e0d54",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0096",
@@ -2717,7 +3224,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/95cf7ad0",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0099",
@@ -2733,7 +3243,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a4cf926d",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0095",
@@ -2749,7 +3262,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-18T23:10:00.000Z",
+    "payloadCrudoRef": "tx/98cf7f89",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0089",
@@ -2765,7 +3281,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/98d1be20",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0100",
@@ -2781,7 +3300,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/334e0708",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0102",
@@ -2797,7 +3319,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/354e0a2e",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0092",
@@ -2813,7 +3338,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/99cf811c",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0087",
@@ -2829,7 +3357,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a6d1d42a",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0093",
@@ -2845,7 +3376,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/9acf82af",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0094",
@@ -2861,7 +3395,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/97cf7df6",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0107",
@@ -2877,7 +3414,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3a4e120d",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0088",
@@ -2893,7 +3433,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/99d1bfb3",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0091",
@@ -2909,7 +3452,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/9ccf85d5",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0105",
@@ -2925,7 +3471,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/384e0ee7",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0086",
@@ -2941,7 +3490,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a7d1d5bd",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0084",
@@ -2957,7 +3509,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a5d1d297",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0083",
@@ -2973,7 +3528,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a2d1cdde",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0106",
@@ -2989,7 +3547,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/394e107a",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0097",
@@ -3005,7 +3566,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/96cf7c63",
+    "correcciones": []
   },
   {
     "id": "TXN-202602-0098",
@@ -3021,7 +3585,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-02-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/a3cf90da",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0063",
@@ -3037,7 +3604,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/407971eb",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0081",
@@ -3053,7 +3623,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2e56c353",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0077",
@@ -3069,7 +3642,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-21T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c47c804e",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0071",
@@ -3085,7 +3661,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c67c8374",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0066",
@@ -3101,7 +3680,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/437976a4",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0074",
@@ -3117,7 +3699,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c37c7ebb",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0073",
@@ -3133,7 +3718,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c87c869a",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0076",
@@ -3149,7 +3737,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c57c81e1",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0069",
@@ -3165,7 +3756,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3a796879",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0070",
@@ -3181,7 +3775,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c77c8507",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0068",
@@ -3197,7 +3794,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/397966e6",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0078",
@@ -3213,7 +3813,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bf7c786f",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0079",
@@ -3229,7 +3832,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/be7c76dc",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0080",
@@ -3245,7 +3851,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2d56c1c0",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0067",
@@ -3261,7 +3870,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/44797837",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0065",
@@ -3277,7 +3889,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/46797b5d",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0064",
@@ -3293,7 +3908,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/457979ca",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0075",
@@ -3309,7 +3927,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-04T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c27c7d28",
+    "correcciones": []
   },
   {
     "id": "TXN-202601-0072",
@@ -3325,7 +3946,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2026-01-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c97c882d",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0042",
@@ -3341,7 +3965,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/88488551",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0053",
@@ -3357,7 +3984,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7f46388f",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0060",
@@ -3373,7 +4003,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7a43f219",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0058",
@@ -3389,7 +4022,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/884646ba",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0054",
@@ -3405,7 +4041,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-25T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7c4633d6",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0045",
@@ -3421,7 +4060,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/894886e4",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0061",
@@ -3437,7 +4079,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7943f086",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0052",
@@ -3453,7 +4098,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7e4636fc",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0062",
@@ -3469,7 +4117,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7843eef3",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0050",
@@ -3485,7 +4136,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/80463a22",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0049",
@@ -3501,7 +4155,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7d487400",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0055",
@@ -3517,7 +4174,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7d463569",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0048",
@@ -3533,7 +4193,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7e487593",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0047",
@@ -3549,7 +4212,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/8b488a0a",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0056",
@@ -3565,7 +4231,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-08T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7a4630b0",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0059",
@@ -3581,7 +4250,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/8946484d",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0044",
@@ -3597,7 +4269,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/8a488877",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0043",
@@ -3613,7 +4288,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/874883be",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0046",
@@ -3629,7 +4307,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/8c488b9d",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0057",
@@ -3645,7 +4326,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/7b463243",
+    "correcciones": []
   },
   {
     "id": "TXN-202512-0051",
@@ -3661,7 +4345,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-12-01T23:10:00.000Z",
+    "payloadCrudoRef": "tx/81463bb5",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0020",
@@ -3677,7 +4364,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1746d296",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0039",
@@ -3693,7 +4383,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-28T23:10:00.000Z",
+    "payloadCrudoRef": "tx/244925a4",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0032",
@@ -3709,7 +4402,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1f491dc5",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0040",
@@ -3725,7 +4421,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-26T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1337c1c0",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0033",
@@ -3741,7 +4440,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-26T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1e491c32",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0029",
@@ -3757,7 +4459,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-22T23:10:00.000Z",
+    "payloadCrudoRef": "tx/2046e0c1",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0023",
@@ -3773,7 +4478,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1646d103",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0035",
@@ -3789,7 +4497,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/184912c0",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0028",
@@ -3805,7 +4516,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-16T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1f46df2e",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0027",
@@ -3821,7 +4535,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-15T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1a46d74f",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0037",
@@ -3837,7 +4554,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-14T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1a4915e6",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0041",
@@ -3853,7 +4573,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1437c353",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0031",
@@ -3869,7 +4592,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1c49190c",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0025",
@@ -3885,7 +4611,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-12T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1c46da75",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0026",
@@ -3901,7 +4630,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-10T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1946d5bc",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0034",
@@ -3917,7 +4649,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/19491453",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0030",
@@ -3933,7 +4668,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1d491a9f",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0022",
@@ -3949,7 +4687,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1546cf70",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0038",
@@ -3965,7 +4706,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/25492737",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0036",
@@ -3981,7 +4725,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1b491779",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0021",
@@ -3997,7 +4744,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1846d429",
+    "correcciones": []
   },
   {
     "id": "TXN-202511-0024",
@@ -4013,7 +4763,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-11-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/1b46d8e2",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0001",
@@ -4029,7 +4782,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-30T23:10:00.000Z",
+    "payloadCrudoRef": "tx/41692d36",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0018",
@@ -4045,7 +4801,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-27T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c46629d8",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0013",
@@ -4061,7 +4820,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-23T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bf6621f9",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0019",
@@ -4077,7 +4839,10 @@
     "estadoCategoria": "sin_categoria",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-23T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c5662b6b",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0004",
@@ -4093,7 +4858,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-20T23:10:00.000Z",
+    "payloadCrudoRef": "tx/46693515",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0009",
@@ -4109,7 +4877,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-19T23:10:00.000Z",
+    "payloadCrudoRef": "tx/496939ce",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0008",
@@ -4125,7 +4896,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-17T23:10:00.000Z",
+    "payloadCrudoRef": "tx/4a693b61",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0006",
@@ -4141,7 +4915,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/446931ef",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0015",
@@ -4157,7 +4934,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-13T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c166251f",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0007",
@@ -4173,7 +4953,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-11T23:10:00.000Z",
+    "payloadCrudoRef": "tx/4369305c",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0016",
@@ -4189,7 +4972,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-09T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c26626b2",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0012",
@@ -4205,7 +4991,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-08T23:10:00.000Z",
+    "payloadCrudoRef": "tx/be662066",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0014",
@@ -4221,7 +5010,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-07T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c066238c",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0003",
@@ -4237,7 +5029,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/3f692a10",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0005",
@@ -4253,7 +5048,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-06T23:10:00.000Z",
+    "payloadCrudoRef": "tx/45693382",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0002",
@@ -4269,7 +5067,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": true,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-05T23:10:00.000Z",
+    "payloadCrudoRef": "tx/40692ba3",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0017",
@@ -4285,7 +5086,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-04T23:10:00.000Z",
+    "payloadCrudoRef": "tx/c3662845",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0010",
@@ -4301,7 +5105,10 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-03T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bc661d40",
+    "correcciones": []
   },
   {
     "id": "TXN-202510-0011",
@@ -4317,6 +5124,9 @@
     "estadoCategoria": "automatica",
     "esRecurrente": false,
     "excluido": false,
-    "origen": "sfa"
+    "origen": "sfa",
+    "recibidoEn": "2025-10-01T23:10:00.000Z",
+    "payloadCrudoRef": "tx/bd661ed3",
+    "correcciones": []
   }
 ]

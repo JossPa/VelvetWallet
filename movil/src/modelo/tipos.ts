@@ -41,6 +41,13 @@ export type OrigenMovimiento = "sfa" | "cartola" | "manual";
 /** Cómo quedó la categoría: la puso el clasificador, la corrigió el usuario, o no hay. */
 export type EstadoCategoria = "automatica" | "corregida" | "sin_categoria";
 
+/** Corrección hecha por el usuario. Se guarda aparte; el dato original no se modifica. */
+export type Correccion = {
+  tipo: "recategorizar" | "marcar_duplicado" | "excluir" | "dividir";
+  fecha: string;
+  detalle?: string;
+};
+
 /**
  * Un movimiento ya normalizado al modelo canónico.
  *
@@ -70,4 +77,12 @@ export type Movimiento = {
   /** No es gasto: transferencia entre cuentas propias, por ejemplo. */
   excluido: boolean;
   origen: OrigenMovimiento;
+
+  // ── Trazabilidad (Ley 21.719: registro de tratamiento) ──
+  /** Cuándo lo recibió Velvet Wallet. Distinto de `fecha`, que es la del banco. */
+  recibidoEn: string;
+  /** Referencia al documento crudo en MongoDB tal como llegó. null en carga manual. */
+  payloadCrudoRef: string | null;
+  /** Correcciones del usuario, en orden. Vacío si no hay. */
+  correcciones: Correccion[];
 };

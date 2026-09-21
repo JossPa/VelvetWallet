@@ -46,6 +46,11 @@ export function fechaCorta(iso: string): string {
   return `${d.getDate()} ${MESES[d.getMonth()]}`;
 }
 
+/** Fecha y hora: "21 ago 19:42". */
+export function fechaHora(iso: string): string {
+  return `${fechaCorta(iso)} ${hora(iso)}`;
+}
+
 /** Hora: "14:32". */
 export function hora(iso: string): string {
   const d = new Date(iso);

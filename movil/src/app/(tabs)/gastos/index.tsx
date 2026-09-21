@@ -5,6 +5,7 @@
  * (arriendo, suscripciones, cuentas del hogar). "Variables" es todo lo demás.
  * Los meses y las categorías disponibles salen de los datos, no están fijos.
  */
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -33,6 +34,7 @@ const SIN_CATEGORIA = "__sin__";
 const MESES = [...new Set(MOVIMIENTOS.map((m) => claveMes(m.fecha)))].sort().reverse();
 
 export default function Gastos() {
+  const router = useRouter();
   const [mes, setMes] = useState(MESES[0]);
   const [tipo, setTipo] = useState<Tipo>("todos");
   const [categoria, setCategoria] = useState<string>(TODAS);
@@ -91,7 +93,7 @@ export default function Gastos() {
 
       <View style={estilos.lista}>
         {visibles.map((m) => (
-          <FilaMovimiento key={m.id} movimiento={m} />
+          <FilaMovimiento key={m.id} movimiento={m} onPress={() => router.push(`/gastos/${m.id}`)} />
         ))}
       </View>
 

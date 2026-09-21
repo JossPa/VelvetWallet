@@ -39,6 +39,26 @@ const RECURRENTES = new Set([
   "CGE", "Essal", "Abastible",
 ]);
 
+/**
+ * Referencia corta y determinista al documento crudo, imitando la forma
+ * "tx/<8 hex>" que tendrá el ObjectId de MongoDB. Mismo ID → misma referencia.
+ */
+function referenciaCruda(transactionID) {
+  let h = 2166136261;
+  for (const c of transactionID) {
+    h ^= c.charCodeAt(0);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return "tx/" + h.toString(16).padStart(8, "0");
+}
+
+/** La sincronización corre de noche: se "recibe" el mismo día a las 23:10. */
+function recibidoEn(bookingDateTime) {
+  const d = new Date(bookingDateTime);
+  d.setUTCHours(23, 10, 0, 0);
+  return d.toISOString();
+}
+
 function normalizar(m) {
   const comercio = m.merchantDetails?.name ?? null;
   const categoriaBanco = m.merchantDetails?.category ?? null;
@@ -62,6 +82,9 @@ function normalizar(m) {
     esRecurrente: comercio ? RECURRENTES.has(comercio) : false,
     excluido: false,
     origen: "sfa",
+    recibidoEn: recibidoEn(m.bookingDateTime),
+    payloadCrudoRef: referenciaCruda(m.transactionID),
+    correcciones: [],
   };
 }
 
