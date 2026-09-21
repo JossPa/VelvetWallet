@@ -36,11 +36,13 @@ export function AvatarComercio({ nombre, sinIdentificar = false, tamano = 44 }: 
   const fondo = entrada?.color ?? colores.chip;
   const tinta = entrada?.tinta ?? (entrada ? "#FFFFFF" : colores.texto2);
 
-  // 1. Imagen local
+  // 1. Imagen local. `overflow: hidden` recorta la imagen a las esquinas
+  //    redondeadas del avatar cuando la escala es 1.
   if (entrada?.imagen) {
+    const lado = tamano * (entrada.escala ?? 0.6);
     return (
-      <View style={[estilos.caja, caja, { backgroundColor: fondo }]}>
-        <Image source={entrada.imagen} style={{ width: tamano * 0.6, height: tamano * 0.6 }} resizeMode="contain" />
+      <View style={[estilos.caja, caja, { backgroundColor: fondo, overflow: "hidden" }]}>
+        <Image source={entrada.imagen} style={{ width: lado, height: lado }} resizeMode="contain" />
       </View>
     );
   }
