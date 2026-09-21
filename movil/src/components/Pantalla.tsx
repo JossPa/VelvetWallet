@@ -1,5 +1,5 @@
 /**
- * Marco común de toda pantalla: fondo, margen seguro y cabecera con título.
+ * Marco común de toda pantalla y piezas de layout que se repiten.
  *
  * `SafeAreaView` evita que el contenido quede debajo de la muesca o la barra
  * de estado del teléfono. `etiqueta` es el chip de la derecha del mockup
@@ -9,7 +9,7 @@ import { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colores, espacio, radio } from "@/constants/tema";
+import { colores, espacio, fuente, radio } from "@/constants/tema";
 
 type Props = {
   titulo: string;
@@ -35,12 +35,24 @@ export function Pantalla({ titulo, etiqueta, children }: Props) {
   );
 }
 
+/** Rótulo de sección en mayúsculas espaciadas: "TUS DATOS", "CORREGIR". */
+export function Seccion({ titulo }: { titulo: string }) {
+  return <Text style={estilos.seccion}>{titulo.toUpperCase()}</Text>;
+}
+
+/** Tarjeta gris de texto informativo, como la nota de confianza al pie de Cuentas. */
+export function Nota({ children }: { children: ReactNode }) {
+  return (
+    <View style={estilos.nota}>
+      <Text style={estilos.notaTexto}>{children}</Text>
+    </View>
+  );
+}
+
 /** Contenido provisional para las secciones que dependen de motores futuros. */
 export function Proximamente({ que }: { que: string }) {
   return (
-    <View style={estilos.vacio}>
-      <Text style={estilos.vacioTexto}>{que}</Text>
-    </View>
+    <Nota>{que}</Nota>
   );
 }
 
@@ -53,19 +65,32 @@ const estilos = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: espacio.xl,
   },
-  titulo: { color: colores.texto, fontSize: 28, fontWeight: "700" },
+  titulo: {
+    color: colores.texto,
+    fontFamily: fuente.titulo,
+    fontSize: 30,
+    letterSpacing: -0.6,
+  },
   chip: {
     backgroundColor: colores.chip,
     paddingHorizontal: espacio.m,
-    paddingVertical: espacio.xs,
+    paddingVertical: 6,
     borderRadius: radio.l,
   },
-  chipTexto: { color: colores.texto2, fontSize: 13 },
-  vacio: {
+  chipTexto: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 13 },
+  seccion: {
+    color: colores.texto3,
+    fontFamily: fuente.tituloMedio,
+    fontSize: 12,
+    letterSpacing: 1.2,
+    marginTop: espacio.xl,
+    marginBottom: espacio.s,
+  },
+  nota: {
     backgroundColor: colores.tarjeta,
     borderRadius: radio.m,
-    padding: espacio.xl,
-    alignItems: "center",
+    padding: espacio.l,
+    marginTop: espacio.l,
   },
-  vacioTexto: { color: colores.texto3, fontSize: 14, textAlign: "center" },
+  notaTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, lineHeight: 21 },
 });

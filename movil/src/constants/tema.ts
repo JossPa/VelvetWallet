@@ -24,6 +24,23 @@ export const colores = {
   alertaSuave: "#2B2214",
 } as const;
 
+/**
+ * Tipografías del mockup. En React Native cada peso es una fuente aparte,
+ * así que se elige por nombre completo y no con fontWeight.
+ *
+ *   titulo   Archivo      cabeceras, cifras grandes, nombres
+ *   texto    Public Sans  todo lo demás
+ *   mono     IBM Plex Mono glosas tal como las manda el banco
+ */
+export const fuente = {
+  titulo: "Archivo_700Bold",
+  tituloMedio: "Archivo_600SemiBold",
+  texto: "PublicSans_400Regular",
+  textoMedio: "PublicSans_500Medium",
+  textoFuerte: "PublicSans_600SemiBold",
+  mono: "IBMPlexMono_500Medium",
+} as const;
+
 export const espacio = {
   xs: 4,
   s: 8,
