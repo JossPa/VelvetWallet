@@ -27,6 +27,12 @@ export default function LayoutPestanas() {
         tabBarStyle: {
           backgroundColor: colores.fondo,
           borderTopColor: colores.linea,
+          // Altura fija: en web no hay "zona segura" inferior y sin esto
+          // la etiqueta queda cortada. En el celular se suma el margen del
+          // sistema automáticamente.
+          height: 68,
+          paddingTop: 2,
+          paddingBottom: 4,
         },
         tabBarLabelStyle: { fontSize: 11 },
         sceneStyle: { backgroundColor: colores.fondo },
