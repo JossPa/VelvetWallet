@@ -34,3 +34,40 @@ export type CuentaConectada = {
   saldo: number;
   moneda: "CLP";
 };
+
+/** Por qué camino entró el movimiento al sistema. */
+export type OrigenMovimiento = "sfa" | "cartola" | "manual";
+
+/** Cómo quedó la categoría: la puso el clasificador, la corrigió el usuario, o no hay. */
+export type EstadoCategoria = "automatica" | "corregida" | "sin_categoria";
+
+/**
+ * Un movimiento ya normalizado al modelo canónico.
+ *
+ * Se guardan por separado lo que dijo el banco (glosaOriginal, categoriaBanco)
+ * y lo que el sistema entendió (comercio, categoria). El dato original nunca
+ * se pierde; las correcciones se aplican encima.
+ */
+export type Movimiento = {
+  id: string;
+  cuentaId: string;
+  institucion: string;
+  fecha: string;
+  /** Con signo: negativo = cargo, positivo = abono. */
+  monto: number;
+  moneda: "CLP";
+  /** Nombre normalizado ("Uber Eats"). null si no se pudo identificar. */
+  comercio: string | null;
+  /** Tal como la mandó la institución ("UBER *EATS 8829 SANTIAGO"). */
+  glosaOriginal: string;
+  /** Categoría de Velvet Wallet. null = sin categorizar; se muestra en Por revisar. */
+  categoria: string | null;
+  /** Categoría que mandó la institución, si la mandó. Sin taxonomía común entre bancos. */
+  categoriaBanco: string | null;
+  estadoCategoria: EstadoCategoria;
+  /** Detectado como cargo recurrente (suscripción, arriendo, cuenta del hogar). */
+  esRecurrente: boolean;
+  /** No es gasto: transferencia entre cuentas propias, por ejemplo. */
+  excluido: boolean;
+  origen: OrigenMovimiento;
+};

@@ -10,7 +10,35 @@ export function pesos(monto: number): string {
   return (monto < 0 ? "−" : "") + "$" + abs;
 }
 
+const MESES_LARGO = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
 const dosDigitos = (n: number) => n.toString().padStart(2, "0");
+
+/** "2026-09" → clave de mes; sirve para agrupar y filtrar. */
+export function claveMes(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${dosDigitos(d.getMonth() + 1)}`;
+}
+
+/** "2026-09" → "Septiembre". */
+export function nombreMes(clave: string): string {
+  const mes = Number(clave.slice(5, 7)) - 1;
+  const nombre = MESES_LARGO[mes];
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+}
+
+/** Fecha como la muestra la lista: "hoy", "ayer" o "22 ago". */
+export function fechaLista(iso: string, ahora: Date = new Date()): string {
+  const d = new Date(iso);
+  if (d.toDateString() === ahora.toDateString()) return "hoy";
+  const ayer = new Date(ahora);
+  ayer.setDate(ahora.getDate() - 1);
+  if (d.toDateString() === ayer.toDateString()) return "ayer";
+  return fechaCorta(iso);
+}
 
 /** Fecha corta: "3 sep". */
 export function fechaCorta(iso: string): string {
