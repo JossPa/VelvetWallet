@@ -55,7 +55,7 @@ export const COMERCIOS: Record<string, EntradaComercio> = {
   Unimarc: { color: "#FFFFFF", imagen: require("@/assets/comercios/unimarc.png"), escala: 0.78 },
   Copec: { color: "#FFFFFF", imagen: require("@/assets/comercios/copec.png"), escala: 0.68 },
   Falabella: { color: "#FFFFFF", imagen: require("@/assets/comercios/falabella.png"), escala: 0.7 },
-  "Smart Fit": { color: "#FFFFFF", imagen: require("@/assets/comercios/smart-fit.png"), escala: 0.72 },
+  "Smart Fit": { color: "#000000", imagen: require("@/assets/comercios/smart-fit.png"), escala: 0.72 },
   Jumbo: { color: "#FFFFFF", imagen: require("@/assets/comercios/jumbo.png"), escala: 0.9 },
   "Santa Isabel": { color: "#FFFFFF", imagen: require("@/assets/comercios/santa-isabel.png"), escala: 0.85 },
 
