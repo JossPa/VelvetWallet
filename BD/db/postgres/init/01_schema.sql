@@ -92,6 +92,7 @@ CREATE TABLE cuenta (
     id                 uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
     conexion_id        uuid          NOT NULL REFERENCES conexion(id) ON DELETE CASCADE,
     usuario_id         uuid          NOT NULL REFERENCES usuario(id)  ON DELETE CASCADE,
+    id_externo         varchar(64),
     tipo               varchar(40)            CHECK (tipo IN ('corriente','vista','ahorro','credito','tarjeta','otro')),
     numero_enmascarado varchar(40),
     moneda             varchar(3)    NOT NULL DEFAULT 'CLP',
@@ -101,6 +102,7 @@ CREATE TABLE cuenta (
 
 COMMENT ON TABLE  cuenta                    IS 'Cuenta o producto financiero obtenido vía SFA o cartola (RF-05).';
 COMMENT ON COLUMN cuenta.numero_enmascarado IS 'Solo dígitos finales enmascarados. No se almacena el número completo.';
+COMMENT ON COLUMN cuenta.id_externo         IS 'accountId tal como lo entrega la institución. Único por conexión. NULL en carga manual.';
 
 -- =============================================================================
 -- 6. CONSENTIMIENTO  (alcance RAR por conexión)
@@ -159,7 +161,8 @@ CREATE TABLE transaccion (
     categoria_id            uuid                   REFERENCES categoria(id)   ON DELETE SET NULL,
     suscripcion_id          uuid                   REFERENCES suscripcion(id) ON DELETE SET NULL,
     payload_crudo_ref       varchar(24),
-    monto                   numeric(15,2) NOT NULL,
+    id_externo              varchar(64),
+    monto                   numeric(15,2) NOT NULL CHECK (monto <> 0),
     moneda                  varchar(3)    NOT NULL DEFAULT 'CLP',
     fecha                   date          NOT NULL,
     glosa_original          varchar(255),
@@ -178,6 +181,8 @@ COMMENT ON COLUMN transaccion.payload_crudo_ref       IS 'ObjectId del documento
 COMMENT ON COLUMN transaccion.hash_dedup              IS 'Clave de deduplicación entre fuentes: un movimiento canónico por hash (RF-09).';
 COMMENT ON COLUMN transaccion.confianza_clasificacion IS 'Confianza [0..1] del clasificador para categoria_id.';
 COMMENT ON COLUMN transaccion.glosa_normalizada       IS 'Glosa limpia (p. ej. "UBER *EATS 8829" → "Uber Eats") (RF-10).';
+COMMENT ON COLUMN transaccion.id_externo              IS 'transactionID tal como lo entrega la institución. Clave de actualización (upsert) para fuentes SFA. NULL en carga manual.';
+COMMENT ON COLUMN transaccion.monto                   IS 'Con signo: negativo = cargo, positivo = abono. No existe movimiento de monto cero. El dato original queda en payload_crudo (Mongo).';
 
 -- =============================================================================
 -- 10. CORRECCION  (capa de correcciones del usuario, no sobrescribe el origen)
@@ -216,6 +221,8 @@ CREATE INDEX idx_conexion_usuario        ON conexion (usuario_id);
 CREATE INDEX idx_conexion_institucion    ON conexion (institucion_id);
 CREATE INDEX idx_cuenta_conexion         ON cuenta (conexion_id);
 CREATE INDEX idx_cuenta_usuario          ON cuenta (usuario_id);
+-- accountId único por conexión (upsert en cada sincronización, no crea cuentas duplicadas).
+CREATE UNIQUE INDEX uq_cuenta_conexion_externo ON cuenta (conexion_id, id_externo) WHERE id_externo IS NOT NULL;
 CREATE INDEX idx_consentimiento_conexion ON consentimiento (conexion_id);
 CREATE INDEX idx_suscripcion_usuario     ON suscripcion (usuario_id);
 CREATE INDEX idx_meta_usuario            ON meta (usuario_id);
@@ -227,6 +234,8 @@ CREATE INDEX idx_transaccion_categoria   ON transaccion (categoria_id);
 CREATE INDEX idx_transaccion_suscripcion ON transaccion (suscripcion_id);
 CREATE INDEX idx_transaccion_fecha       ON transaccion (fecha);
 CREATE INDEX idx_transaccion_cuenta_fecha ON transaccion (cuenta_id, fecha DESC);
+-- transactionID único por cuenta: soporta el upsert pendiente→confirmada (mismo ID, otro monto).
+CREATE UNIQUE INDEX uq_transaccion_cuenta_externo ON transaccion (cuenta_id, id_externo) WHERE id_externo IS NOT NULL;
 -- Bandeja "Por revisar": movimientos sin categoría (RF-18).
 CREATE INDEX idx_transaccion_sin_categoria ON transaccion (cuenta_id) WHERE categoria_id IS NULL;
 
