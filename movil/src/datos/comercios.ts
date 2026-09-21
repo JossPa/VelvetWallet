@@ -51,7 +51,8 @@ export const COMERCIOS: Record<string, EntradaComercio> = {
 
   // Con imagen local. Los logos a color van sobre blanco; los que ya son un
   // ícono de app (cuadro de color) llenan el avatar con escala 1.
-  Unimarc: { color: "#E30613", imagen: require("@/assets/comercios/unimarc.png"), escala: 1 },
+  Lider: { color: "#0071CE", imagen: require("@/assets/comercios/lider.png"), escala: 0.58 },
+  Unimarc: { color: "#FFFFFF", imagen: require("@/assets/comercios/unimarc.png"), escala: 0.78 },
   Copec: { color: "#FFFFFF", imagen: require("@/assets/comercios/copec.png"), escala: 0.68 },
   Falabella: { color: "#FFFFFF", imagen: require("@/assets/comercios/falabella.png"), escala: 0.7 },
   "Smart Fit": { color: "#FFFFFF", imagen: require("@/assets/comercios/smart-fit.png"), escala: 0.72 },
@@ -63,7 +64,6 @@ export const COMERCIOS: Record<string, EntradaComercio> = {
   Itaú: { color: "#FF6200", imagen: require("@/assets/comercios/itau.png"), escala: 1 },
 
   // Con color de marca, monograma mientras no haya logo
-  Lider: { color: "#0071CE" },
   "Farmacia Ahumada": { color: "#E4002B" },
   CGE: { color: "#F37021" },
   Essal: { color: "#00A3E0" },
