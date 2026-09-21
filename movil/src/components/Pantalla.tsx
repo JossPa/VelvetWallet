@@ -20,10 +20,12 @@ type Props = {
   accesorio?: ReactNode;
   /** Si se entrega, muestra la flecha de volver a la izquierda del título. */
   onAtras?: () => void;
+  /** Cabecera de marca (cuadrado rojo + nombre en mayúsculas) en vez del título grande. Solo Inicio. */
+  marca?: boolean;
   children?: ReactNode;
 };
 
-export function Pantalla({ titulo, etiqueta, accesorio, onAtras, children }: Props) {
+export function Pantalla({ titulo, etiqueta, accesorio, onAtras, marca, children }: Props) {
   return (
     <SafeAreaView style={estilos.area} edges={["top"]}>
       <ScrollView contentContainerStyle={estilos.contenido}>
@@ -34,7 +36,10 @@ export function Pantalla({ titulo, etiqueta, accesorio, onAtras, children }: Pro
                 <Ionicons name="chevron-back" size={26} color={colores.texto} />
               </Pressable>
             ) : null}
-            <Text style={estilos.titulo}>{titulo}</Text>
+            {marca ? <View style={estilos.marcaCuadro} /> : null}
+            <Text style={marca ? estilos.marcaTexto : estilos.titulo}>
+              {marca ? titulo.toUpperCase() : titulo}
+            </Text>
           </View>
           {accesorio ??
             (etiqueta ? (
@@ -80,6 +85,8 @@ const estilos = StyleSheet.create({
     marginBottom: espacio.xl,
   },
   tituloConAtras: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
+  marcaCuadro: { width: 22, height: 22, borderRadius: 6, backgroundColor: colores.acento, marginRight: espacio.m },
+  marcaTexto: { color: colores.texto2, fontFamily: fuente.tituloMedio, fontSize: 15, letterSpacing: 2 },
   atras: { marginLeft: -espacio.s, marginRight: espacio.xs },
   titulo: {
     color: colores.texto,
