@@ -1,11 +1,12 @@
 /**
  * Layout raíz de la aplicación.
  *
- * Es un Stack (pila de pantallas). Las pestañas son la primera entrada de la
- * pila; el detalle de un movimiento se apila encima y tapa la barra inferior.
+ * Decide qué zona se ve según haya sesión o no: (auth) para quien no entró,
+ * (tabs) para quien sí. Ninguna pantalla de dentro necesita comprobarlo por su
+ * cuenta, y no hay forma de llegar a ellas sin sesión escribiendo la ruta.
  *
- * Antes de mostrar nada carga las fuentes: la pantalla de arranque se mantiene
- * visible hasta que estén listas, para no ver un parpadeo de tipografía.
+ * Antes de mostrar nada carga las fuentes y revisa la sesión guardada: la
+ * pantalla de arranque se mantiene hasta que ambas cosas estén listas.
  */
 import { Archivo_600SemiBold, Archivo_700Bold } from "@expo-google-fonts/archivo";
 import { IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono";
@@ -15,12 +16,13 @@ import {
   PublicSans_600SemiBold,
 } from "@expo-google-fonts/public-sans";
 import { useFonts } from "expo-font";
-import { DarkTheme, Stack, ThemeProvider } from "expo-router";
+import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { colores } from "@/constants/tema";
+import { ProveedorSesion, useSesion } from "@/sesion/SesionContexto";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,7 +40,29 @@ const temaVelvet = {
   },
 };
 
-export default function LayoutRaiz() {
+/**
+ * Redirige entre las dos zonas cuando cambia la sesión. Va en un componente
+ * aparte porque necesita estar dentro del proveedor para leerla.
+ */
+function Guardia() {
+  const { usuario, cargando } = useSesion();
+  const segmentos = useSegments();
+  const router = useRouter();
+
+  const enZonaAuth = segmentos[0] === "(auth)";
+
+  useEffect(() => {
+    if (cargando) return;
+    if (!usuario && !enZonaAuth) router.replace("/sesion");
+    else if (usuario && enZonaAuth) router.replace("/");
+  }, [usuario, cargando, enZonaAuth, router]);
+
+  return null;
+}
+
+function Raiz() {
+  const { cargando } = useSesion();
+
   const [fuentesListas] = useFonts({
     Archivo_600SemiBold,
     Archivo_700Bold,
@@ -48,18 +72,30 @@ export default function LayoutRaiz() {
     IBMPlexMono_500Medium,
   });
 
-  useEffect(() => {
-    if (fuentesListas) SplashScreen.hideAsync();
-  }, [fuentesListas]);
+  const listo = fuentesListas && !cargando;
 
-  if (!fuentesListas) return null;
+  useEffect(() => {
+    if (listo) SplashScreen.hideAsync();
+  }, [listo]);
+
+  if (!listo) return null;
 
   return (
     <ThemeProvider value={temaVelvet}>
       <StatusBar style="light" />
+      <Guardia />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colores.fondo } }}>
+        <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>
     </ThemeProvider>
+  );
+}
+
+export default function LayoutRaiz() {
+  return (
+    <ProveedorSesion>
+      <Raiz />
+    </ProveedorSesion>
   );
 }

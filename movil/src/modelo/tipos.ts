@@ -9,6 +9,46 @@
  * Montos: enteros en pesos chilenos, con signo (negativo = cargo).
  */
 
+// ─────────────────────────── Usuario y sesión ───────────────────────────
+
+/**
+ * El usuario tal como lo ve la app. NO incluye la contraseña ni su hash:
+ * el backend nunca los devuelve.
+ */
+export type Usuario = {
+  id: string;
+  nombre: string;
+  email: string;
+  /** Sueldo configurado por el usuario (RF-36). null hasta que lo defina. */
+  sueldoDeclarado: number | null;
+  creadoEn: string;
+};
+
+/**
+ * Lo que devuelven POST /api/auth/registro y POST /api/auth/sesion.
+ *
+ * El token viaja después en cada petición como `Authorization: Bearer <token>`.
+ * La app lo guarda en el almacenamiento seguro del sistema; la contraseña no
+ * se guarda nunca.
+ */
+export type SesionIniciada = {
+  token: string;
+  /** Cuándo expira el token, para saber si hay que renovarlo. */
+  expiraEn: string;
+  usuario: Usuario;
+};
+
+/** Credenciales de inicio de sesión. */
+export type Credenciales = {
+  email: string;
+  password: string;
+};
+
+/** Datos de registro. */
+export type DatosRegistro = Credenciales & {
+  nombre: string;
+};
+
 /** Estado de la conexión con una institución. Es un estado del usuario, no un error técnico. */
 export type EstadoConexion =
   | "al_dia"                // la última sincronización funcionó
