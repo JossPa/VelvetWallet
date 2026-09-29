@@ -4,6 +4,19 @@ Cómo levantar Velvet Wallet y mostrar un pago llegando. **Requiere dos terminal
 
 Solo hace falta tener instalados **Python 3.11+** y **Node 18+**.
 
+## 🔑 Credenciales de prueba
+
+| | |
+|---|---|
+| **Correo** | `demo@velvetwallet.cl` |
+| **Contraseña** | `velvet2026` |
+
+Aparecen escritas en la propia pantalla de inicio de sesión, así que no hay que recordarlas. También
+se puede **crear una cuenta nueva** desde el enlace *Crear una* — sirve para demostrar el registro.
+
+> La cuenta vive dentro de la aplicación mientras no exista el backend. Al reiniciar, las cuentas
+> creadas se pierden; la de prueba siempre está.
+
 ---
 
 ## 1. Preparar (solo la primera vez)
@@ -53,14 +66,8 @@ Se abre el navegador en `http://localhost:8081`. Para verlo como teléfono: **F1
 
 ## 3. Entrar
 
-Cuenta de prueba, ya escrita en la pantalla:
-
-```
-demo@velvetwallet.cl
-velvet2026
-```
-
-O crear una cuenta nueva con el enlace **Crear una** — sirve para mostrar el registro.
+Con las credenciales de prueba del principio de este documento:
+`demo@velvetwallet.cl` · `velvet2026`
 
 ---
 

@@ -32,10 +32,15 @@ El usuario debe poder responder tres preguntas en segundos:
 
 | Carpeta | Qué contiene | Estado |
 |---|---|---|
-| `simulador/` | Entidad financiera simulada conforme a la API de Cuentas del SFA | En desarrollo |
+| `simulador/` | Entidad financiera simulada conforme a la API de Cuentas del SFA | Funcional |
+| `movil/` | Aplicación en React Native + Expo | Funcional |
+| `BD/` | Entorno de datos: PostgreSQL, MongoDB y Redis con Docker | Funcional |
 | `backend/` | API en FastAPI: ingesta, normalización y capas de inteligencia | Por iniciar |
-| `movil/` | Aplicación en React Native + Expo | Por iniciar |
 | `Fase 1/` | Evidencias entregadas de la primera fase de la asignatura | Entregado |
+
+La aplicación tiene hoy: registro e inicio de sesión, resumen del mes con gasto por categoría,
+lista de movimientos con filtros, detalle con trazabilidad, bandeja de revisión y sincronización
+con la institución. Los cálculos están cubiertos por 57 pruebas automatizadas.
 
 ### Por qué existe el simulador
 
@@ -60,11 +65,21 @@ uvicorn app.main:app --reload --port 8001
 Documentación interactiva en `http://localhost:8001/docs`. Detalles en
 [`simulador/README.md`](simulador/README.md).
 
-### Backend
-
-Por iniciar.
-
 ### Aplicación móvil
+
+```bash
+cd movil
+npm install
+npm run web
+```
+
+Credenciales de prueba: **`demo@velvetwallet.cl`** · **`velvet2026`** (aparecen en la propia
+pantalla de inicio de sesión). Detalles en [`movil/README.md`](movil/README.md).
+
+Para levantar las dos partes juntas y demostrar un pago llegando en vivo, ver
+[`DEMO.md`](DEMO.md).
+
+### Backend
 
 Por iniciar.
 

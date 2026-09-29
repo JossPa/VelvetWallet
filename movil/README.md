@@ -10,6 +10,21 @@ npm run web        # en el navegador, para desarrollar
 npm start          # muestra un QR para abrirla en el celular con Expo Go
 ```
 
+### Credenciales de prueba
+
+| | |
+|---|---|
+| **Correo** | `demo@velvetwallet.cl` |
+| **Contraseña** | `velvet2026` |
+
+Están escritas en la propia pantalla de inicio de sesión. También se puede crear una cuenta nueva
+desde el enlace *Crear una*.
+
+> Son credenciales de desarrollo: la cuenta está definida en `src/servicios/auth.ts` y desaparece
+> cuando ese archivo pase a llamar al backend real. No hay ninguna contraseña real en el repositorio.
+
+Para levantar además el banco simulado y demostrar un pago llegando, ver [`DEMO.md`](../DEMO.md).
+
 ## Estructura
 
 ```
