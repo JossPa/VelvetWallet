@@ -1,0 +1,7 @@
+# Entorno local — nunca subir credenciales
+.env
+
+# Datos de los contenedores (por si alguien monta volúmenes locales)
+db/postgres/data/
+db/mongo/data/
+db/redis/data/

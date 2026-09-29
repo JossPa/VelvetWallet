@@ -1,0 +1,86 @@
+# =============================================================================
+# Velvet Wallet — Entorno de bases de datos (Fase 1)
+# -----------------------------------------------------------------------------
+# Levanta los tres motores con un solo comando (RNF-41):
+#     docker compose up -d
+#
+# Al iniciar por PRIMERA vez (volúmenes vacíos):
+#   · Postgres ejecuta todo lo que haya en db/postgres/init  -> crea el esquema
+#   · Mongo    ejecuta todo lo que haya en db/mongo/init      -> crea colecciones
+# Si cambias esos scripts y quieres re-ejecutarlos, borra los volúmenes:
+#     docker compose down -v   (¡ojo! borra los datos)
+#
+# Integrantes: PADRON JOSSUE · TORRES PEDRO · Capstone APT122 · Duoc UC
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — ledger canónico (modelo relacional)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16
+    container_name: velvet_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # MongoDB — payloads crudos, logs y versiones de modelos (esquema variable)
+  # ---------------------------------------------------------------------------
+  mongo:
+    image: mongo:7
+    container_name: velvet_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodata:/data/db
+      - ./db/mongo/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Redis — caché, control de frecuencia (rate limit) y cola para Celery
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: velvet_redis
+    restart: unless-stopped
+    # appendonly = persiste la cola aunque se reinicie el contenedor
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Volúmenes con nombre: los datos sobreviven a `docker compose down`
+# (pero NO a `docker compose down -v`).
+volumes:
+  pgdata:
+  mongodata:
+  redisdata:
