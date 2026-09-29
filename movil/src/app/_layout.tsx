@@ -22,6 +22,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { colores } from "@/constants/tema";
+import { ProveedorMovimientos } from "@/datos/MovimientosContexto";
 import { ProveedorSesion, useSesion } from "@/sesion/SesionContexto";
 
 SplashScreen.preventAutoHideAsync();
@@ -95,7 +96,9 @@ function Raiz() {
 export default function LayoutRaiz() {
   return (
     <ProveedorSesion>
-      <Raiz />
+      <ProveedorMovimientos>
+        <Raiz />
+      </ProveedorMovimientos>
     </ProveedorSesion>
   );
 }

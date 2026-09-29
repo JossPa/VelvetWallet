@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 import { colores } from "@/constants/tema";
+import { contarNovedades, useMovimientos } from "@/datos/MovimientosContexto";
 
 type NombreIcono = keyof typeof Ionicons.glyphMap;
 
@@ -18,6 +19,9 @@ function icono(nombre: NombreIcono) {
 }
 
 export default function LayoutPestanas() {
+  const { novedades } = useMovimientos();
+  const sinVer = contarNovedades(novedades);
+
   return (
     <Tabs
       screenOptions={{
@@ -39,7 +43,16 @@ export default function LayoutPestanas() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Inicio", tabBarIcon: icono("home") }} />
-      <Tabs.Screen name="gastos" options={{ title: "Gastos", tabBarIcon: icono("list") }} />
+      <Tabs.Screen
+        name="gastos"
+        options={{
+          title: "Gastos",
+          tabBarIcon: icono("list"),
+          // Contador de movimientos sin mirar tras la última sincronización.
+          tabBarBadge: sinVer > 0 ? sinVer : undefined,
+          tabBarBadgeStyle: { backgroundColor: colores.acento, color: "#FFFFFF", fontSize: 11 },
+        }}
+      />
       <Tabs.Screen name="metas" options={{ title: "Metas", tabBarIcon: icono("flag") }} />
       <Tabs.Screen name="deudas" options={{ title: "Deudas", tabBarIcon: icono("card") }} />
       <Tabs.Screen name="cuentas" options={{ title: "Cuentas", tabBarIcon: icono("wallet") }} />

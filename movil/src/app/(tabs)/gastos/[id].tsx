@@ -12,7 +12,7 @@ import { Ficha } from "@/components/Ficha";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { CONEXIONES } from "@/datos/conexiones";
-import { MOVIMIENTOS } from "@/datos/movimientos";
+import { useMovimientos } from "@/datos/MovimientosContexto";
 import type { Correccion, Movimiento, OrigenMovimiento } from "@/modelo/tipos";
 import { fechaCorta, fechaHora, pesos } from "@/utils/formato";
 
@@ -48,7 +48,8 @@ function resumenCorrecciones(lista: Correccion[]): string {
 export default function DetalleMovimiento() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const m = MOVIMIENTOS.find((x) => x.id === id);
+  const { movimientos } = useMovimientos();
+  const m = movimientos.find((x) => x.id === id);
 
   if (!m) {
     return (

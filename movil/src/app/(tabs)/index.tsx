@@ -7,13 +7,15 @@
  * prefiere un espacio honesto a una fórmula simple que después habría que botar.
  */
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Aviso } from "@/components/Aviso";
+import { Boton } from "@/components/Boton";
 import { Pantalla } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { CONEXIONES } from "@/datos/conexiones";
-import { MOVIMIENTOS } from "@/datos/movimientos";
+import { useMovimientos } from "@/datos/MovimientosContexto";
 import type { Conexion } from "@/modelo/tipos";
 import { claveMes, fechaCorta, nombreMes, pesos, tiempoRelativo } from "@/utils/formato";
 import { conexionesConProblema, resumenDelMes } from "@/utils/resumen";
@@ -32,12 +34,33 @@ function describirProblema(c: Conexion): { titulo: string; detalle: string } {
   };
 }
 
+/** Resumen de la última sincronización, en lenguaje natural. */
+function describirResultado(r: { nuevos: number; actualizados: number }): string {
+  const partes: string[] = [];
+  if (r.nuevos > 0) partes.push(`${r.nuevos} ${r.nuevos === 1 ? "movimiento nuevo" : "movimientos nuevos"}`);
+  if (r.actualizados > 0) {
+    partes.push(`${r.actualizados} ${r.actualizados === 1 ? "actualizado" : "actualizados"}`);
+  }
+  return partes.length > 0 ? partes.join(" · ") : "Todo al día. No hay movimientos nuevos.";
+}
+
 export default function Inicio() {
   const router = useRouter();
+  const { movimientos, sincronizando, sincronizar, error } = useMovimientos();
+  const [resultado, setResultado] = useState<string | null>(null);
 
-  const mes = claveMes(MOVIMIENTOS[0].fecha);
-  const resumen = resumenDelMes(MOVIMIENTOS, mes);
+  const mes = claveMes(movimientos[0].fecha);
+  const resumen = resumenDelMes(movimientos, mes);
   const conProblema = conexionesConProblema(CONEXIONES);
+
+  async function alSincronizar() {
+    setResultado(null);
+    try {
+      setResultado(describirResultado(await sincronizar()));
+    } catch {
+      // El mensaje ya quedó en `error`; se muestra abajo del botón.
+    }
+  }
 
   const aviso = conProblema.length > 0 ? describirProblema(conProblema[0]) : null;
   const otros = conProblema.length - 1;
@@ -48,6 +71,22 @@ export default function Inicio() {
       <Text style={[estilos.disponible, resumen.disponible < 0 && estilos.negativo]}>
         {pesos(resumen.disponible)}
       </Text>
+
+      <Boton
+        titulo={sincronizando ? "Consultando…" : "Sincronizar"}
+        onPress={alSincronizar}
+        cargando={sincronizando}
+        secundario
+        style={estilos.sincronizar}
+      />
+
+      {resultado ? (
+        <Pressable onPress={() => router.push("/gastos")} style={estilos.resultado}>
+          <Text style={estilos.resultadoTexto}>{resultado}</Text>
+        </Pressable>
+      ) : null}
+
+      {error ? <Text style={estilos.error}>{error}</Text> : null}
 
       {aviso ? (
         <Aviso
@@ -103,6 +142,16 @@ const estilos = StyleSheet.create({
     marginBottom: espacio.s,
   },
   negativo: { color: colores.acento },
+  sincronizar: { marginTop: espacio.s },
+  resultado: {
+    backgroundColor: colores.acentoSuave,
+    borderRadius: radio.m,
+    padding: espacio.m,
+    marginTop: espacio.m,
+    alignItems: "center",
+  },
+  resultadoTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14 },
+  error: { color: colores.acento, fontFamily: fuente.texto, fontSize: 13, marginTop: espacio.m, textAlign: "center" },
   par: { flexDirection: "row", gap: espacio.m, marginTop: espacio.l },
   tarjeta: {
     flex: 1,
