@@ -22,6 +22,28 @@ src/
 └── constants/tema.ts    colores y espaciados. Ningún componente escribe un color a mano
 ```
 
+## Pendientes anotados
+
+Cosas decididas pero no implementadas, para no perderlas de vista.
+
+| # | Pendiente | Cuándo |
+|---|---|---|
+| 1 | **Conectar al backend.** Hoy `servicios/sincronizacion.ts` llama al simulador directo y normaliza en el dispositivo. El propio archivo lista punto por punto qué cambiar | Cuando existan los endpoints |
+| 2 | **Datos por usuario.** Los movimientos son un archivo dentro de la app: cualquiera que entre ve los mismos. Con backend, cada movimiento queda atado a su `usuario_id` | Junto al punto 1 |
+| 3 | **Autenticación real.** `servicios/auth.ts` simula el backend; las cuentas viven en memoria y no sobreviven a reinstalar la app. Recuperar la cuenta en un teléfono nuevo requiere que los datos estén en el servidor | Junto al punto 1 |
+| 4 | **Saldo proyectado.** El espacio está reservado en Inicio; se activa con el motor Monte Carlo | Semanas 12-13 |
+| 5 | **Acciones de corrección.** Los cuatro botones del detalle no hacen nada: una corrección se persiste, así que necesita backend | Bloque D9 |
+
+### Opcional — bloqueo biométrico
+
+Si el teléfono se pierde o lo roban **con la sesión abierta**, quien lo tenga entra sin contraseña,
+porque el token está guardado justamente para no pedirla cada vez. Un bloqueo por huella o rostro al
+abrir la aplicación lo evita, y en Expo es un paquete (`expo-local-authentication`).
+
+Queda como **opcional**: no está comprometido en los entregables y no bloquea nada. Encaja con el
+bloque de cumplimiento de la Ley 21.719 (semanas 11-14), junto con cerrar sesión en todos los
+dispositivos y acortar la vigencia del token.
+
 ## Convenciones
 
 - **Colores solo desde `tema.ts`.** Salen de los mockups de Fase 1, paleta oscura.

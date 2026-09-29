@@ -5,8 +5,8 @@
  * (arriendo, suscripciones, cuentas del hogar). "Variables" es todo lo demás.
  * Los meses y las categorías disponibles salen de los datos, no están fijos.
  */
-import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Aviso } from "@/components/Aviso";
@@ -16,7 +16,7 @@ import { Nota, Pantalla } from "@/components/Pantalla";
 import { Segmentos } from "@/components/Segmentos";
 import { SelectorMes } from "@/components/SelectorMes";
 import { colores, espacio, fuente } from "@/constants/tema";
-import { MOVIMIENTOS } from "@/datos/movimientos";
+import { useMovimientos } from "@/datos/MovimientosContexto";
 import { claveMes, pesos } from "@/utils/formato";
 
 type Tipo = "todos" | "fijos" | "variables";
@@ -30,18 +30,32 @@ const TIPOS: { valor: Tipo; etiqueta: string }[] = [
 const TODAS = "__todas__";
 const SIN_CATEGORIA = "__sin__";
 
-// Meses con datos, del más reciente al más antiguo. Se calcula una vez.
-const MESES = [...new Set(MOVIMIENTOS.map((m) => claveMes(m.fecha)))].sort().reverse();
-
 export default function Gastos() {
   const router = useRouter();
-  const [mes, setMes] = useState(MESES[0]);
+  const { movimientos, novedades, marcarVistas } = useMovimientos();
+
+  // Meses con datos, del más reciente al más antiguo.
+  const meses = useMemo(
+    () => [...new Set(movimientos.map((m) => claveMes(m.fecha)))].sort().reverse(),
+    [movimientos],
+  );
+
+  const [mes, setMes] = useState(meses[0]);
   const [tipo, setTipo] = useState<Tipo>("todos");
   const [categoria, setCategoria] = useState<string>(TODAS);
 
+  // Si una sincronización trae un mes que no existía, se salta a él.
+  useEffect(() => {
+    if (!meses.includes(mes)) setMes(meses[0]);
+  }, [meses, mes]);
+
+  // Al salir de la pantalla, las novedades dejan de estar destacadas: ya se
+  // vieron. Se hace al salir y no al entrar para que se alcancen a ver.
+  useFocusEffect(useCallback(() => () => marcarVistas(), [marcarVistas]));
+
   const cargosDelMes = useMemo(
-    () => MOVIMIENTOS.filter((m) => m.monto < 0 && claveMes(m.fecha) === mes),
-    [mes],
+    () => movimientos.filter((m) => m.monto < 0 && claveMes(m.fecha) === mes),
+    [movimientos, mes],
   );
 
   // Chips de categoría: las que existen este mes, más "Sin categorizar" si hay.
@@ -73,7 +87,7 @@ export default function Gastos() {
   }
 
   return (
-    <Pantalla titulo="Gastos" accesorio={<SelectorMes meses={MESES} valor={mes} onCambio={cambiarMes} />}>
+    <Pantalla titulo="Gastos" accesorio={<SelectorMes meses={meses} valor={mes} onCambio={cambiarMes} />}>
       <Segmentos opciones={TIPOS} valor={tipo} onCambio={setTipo} />
       {/* key={mes}: al cambiar de mes la fila se reconstruye y vuelve al inicio */}
       <Chips key={mes} opciones={opcionesCategoria} valor={categoria} onCambio={setCategoria} />
@@ -93,7 +107,19 @@ export default function Gastos() {
 
       <View style={estilos.lista}>
         {visibles.map((m) => (
-          <FilaMovimiento key={m.id} movimiento={m} onPress={() => router.push(`/gastos/${m.id}`)} />
+          <FilaMovimiento
+            key={m.id}
+            movimiento={m}
+            onPress={() => router.push(`/gastos/${m.id}`)}
+            novedad={
+              novedades.nuevos.includes(m.id)
+                ? "nuevo"
+                : m.id in novedades.actualizados
+                  ? "actualizado"
+                  : undefined
+            }
+            montoAnterior={novedades.actualizados[m.id]}
+          />
         ))}
       </View>
 

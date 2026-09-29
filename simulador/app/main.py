@@ -10,10 +10,12 @@ sin firma JWS — esas capas se agregan después, sobre algo que ya funciona.
 
 Levantar con:  uvicorn app.main:app --reload --port 8001
 """
+import random
 from datetime import date, datetime
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Path, Header
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.datos import CUENTAS, SALDOS, MOVIMIENTOS
@@ -30,6 +32,21 @@ app = FastAPI(
         "Abiertas. Construido a partir del OpenAPI publicado por la CMF."
     ),
     root_path="",
+)
+
+# El navegador bloquea que una página servida desde otro puerto llame a esta
+# API. Durante el desarrollo la app corre en el 8081 y el simulador en el
+# 8001, así que hay que permitirlo explícitamente.
+#
+# ⚠️ Un banco real NO abre así su API: el estándar SFA exige mTLS y las
+# llamadas vienen de servidor a servidor, no de un navegador. Esto existe solo
+# mientras la app consume el simulador directo; cuando exista el backend, la
+# app deja de llamar acá y esta apertura se acota o se elimina.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
 )
 
 
@@ -225,4 +242,67 @@ def avanzar_simulador():
         "movimientos": confirmados,
         "nota": ("Para volver al estado inicial, reinicia el servidor: "
                  "los datos se cargan del JSON al arrancar."),
+    }
+
+
+# Catálogo corto para inventar compras: (comercio, categoría, mínimo, máximo).
+# Son los mismos del generador; acá se repiten para no importarlo entero.
+_COMPRAS = [
+    ("Uber Eats", "Restaurantes", 6_000, 20_000),
+    ("Lider", "Alimentos", 15_000, 60_000),
+    ("Copec", "Transporte", 20_000, 45_000),
+    ("Farmacia Ahumada", "Salud", 4_000, 25_000),
+]
+
+# Glosas sin comercio: el caso que obliga al clasificador a abstenerse.
+_GLOSAS_SUCIAS = ["PAGO PSP 4471 STGO", "TRANSBANK*CL 8829", "CL*SERV 2210"]
+
+
+@app.post("/simulador/nuevo-pago", tags=["Simulador"],
+          summary="Inyecta un pago nuevo con la fecha y hora actuales")
+def nuevo_pago(
+    cuenta: str = Query("CTA-0001", description="Cuenta a la que se carga"),
+    sin_comercio: bool = Query(False, description="Sin merchantDetails: glosa sucia"),
+    pendiente: bool = Query(False, description="Llega pre-autorizado; se confirma con /avanzar"),
+):
+    """
+    Agrega un movimiento que no existía antes.
+
+    Junto con /avanzar cubre los dos casos que la ingesta debe distinguir:
+    insertar algo nuevo, y actualizar algo que ya estaba sin duplicarlo.
+    """
+    if cuenta not in MOVIMIENTOS:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+
+    ahora = datetime.now().astimezone()
+    # Sufijo N para no chocar con los IDs correlativos del generador.
+    tid = "TXN-%d%02d-N%03d" % (ahora.year, ahora.month, len(MOVIMIENTOS[cuenta]) % 1000)
+
+    movimiento = {
+        "transactionID": tid,
+        "bookingDateTime": ahora,
+        "transactionsType": "Cargo",
+        "currency": "CLP",
+    }
+
+    if sin_comercio:
+        movimiento["amount"] = float(random.randint(3_000, 40_000))
+        movimiento["paymentPurposeCode"] = random.choice(_GLOSAS_SUCIAS)
+    else:
+        nombre, categoria, minimo, maximo = random.choice(_COMPRAS)
+        movimiento["amount"] = float(random.randint(minimo, maximo))
+        movimiento["merchantDetails"] = {"name": nombre, "category": categoria}
+
+    if pendiente:
+        # Pre-autorizado: llega con un monto y se confirma con otro, mismo ID.
+        movimiento["_pendiente"] = True
+        movimiento["_monto_final"] = float(round(movimiento["amount"] * 1.15))
+
+    MOVIMIENTOS[cuenta].append(movimiento)
+
+    return {
+        "creado": sin_internos(movimiento),
+        "pendiente": pendiente,
+        "total_en_cuenta": len(MOVIMIENTOS[cuenta]),
+        "nota": "Vive en memoria: se pierde al reiniciar el servidor.",
     }

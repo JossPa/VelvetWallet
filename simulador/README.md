@@ -58,13 +58,31 @@ forzar la abstención del clasificador.
 No son parte de la API conforme. Existen solo para poder probar la ingesta.
 
 ```bash
-curl http://localhost:8001/simulador/estado          # qué está pendiente
-curl -X POST http://localhost:8001/simulador/avanzar # confirma los pendientes
+curl http://localhost:8001/simulador/estado             # qué está pendiente
+curl -X POST http://localhost:8001/simulador/avanzar    # confirma los pendientes
+curl -X POST http://localhost:8001/simulador/nuevo-pago # inyecta un pago con fecha de ahora
 ```
 
-Al avanzar, las compras pre-autorizadas toman su monto definitivo **manteniendo el mismo
-`transactionID`**. Eso es lo que la ingesta tiene que detectar para actualizar en vez de insertar.
-Para volver al estado inicial basta reiniciar el servidor: los datos se cargan del JSON al arrancar.
+Entre los dos cubren los **dos casos que la ingesta debe distinguir**:
+
+| Endpoint | Qué provoca | Qué debe hacer la ingesta |
+|---|---|---|
+| `nuevo-pago` | Un `transactionID` que no existía | **Insertar** |
+| `avanzar` | Un `transactionID` que ya existía, con otro monto | **Actualizar**, sin duplicar |
+
+`nuevo-pago` acepta `?sin_comercio=true` (llega con glosa sucia y sin `merchantDetails`, para forzar
+la abstención del clasificador) y `?pendiente=true` (llega pre-autorizado y se confirma después con
+`avanzar`).
+
+Los movimientos inyectados viven en memoria: para volver al estado inicial basta reiniciar el
+servidor, porque los datos se cargan del JSON al arrancar.
+
+### CORS abierto durante el desarrollo
+
+El simulador acepta llamadas desde cualquier origen para que la app, que corre en otro puerto,
+pueda consumirlo desde el navegador. **Un banco real no hace esto**: el estándar exige mTLS y las
+llamadas van de servidor a servidor. Se acota o elimina cuando la app pase a consumir el backend en
+vez del simulador.
 
 ### Los modelos se generan, no se escriben
 

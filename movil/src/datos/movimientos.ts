@@ -1,13 +1,16 @@
 /**
- * Datos de desarrollo — movimientos.
+ * Historial inicial de movimientos.
  *
  * movimientos.json lo produce scripts/importar-simulador.mjs a partir de los
  * datos del simulador SFA. No se edita a mano; se regenera.
  *
+ * Es el punto de partida: desde acá, la sincronización trae lo nuevo encima
+ * (ver MovimientosContexto). Cuando exista el backend, el historial también
+ * llegará por HTTP y este archivo desaparece.
+ *
  * El simulador genera cada mes completo, incluidos días que aún no llegan. Un
  * banco real solo entrega lo ocurrido, así que acá se descarta lo posterior a
- * este momento. Cuando la fuente sea el backend, este filtro sobra: la
- * sincronización nunca trae futuro.
+ * este momento.
  */
 import type { Movimiento } from "@/modelo/tipos";
 
@@ -15,4 +18,6 @@ import datos from "./movimientos.json";
 
 const ahora = new Date().toISOString();
 
-export const MOVIMIENTOS: Movimiento[] = (datos as Movimiento[]).filter((m) => m.fecha <= ahora);
+export const MOVIMIENTOS_INICIALES: Movimiento[] = (datos as Movimiento[]).filter(
+  (m) => m.fecha <= ahora,
+);
