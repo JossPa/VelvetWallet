@@ -100,7 +100,10 @@ export default function Gastos() {
       </View>
 
       {sinCategorizar > 0 ? (
-        <Aviso detalle="Tócalos para asignarles una categoría.">
+        <Aviso
+          detalle="Tócalos para asignarles una categoría."
+          onPress={() => router.push("/gastos/por-revisar")}
+        >
           {sinCategorizar} {sinCategorizar === 1 ? "movimiento" : "movimientos"} por categorizar.
         </Aviso>
       ) : null}

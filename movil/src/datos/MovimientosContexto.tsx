@@ -32,6 +32,8 @@ type ValorMovimientos = {
   sincronizar: () => Promise<{ nuevos: number; actualizados: number }>;
   /** Apaga el destacado y el contador de la pestaña. */
   marcarVistas: () => void;
+  /** Asigna una categoría a mano. Queda registrada como corrección del usuario. */
+  corregirCategoria: (id: string, categoria: string) => void;
 };
 
 const Contexto = createContext<ValorMovimientos | null>(null);
@@ -83,9 +85,47 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
 
   const marcarVistas = useCallback(() => setNovedades(SIN_NOVEDADES), []);
 
+  /**
+   * La corrección se guarda como una capa encima del dato: se marca
+   * `estadoCategoria: "corregida"` y se agrega a `correcciones`. El dato
+   * original del banco (glosaOriginal, categoriaBanco) no se toca, y la
+   * fusión respeta esta categoría cuando el banco reenvía la suya (RF-14).
+   *
+   * PENDIENTE: persistir en el backend. Hoy vive en memoria y se pierde al
+   * reiniciar la app.
+   */
+  const corregirCategoria = useCallback((id: string, categoria: string) => {
+    const aplicar = (lista: Movimiento[]) =>
+      lista.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              categoria,
+              estadoCategoria: "corregida" as const,
+              correcciones: [
+                ...m.correcciones,
+                { tipo: "recategorizar" as const, fecha: new Date().toISOString(), detalle: categoria },
+              ],
+            }
+          : m,
+      );
+
+    actualesRef.current = aplicar(actualesRef.current);
+    setMovimientos(actualesRef.current);
+  }, []);
+
   const valor = useMemo(
-    () => ({ movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, marcarVistas }),
-    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, marcarVistas],
+    () => ({
+      movimientos,
+      novedades,
+      sincronizando,
+      ultimaSincronizacion,
+      error,
+      sincronizar,
+      marcarVistas,
+      corregirCategoria,
+    }),
+    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, marcarVistas, corregirCategoria],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
