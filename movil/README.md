@@ -22,6 +22,32 @@ src/
 └── constants/tema.ts    colores y espaciados. Ningún componente escribe un color a mano
 ```
 
+## Pruebas
+
+```bash
+npm test               # corre todas
+npm test -- --coverage # además mide cobertura
+```
+
+Se prueban las **funciones de cálculo** (`src/utils/`): son puras —entra algo,
+sale algo, sin pantallas ni red— así que son las más baratas de probar y las que
+más importa que estén bien, porque de ahí salen todas las cifras que ve el
+usuario.
+
+| Archivo | Qué verifica |
+|---|---|
+| `fusion.prueba.ts` | El upsert: insertar, actualizar sin duplicar, y que las correcciones del usuario sobrevivan a resincronizar (RF-14) |
+| `resumen.prueba.ts` | Disponible del mes, reparto por categoría, comparación mensual |
+| `sugerencias.prueba.ts` | Que las reglas reconozcan comercios y, sobre todo, que **declaren cuándo no saben** |
+| `formato.prueba.ts` | Pesos con signo y separador de miles, fechas relativas |
+
+**57 pruebas · 96% de cobertura · `fusion.ts` al 100%.**
+
+Las de `fusion.ts` son las más importantes del proyecto: ahí está el caso que
+rompe las aplicaciones de finanzas. Comprobarlo a mano toma cinco minutos
+—levantar el simulador, la app, sincronizar, inyectar, sincronizar— y depende de
+mirar bien. La prueba lo hace en dos segundos y no se olvida de ningún caso.
+
 ## Pendientes anotados
 
 Cosas decididas pero no implementadas, para no perderlas de vista.
