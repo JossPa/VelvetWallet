@@ -12,13 +12,21 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Aviso } from "@/components/Aviso";
 import { Boton } from "@/components/Boton";
-import { Pantalla } from "@/components/Pantalla";
+import { Comparacion } from "@/components/Comparacion";
+import { GraficoCategorias } from "@/components/GraficoCategorias";
+import { Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { CONEXIONES } from "@/datos/conexiones";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import type { Conexion } from "@/modelo/tipos";
 import { claveMes, fechaCorta, nombreMes, pesos, tiempoRelativo } from "@/utils/formato";
-import { conexionesConProblema, resumenDelMes } from "@/utils/resumen";
+import {
+  compararConMesAnterior,
+  conexionesConProblema,
+  mesAnterior,
+  repartoPorCategoria,
+  resumenDelMes,
+} from "@/utils/resumen";
 
 /** Texto del aviso según el tipo de problema de la conexión. */
 function describirProblema(c: Conexion): { titulo: string; detalle: string } {
@@ -52,6 +60,8 @@ export default function Inicio() {
   const mes = claveMes(movimientos[0].fecha);
   const resumen = resumenDelMes(movimientos, mes);
   const conProblema = conexionesConProblema(CONEXIONES);
+  const reparto = repartoPorCategoria(movimientos, mes);
+  const comparacion = compararConMesAnterior(movimientos, mes);
 
   async function alSincronizar() {
     setResultado(null);
@@ -108,6 +118,20 @@ export default function Inicio() {
           <Text style={estilos.pieTarjeta}>{resumen.cantidadGastos} movimientos</Text>
         </View>
       </View>
+
+      {reparto.porciones.length > 0 ? (
+        <>
+          <Seccion titulo="En qué se te va" />
+          <GraficoCategorias porciones={reparto.porciones} total={reparto.total} />
+        </>
+      ) : null}
+
+      {comparacion ? (
+        <>
+          <Seccion titulo={`Comparado con ${nombreMes(mesAnterior(mes))}`} />
+          <Comparacion variaciones={comparacion.variaciones} total={comparacion.total} />
+        </>
+      ) : null}
 
       <View style={estilos.proyeccion}>
         <Text style={estilos.rotuloTarjeta}>
@@ -167,7 +191,7 @@ const estilos = StyleSheet.create({
     backgroundColor: colores.tarjeta,
     borderRadius: radio.l,
     padding: espacio.l,
-    marginTop: espacio.m,
+    marginTop: espacio.xl,
     gap: espacio.m,
   },
   reservado: {

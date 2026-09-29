@@ -41,6 +41,16 @@ export const fuente = {
   mono: "IBMPlexMono_500Medium",
 } as const;
 
+/**
+ * Colores del gráfico de categorías, del más gastado al menos.
+ *
+ * Es una escala del mismo rojo de la marca, no colores arbitrarios: el orden
+ * de intensidad ya comunica el orden de magnitud. "Otros" va en gris para que
+ * no compita con las categorías reales.
+ */
+export const paletaCategorias = ["#FF9FAC", "#F76A80", "#EE3450", "#C22740", "#8E1F2F"] as const;
+export const colorOtros = "#4A4D55";
+
 export const espacio = {
   xs: 4,
   s: 8,
