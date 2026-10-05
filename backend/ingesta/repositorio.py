@@ -86,10 +86,23 @@ class Repositorio:
 
     # ── PostgreSQL: upsert de transacción ───────────────────────────────────
     def upsert_transaccion(self, cuenta_id: str, payload_crudo_ref: str,
-                           datos: dict) -> bool:
+                           datos: dict) -> str:
         """
-        Devuelve True si fue INSERT (movimiento nuevo), False si fue UPDATE
-        (movimiento que ya existía y se actualizó, p. ej. al confirmarse).
+        Devuelve qué pasó con el movimiento:
+
+          'nuevo'      → no existía y se insertó.
+          'actualizado'→ ya existía y el banco lo mandó distinto (p. ej. una
+                         compra que pasó de pendiente a confirmada).
+          'sin_cambio' → ya existía exactamente igual; no se tocó.
+
+        El `WHERE` del DO UPDATE es lo que distingue los dos últimos. Sin él, el
+        UPDATE se dispara en cada sincronización para TODOS los movimientos
+        existentes, y el conteo diría que se actualizaron cientos cuando en
+        realidad cambiaron tres. Además evita reescribir filas sin motivo.
+
+        IS DISTINCT FROM (en vez de <>) porque compara bien contra NULL: una
+        glosa o una categoría que estaban vacías y siguen vacías no cuentan
+        como cambio.
         """
         fila = self.conn.execute(
             """
@@ -105,11 +118,18 @@ class Repositorio:
                           payload_crudo_ref = EXCLUDED.payload_crudo_ref,
                           glosa_original    = EXCLUDED.glosa_original,
                           categoria_origen  = EXCLUDED.categoria_origen
+            WHERE transaccion.monto            IS DISTINCT FROM EXCLUDED.monto
+               OR transaccion.glosa_original   IS DISTINCT FROM EXCLUDED.glosa_original
+               OR transaccion.categoria_origen IS DISTINCT FROM EXCLUDED.categoria_origen
             RETURNING (xmax = 0) AS insertado
             """,
             {"cuenta_id": cuenta_id, "ref": payload_crudo_ref, **datos},
         ).fetchone()
-        return bool(fila[0])
+
+        # Sin fila: el WHERE no se cumplió, o sea el movimiento llegó igual.
+        if fila is None:
+            return "sin_cambio"
+        return "nuevo" if fila[0] else "actualizado"
 
     def marcar_sincronizacion(self, conexion_id: str):
         self.conn.execute(

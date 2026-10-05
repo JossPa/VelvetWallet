@@ -41,10 +41,17 @@ Salida esperada (primera corrida):
 
 ```
 Sincronización lista:
+  Consentimiento     : urn:velvet:consent:...
   Cuentas procesadas : 2
   Movimientos nuevos : 271
   Movimientos actualizados: 0
+  Sin cambios        : 0
 ```
+
+Las tres cifras son distintas a propósito: **nuevos** son los que no existían,
+**actualizados** los que el banco mandó distinto, y **sin cambios** los que llegaron
+exactamente igual y no se tocaron. Si todo cayera en "actualizados" en cada corrida, el
+número no diría nada.
 
 ## Probar el ciclo pendiente → confirmada
 
@@ -52,15 +59,26 @@ Esto es lo que justifica el `id_externo` y el UPSERT del esquema:
 
 ```bash
 # 1. Primera ingesta (ya hecha arriba): N movimientos insertados.
-# 2. Avanzar el tiempo en el simulador (confirma los pendientes):
+# 2. Un pago nuevo que llega pre-autorizado:
+curl -X POST "http://localhost:8001/simulador/nuevo-pago?pendiente=true"
+python -m ingesta.sincronizar          # -> nuevos: 1
+# 3. El banco lo confirma con otro monto, mismo transactionID:
 curl -X POST http://localhost:8001/simulador/avanzar
-# 3. Volver a ingerir:
-python -m ingesta.sincronizar
+python -m ingesta.sincronizar          # -> nuevos: 0, actualizados: 1
 ```
 
-En la segunda corrida, **"Movimientos nuevos" debe ser 0** y aparecen varios en
-"actualizados": son las compras que se confirmaron con otro monto. Si el conteo
-de nuevos sube, el UPSERT no está funcionando.
+**"Movimientos nuevos" debe ser 0 en el paso 3**, y el total de filas no debe subir:
+el movimiento cambió de monto pero es el mismo. Si el conteo de nuevos sube, el UPSERT
+no está funcionando.
+
+Comprobado con:
+
+```bash
+docker compose -f ../BD/docker-compose.yml exec postgres \
+  psql -U velvet -d velvet_wallet -c "SELECT count(*), count(DISTINCT id_externo) FROM transaccion;"
+```
+
+Los dos números deben ser iguales: un movimiento del banco, una fila.
 
 ## Verificar en la base
 

@@ -41,6 +41,7 @@ def sincronizar(desde: str | None = None) -> dict:
     cuentas_vistas = 0
     insertadas = 0
     actualizadas = 0
+    sin_cambio = 0
     consent_id = None
 
     try:
@@ -83,13 +84,15 @@ def sincronizar(desde: str | None = None) -> dict:
                 endpoint = "/accounts/%s/transactions" % account_id
                 for mov in banco.obtener_movimientos(account_id, desde=desde):
                     ref = repo.guardar_crudo(conexion_id, endpoint, mov)
-                    es_nueva = repo.upsert_transaccion(
+                    resultado = repo.upsert_transaccion(
                         cuenta_id, ref, transaccion_canonica(account_id, mov)
                     )
-                    if es_nueva:
+                    if resultado == "nuevo":
                         insertadas += 1
-                    else:
+                    elif resultado == "actualizado":
                         actualizadas += 1
+                    else:
+                        sin_cambio += 1
 
         # 4. Marcar la sincronización y confirmar todo de una.
         repo.marcar_sincronizacion(conexion_id)
@@ -102,6 +105,7 @@ def sincronizar(desde: str | None = None) -> dict:
         "cuentas": cuentas_vistas,
         "insertadas": insertadas,
         "actualizadas": actualizadas,
+        "sin_cambio": sin_cambio,
     }
 
 
@@ -112,3 +116,4 @@ if __name__ == "__main__":
     print("  Cuentas procesadas : %d" % resumen["cuentas"])
     print("  Movimientos nuevos : %d" % resumen["insertadas"])
     print("  Movimientos actualizados: %d" % resumen["actualizadas"])
+    print("  Sin cambios        : %d" % resumen["sin_cambio"])
