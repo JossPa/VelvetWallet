@@ -24,7 +24,12 @@ SEMILLA = 42
 
 MESES = 12          # cuántos meses de historia generar
 ANIO_FIN = 2026     # el historial termina en...
-MES_FIN = 9         # ...septiembre de 2026
+MES_FIN = 10        # ...octubre de 2026
+
+# El historial llega hasta el mes en curso a propósito. Quien consume estos
+# datos descarta lo posterior a hoy —un banco solo entrega lo ocurrido—, así que
+# el mes actual queda parcial, como en la vida real. Si el historial terminara
+# un mes antes, "este mes" saldría vacío.
 
 
 # ─────────────────────────── catálogos ───────────────────────────

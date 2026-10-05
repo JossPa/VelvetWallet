@@ -114,11 +114,15 @@ export default function Gastos() {
             key={m.id}
             movimiento={m}
             onPress={() => router.push(`/gastos/${m.id}`)}
+            // Se mira primero "actualizado": si un movimiento llegó y después
+            // se confirmó sin que el usuario saliera de la pantalla, lo último
+            // que pasó es la actualización. Marcarlo NUEVO junto al monto
+            // anterior se contradice.
             novedad={
-              novedades.nuevos.includes(m.id)
-                ? "nuevo"
-                : m.id in novedades.actualizados
-                  ? "actualizado"
+              m.id in novedades.actualizados
+                ? "actualizado"
+                : novedades.nuevos.includes(m.id)
+                  ? "nuevo"
                   : undefined
             }
             montoAnterior={novedades.actualizados[m.id]}
