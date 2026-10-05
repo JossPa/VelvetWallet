@@ -13,6 +13,7 @@ otro monto) se actualice en vez de duplicarse.
 from __future__ import annotations
 
 import psycopg
+from psycopg.types.json import Json
 from pymongo import MongoClient
 
 from . import config
@@ -35,6 +36,34 @@ class Repositorio:
             "recibido_at": __import__("datetime").datetime.utcnow(),
         }
         return str(self.db.payload_crudo.insert_one(doc).inserted_id)
+
+    # ── PostgreSQL: consentimiento ──────────────────────────────────────────
+    def registrar_consentimiento(self, conexion_id: str, alcance_rar: dict,
+                                 fecha_expiracion) -> str:
+        """
+        Deja registrado el consentimiento vigente de la conexión (RF-02 / RF-27).
+        Si ya hay uno vigente, lo refresca; si no, lo crea. Así correr la ingesta
+        varias veces no apila consentimientos duplicados.
+        """
+        fila = self.conn.execute(
+            "SELECT id FROM consentimiento WHERE conexion_id = %s AND estado = 'vigente'",
+            (conexion_id,),
+        ).fetchone()
+        if fila:
+            self.conn.execute(
+                """UPDATE consentimiento
+                   SET alcance_rar = %s, fecha_expiracion = %s
+                   WHERE id = %s""",
+                (Json(alcance_rar), fecha_expiracion, fila[0]),
+            )
+            return fila[0]
+
+        fila = self.conn.execute(
+            """INSERT INTO consentimiento (conexion_id, alcance_rar, fecha_expiracion)
+               VALUES (%s, %s, %s) RETURNING id""",
+            (conexion_id, Json(alcance_rar), fecha_expiracion),
+        ).fetchone()
+        return fila[0]
 
     # ── PostgreSQL: upsert de cuenta ────────────────────────────────────────
     def upsert_cuenta(self, conexion_id: str, usuario_id: str, datos: dict) -> str:

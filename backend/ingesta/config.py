@@ -3,9 +3,9 @@
 Configuración de la ingesta.
 
 Todo lo que cambia entre "simulador" y "banco real" vive aquí: la URL base del
-proveedor SFA y las credenciales de las bases. Nada de esto está escrito a mano
-en el código de más adentro, para que pasar a producción sea cambiar variables
-de entorno, no reescribir la lógica.
+proveedor SFA, las credenciales del participante y las credenciales de las
+bases. Nada de esto está escrito a mano en el código de más adentro, para que
+pasar a producción sea cambiar variables de entorno, no reescribir la lógica.
 """
 import os
 from pathlib import Path
@@ -19,10 +19,16 @@ except Exception:
     pass
 
 
-# ── Proveedor SFA (hoy el simulador; mañana el banco real) ──────────────────
+# ── Proveedor SFA (hoy la EFS; mañana el banco real) ────────────────────────
 # La única diferencia con un banco real es esta URL y la autenticación
-# (ver cliente_sfa.py). El simulador ya habla el mismo estándar de la CMF.
+# (ver cliente_sfa.py). La EFS ya habla el mismo estándar de la CMF.
 SFA_BASE_URL = os.getenv("SFA_BASE_URL", "http://localhost:8001/accounts/v1")
+
+# ── Credenciales del participante (Client Credentials) ──────────────────────
+# En ATENA se obtienen al habilitar la institución. Aquí, valores de demo que
+# deben coincidir con los que espera la EFS (simulador/app/main.py).
+SFA_CLIENT_ID = os.getenv("SFA_CLIENT_ID", "velvet-wallet")
+SFA_CLIENT_SECRET = os.getenv("SFA_CLIENT_SECRET", "secreto-demo")
 
 # ── PostgreSQL (modelo canónico) ────────────────────────────────────────────
 DATABASE_URL = os.getenv(

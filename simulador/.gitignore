@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Entornos y secretos
+.env
+*.pem
+*.key
+*.crt
+
+# Editores
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# NOTA: app/modelos_sfa.py y app/datos_banco.json SÍ se versionan,
+# aunque sean generados:
+#   - modelos_sfa.py lo importa la aplicación, tiene que estar
+#   - datos_banco.json es la data de prueba compartida del equipo; al ser
+#     determinista, versionarlo garantiza que ambos trabajen sobre lo mismo

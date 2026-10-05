@@ -1,0 +1,1100 @@
+openapi: 3.0.3
+info:
+  title: API Cuentas
+  version: 1.0.0
+  description: Este documento describe las APIs relacionadas con la gestión de cuentas, balances, sobregiros y transacciones, detallando su funcionamiento y los procesos asociados para el acceso y manejo de la información financiera de manera segura y eficiente.
+tags:
+  - name: Cuentas
+    description: Operaciones que obtiene información de cuentas, balances, sobregiros y transacciones.
+
+servers:
+  - url: https://api-chile.cl/accounts/v1
+paths:
+  /accounts:
+    get:
+      tags:
+        - Cuentas
+      summary: Método para obtener el listado de cuentas de depósito a la vista, de ahorro y de pago prepago mantenidas por el cliente en la entidad transmisora.
+      description: "Método para obtener el listado de cuentas de depósito a la vista, de ahorro y de pago prepago mantenidas por el cliente en la entidad transmisora y para las que haya prestado su consentimiento."
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+      responses:
+        '200':
+          description: "Respuesta exitosa con el listado de cuentas"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountsResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+  
+  /accounts/{accountID}:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtiene la cuenta del cliente en la entidad transmisora.
+      description: "Método para obtener la cuenta de depósito a la vista, de ahorro y de pago prepago mantenidas por el cliente en la entidad transmisora y para las que haya prestado su consentimiento."
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/accountID"
+      responses:
+        '200':
+          description: "Respuesta exitosa con la obtención de la cuenta"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+  
+  /accounts/{accountID}/balance:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtiene el balance de la cuenta del cliente en la entidad transmisora.
+      description: "Método para obtener los saldos de las cuentas mantenidas en la institución"
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/accountID"
+        - $ref: "#/components/parameters/fromDate"
+        - $ref: "#/components/parameters/toDate"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        
+      responses:
+        '200':
+          description: "Respuesta exitosa con la obtención del saldo de la cuenta."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+          
+  /accounts/{accountID}/current-overdraft-limit:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtiene los límites de sobregiro y pagos del cliente en la entidad transmisora.
+      description: "Método para obtener los datos del límite de sobregiro y de los pagos anticipados del depositante de la cuenta mantenida en la institución."
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/accountID"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        
+      responses:
+        '200':
+          description: "Respuesta exitosa con la obtención de los datos límite de sobregiro y pagos."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourrentOverdraftLimitResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+          
+  /accounts/{accountID}/overdraft:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtiene los los montos de sobregiros asociados a la cuenta de la entidad transmisora.
+      description: "Método para obtener los montos por sobregiro asociado a cuentas."
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/accountID"
+        - $ref: "#/components/parameters/fromDate"
+        - $ref: "#/components/parameters/toDate"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        
+      responses:
+        '200':
+          description: "Respuesta exitosa con la obtención de los montos por sobregiro de cuentas."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverdraftResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+          
+  /accounts/{accountID}/transactions:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtiene las transacciones asociados a la cuenta de la entidad transmisora.
+      description: "Método para obtener las transacciones asociadas a la cuenta de la entidad transmisora del cliente."
+      security:
+        - Authorization: []  # Porta el token de acceso (Bearer Token) obtenido tras el proceso de autenticación. Permite al servidor identificar y autorizar la solicitud.
+      parameters:
+        - $ref: '#/components/parameters/x-fapi-interaction-id'
+        - $ref: '#/components/parameters/x-jws-signature'
+        - $ref: "#/components/parameters/accountID"
+        - $ref: "#/components/parameters/fromDate"
+        - $ref: "#/components/parameters/toDate"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/pageSize"
+        
+      responses:
+        '200':
+          description: "Respuesta exitosa con la obtención de transacciones asociados a la cuenta."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionsResponse"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '529':
+          $ref: '#/components/responses/SiteIsOverloaded'
+        default:
+          $ref: '#/components/responses/Default'
+          
+          
+components:
+
+  schemas:
+  
+    AccountsResponse:
+      type: object
+      required :
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataAccounts'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    AccountResponse:
+      type: object
+      required :
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataAccountSingle'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    DataAccounts:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Accounts'
+      required:
+        - account
+          
+    DataAccountSingle:
+      type: object
+      properties:
+        account:
+            $ref: '#/components/schemas/Accounts'
+      required:
+        - account    
+      
+    Accounts:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: "Identificador de la Cuenta"
+          maxLength: 40
+          example: "ACC123456"
+        accountType:
+          type: string
+          description: "Tipo de Cuenta"
+          maxLength: 70
+          example: "CACC"
+        nickname:
+          type: string
+          description: "Apodo de la Cuenta"
+          maxLength: 70
+          example: "Cuenta Sueldo"
+        status:
+          type: string
+          description: "Estado de la Cuenta"
+          maxLength: 70
+          example: "Habilitado"
+        currency:
+          type: string
+          description: "Moneda de la Cuenta"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        openingDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: "Fecha de Apertura"
+          example: "2025-02-24"
+        ownerName:
+          type: string
+          description: "Nombre del Titular"
+          maxLength: 140
+          example: "Juan Pérez"
+        branch:
+          type: string
+          description: "Sucursal"
+          maxLength: 70
+          example: "Sucursal Centro"
+        productName:
+          type: string
+          description: "Nombre Comercial del Producto"
+          maxLength: 140
+          example: "Cuenta Corriente VIP"
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Conditions'
+      required:
+        - accountId
+        - accountType
+        - status
+        - currency
+        - productName
+        
+    Conditions:
+      type: object
+      properties:
+        type:
+          type: string
+          description: "Tipo de Condición"
+          maxLength: 40
+          example: "Límite"
+        description:
+          type: string
+          description: "Descripción de la condición"
+          maxLength: 140
+          example: "Cargo mensual"
+        amount:
+          type: number
+          description: "Monto de la Condición"
+          example: "3000"
+        currency:
+          type: string
+          description: "Moneda de la Condición"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+      required:
+        - type
+          
+    BalanceResponse:
+      type: object
+      required :
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataBalance'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    DataBalance:
+      type: object
+      properties:
+        currentBalance:
+            $ref: '#/components/schemas/CurrentBalance'
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/Balances'
+      required:
+        - currentBalance
+    
+    CurrentBalance:
+      type: object
+      properties:
+        amount:
+          type: number
+          description : "Monto del saldo"
+          example: "15000"
+        currency:
+          type: string
+          description : "Moneda del saldo"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        timestamp:
+          type: string
+          format: date-time
+          description : "Fecha/hora del saldo"
+          example: "2025-02-20T10:00:00Z"
+        availableOverdraft:
+          type: number
+          description : "Límite Sobregiro Disponible"
+          example: "200000"
+        holdAmount:
+          type: number
+          description : "Monto Retenido"
+          example: "15000"
+      required:
+        - amount
+        - currency
+          
+    Balances:
+      type: object
+      properties:
+        bookingDate:
+          type: string
+          format: date-time
+          description : "Fecha de registro"
+          example: "2025-01-10T00:00:00Z"
+        amount:
+          type: string
+          format: number
+          description : "Monto del saldo"
+          example: "14000"
+        currency:
+          type: string
+          description : "Moneda Saldo"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        averageBalance:
+          type: number
+          description : "Saldo promedio"
+          example: "14500"
+        lockedAmount:
+          type: number
+          description : "Monto bloqueado"
+          example: "2000"
+        lockedCurrency:
+          type: string
+          description : "Moneda del monto bloqueado"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+      required:
+        - bookingDate
+        - amount
+        - currency
+          
+    CourrentOverdraftLimitResponse:
+      type: object
+      required :
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataCurrentOverdraft'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    DataCurrentOverdraft:
+      type: object
+      properties:
+        currentOverdraftLimit:
+            $ref: '#/components/schemas/CurrentOverdraftLimit'
+      required:
+        - currentOverdraftLimit
+            
+    CurrentOverdraftLimit:
+      type: object
+      properties:
+        amount:
+          type: number
+          description: "Monto del Sobregiro"
+          example: "200000"
+        currency:
+          type: string
+          description: "Moneda del Sobregiro"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        startDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: "Fecha de Inicio de Vigencia"
+          example: "2025-01-01"
+        expiryDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: "Fecha de Expiración"
+          example: "2025-12-31"
+        interestRate:
+          type: number
+          format: float
+          description: "Tasa de Interés del Sobregiro"
+          example: 2.5
+        usageAmount:
+          type: number
+          description: "Monto Utilizado"
+          example: "550000"
+        usageCurrency:
+          type: string
+          description: "Moneda del Monto Utilizado"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+      required:
+        - amount
+        - currency
+          
+    OverdraftResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataOverdraft'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    DataOverdraft:
+      type: object
+      properties:
+        overdraftLimits:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverdraftLimit'
+            
+    OverdraftLimit:
+      type: object
+      properties:
+        limitId:
+          type: string
+          description: "Identificador del Sobregiro"
+          maxLength: 40
+          example: "OD202501"
+        amount:
+          type: number
+          description: "Monto del Sobregiro"
+          example: "200000"
+        currency:
+          type: string
+          description: "Moneda del Sobregiro"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        startDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: "Fecha de Inicio de Vigencia"
+          example: "2025-01-01"
+        endDate:
+          type: string
+          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: "Fecha fin de Vigencia"
+          example: "2025-12-31"
+        interestRate:
+          type: number
+          format: float
+          description: "Tasa de Interés del Sobregiro"
+          example: 2.5
+        usageAmount:
+          type: number
+          description: "Monto Utilizado"
+          example: "550000"
+        usageCurrency:
+          type: string
+          description: "Moneda del Monto"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+      required:
+        - limitId
+        - amount
+        - currency
+        - startDate
+          
+    TransactionsResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DataTransactions'
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+          
+    DataTransactions:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transactions'
+            
+    Transactions:
+      type: object
+      properties:
+        transactionID:
+          type: string
+          description: "Identificador de la transacción"
+          maxLength: 40
+          example: "TXN987654"
+        bookingDateTime:
+          type: string
+          format: date-time
+          description: "Fecha/hora de la transacción, formato ISODateTime"
+          example: "2025-02-10T10:00:00Z"
+        transactionsType:
+          type: string
+          description: "Tipo de transacción"
+          maxLength: 40
+          example: "Débito"
+        amount:
+          type: number
+          description: "Monto de la transacción"
+          example: "250000"
+        currency:
+          type: string
+          description: "Moneda de la transacción"
+          minLength: 3
+          maxLength: 3
+          example: "CLP"
+        paymentPurposeCode:
+          type: string
+          description: "Descripción del pago"
+          maxLength: 256
+          example: "Pago de luz"
+        categoryPurposeCode:
+          type: string
+          description: "Categoría del pago"
+          maxLength: 256
+          example: "Servicios básicos"
+        merchantDetails:
+          $ref: '#/components/schemas/MerchantDetails'
+        debtor:
+          $ref: '#/components/schemas/Debtor'
+        cardInstruments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardInstrument'
+        creditor:
+           $ref: '#/components/schemas/Creditor'
+        ultimateCreditor:
+           $ref: '#/components/schemas/UltimateCreditor'
+        ultimateDebtor:
+           $ref: '#/components/schemas/UltimateDebtor'
+        balanceAfter:
+          type: number
+          description: "Saldo Posterior"
+          example: "10000"
+      required:
+        - transactionID
+        - bookingDateTime
+        - transactionsType
+        - amount
+        - currency
+          
+    MerchantDetails:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Nombre del comercio"
+          maxLength: 140
+          example: "Supermercado ABC"
+        category:
+          type: string
+          description: "Categoría"
+          maxLength: 70
+          example: "Alimentos"
+          
+    Debtor:
+      type: object
+      properties:
+        agent:
+          type: string
+          description: "Identificador del deudor"
+          maxLength: 40
+          example: "Rut"
+        address:
+          type: string
+          description: "Dirección del Deudor"
+          maxLength: 256
+          example: "Avenida providencia 345, Las Condes"
+        account:
+          type: string
+          description: "Cuenta del deudor"
+          maxLength: 256
+          example: "12345678-9"
+    
+    CardInstrument:
+      type: object
+      properties:
+        scheme:
+          type: string
+          description: "Marca de la tarjeta"
+          maxLength: 40
+          example: "Visa"
+      required:
+        - scheme
+          
+    Creditor:
+      type: object
+      properties:
+        agent:
+          type: string
+          description: "Identificador del acreedor"
+          maxLength: 40
+          example: "Rut"
+        address:
+          type: string
+          description: "Dirección del acreedor"
+          maxLength: 256
+          example: "Avenida providencia 345, Las Condes"
+        account:
+          type: string
+          description: "Cuenta del acreedor"
+          maxLength: 256
+          example: "12345678-9"
+          
+    UltimateCreditor:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Identificador del acreedor final"
+          maxLength: 140
+          example: "Empresa XYZ"
+        address:
+          type: string
+          description: "Dirección del acreedor final"
+          maxLength: 256
+          example: "Avenida providencia 345, Las Condes"
+          
+    UltimateDebtor:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Identificador del deudor final"
+          maxLength: 140
+          example: "Empresa XYZ"
+        address:
+          type: string
+          description: "Dirección del deudor final"
+          maxLength: 256
+          example: "Avenida providencia 345, Las Condes"
+        
+    Links:
+      type: object
+      description: Referencias a otros recursos de la API solicitada
+      properties:
+        self:
+          type: string
+          format: url
+          description: URL de la página actual de registros
+          maxLength: 2000
+          minLength: 5
+          example: "https://api-chile.cl/accounts/v1/accounts?page=4&pageSize=20"
+        first:
+          type: string
+          format: url
+          description: URL de la primera página de registros
+          maxLength: 2000
+          minLength: 5
+          example: "https://api-chile.cl/accounts/v1/accountspage=1&pageSize=20"
+        prev:
+          type: string
+          format: url
+          description: URL de la página anterior de registros
+          maxLength: 2000
+          minLength: 5
+          example: "https://api-chile.cl/accounts/v1/accounts?page=3&pageSize=20"
+        next:
+          type: string
+          format: url
+          description: URL de la próxima página de registros
+          maxLength: 2000
+          minLength: 5
+          example: "https://api-chile.cl/accounts/v1/accounts?page=5&pageSize=20"
+        last:
+          type: string
+          format: url
+          description: URL da última página de registros
+          maxLength: 2000
+          minLength: 5
+          example: "https://api-chile.cl/accounts/v1/accounts?page=13&pageSize=20"
+          
+    Meta:
+      type: object
+      description: Meta información sobre los datos solicitados
+      properties:
+        firstAvailableDateTime:
+          type: string
+          format: date-time
+          description: Fecha del primer registro encontrado
+          example: "2024-01-11 14:56:34"
+        lastAvailableDateTime:
+          type: string
+          format: date-time
+          description: Fecha del último registro encontrado
+          example: "2025-01-23 14:56:34"
+        totalPages:
+          type: integer
+          description: Total de páginas para los registros encontrados
+          example: 12
+      required:
+        - firstAvailableDateTime
+        - lastAvailableDateTime
+        - totalPages  
+      
+    ResponseErrorMetaSingle:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 13
+          items:
+            type: object
+            required:
+              - code
+              - title
+              - detail
+            properties:
+              code:
+                description: Código de error específico de la solicitud
+                type: string
+                maxLength: 255
+                example: "50001"
+              title:
+                description: Título legible por un humano de este error en específico
+                type: string
+                maxLength: 255
+                example: "Conexión interrumpida"
+              detail:
+                description: Descripción legible por un humano de este error en especifico
+                type: string
+                maxLength: 2048
+                example: "No pudimos conectar con el servidor de datos abiertos. Por favor, verifica tu conexión a internet o contáctanos si el problema persiste."
+        meta:
+          type: object
+          description: Meta de información sobre la API solicitada
+          required:
+            - requestDateTime
+          properties:
+            requestDateTime:
+              description: Fecha y hora de la consulta, según especificación RFC-3339, formato UTC.
+              type: string
+              format: date-time
+              minLength: 20
+              maxLength: 20
+              pattern: '^[2-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+              example: '2023-10-09T14:10:00Z'
+              
+    ResponseError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 13
+          items:
+            type: object
+            required:
+              - code
+              - title
+              - detail
+            properties:
+              code:
+                description: Código de error específico
+                type: string
+                maxLength: 255
+                example: "20001"
+              title:
+                description: Título legible por un humano de este error en específico
+                type: string
+                maxLength: 255
+                example: "Error al obtener cuentas"
+              detail:
+                description: Descripción legible por un humano de este error en específico
+                type: string
+                maxLength: 2048
+                example: "La información sobre cuentas no está disponible actualmente."
+        meta:
+          type: object
+          description: Meta de información sobre la API solicitada
+          required:
+            - requestDateTime
+          properties:
+            requestDateTime:
+              description: Fecha y hora de la consulta, según especificación RFC-3339, formato UTC.
+              type: string
+              format: date-time
+              minLength: 20
+              maxLength: 20
+              pattern: '^[2-9]\d{3}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+              example: '2023-10-09T14:10:00Z'
+              
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # Opcional, solo para aclarar el formato
+              
+  parameters:
+    page:
+      name: page
+      in: query
+      description: "Número de la página que se solicita (el valor de la primera página es 1)"
+      schema:
+        type: integer
+        format: int32
+        default: 1
+        minimum: 1
+        maximum: 2147483647
+    pageSize:
+      name: pageSize
+      in: query
+      description: "Número total de registros por página"
+      schema:
+        type: integer
+        format: int32
+        default: 20
+        minimum: 1
+        maximum: 2147483647
+    accountID:
+      name: accountID
+      in: path
+      required: true
+      description: "Identificador de la cuenta"
+      example: "ACC123456"
+      schema:
+        type: string
+        minimum: 1
+        maximum: 70
+    fromDate:
+      name: fromDate
+      in: query
+      required: false
+      description: "Fecha de inicio del rango"
+      example: "2025-01-01"
+      schema:
+        type: string
+        format: date
+    toDate:
+      name: toDate
+      in: query
+      required: false
+      description: "Fecha de fin del rango"
+      example: "2025-02-24"
+      schema:
+        type: string
+        format: date
+    x-fapi-interaction-id:
+      name: x-fapi-interaction-id
+      in: header
+      required: true
+      description: "UUID para rastrear la solicitud. Facilita la correlación de logs y el debugging. FAPI 2.0 sugiere retornarlo en la respuesta también."
+      schema:
+        type: string
+    x-jws-signature:
+      name: x-jws-signature
+      in: header
+      required: false
+      description: "Porta una firma JWS que cubre el cuerpo y/o ciertos headers de la solicitud para garantizar integridad. FAPI 2.0 Avanzado/High puede requerirlo."
+      schema:
+        type: string
+        
+  responses:
+    BadRequest:
+      description: La solicitud presentaba un formato incorrecto y faltaban atributos obligatorios, tanto en el cuerpo de la solicitud como en los parámetros de la URL.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "400"
+            title: "Solicitud inválida"
+            detail: "El parámetro 'city' es obligatorio y no fue incluido en la solicitud."
+    NotFound:
+      description: La característica solicitada no está disponible o aún no ha sido implementada.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "404"
+            title: "Recurso no encontrado"
+            detail: "No se encontraron oficinas presenciales para la región especificada."
+    MethodNotAllowed:
+      description: El consumidor intentó acceder al recurso utilizando un método no compatible.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "405"
+            title: "Método no permitido"
+            detail: "El método HTTP 'POST' no está habilitado para este recurso. Por favor, utilice 'GET'."
+    TooManyRequests:
+      description: La operación fue rechazada debido a que se superó el número permitido de solicitudes dentro de un período determinado o se alcanzó el límite de solicitudes simultáneas.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "429"
+            title: "Demasiadas solicitudes"
+            detail: "Has excedido el límite de solicitudes permitidas. Intenta nuevamente después de 1 minuto."
+    InternalServerError:
+      description: Ocurrió un error en la puerta de enlace API o en el microservicio.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "500"
+            title: "Error interno del servidor"
+            detail: "Ocurrió un error inesperado en el servidor. Por favor, inténtalo de nuevo más tarde."
+    GatewayTimeout:
+      description: GATEWAY TIMEOUT - La solicitud no fue respondida dentro del tiempo límite establecido.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "504"
+            title: "Tiempo de espera agotado"
+            detail: "El servidor no pudo completar la solicitud a tiempo. Por favor, verifica tu conexión o inténtalo más tarde."
+    SiteIsOverloaded:
+      description: El sitio está sobrecargado y la operación fue rechazada debido a que se alcanzó el límite máximo global de TPS (transacciones por segundo) en este momento.
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseErrorMetaSingle'
+          example:
+            code: "529"
+            title: "El sitio está sobrecargado"
+            detail: "El sistema está experimentando una carga elevada. Por favor, inténtalo más tarde."
+    Default:
+      description: '\-'
+      content:
+        application/json; charset=utf-8:
+          schema:
+            $ref: '#/components/schemas/ResponseError'
+          example:
+            code: "001"
+            title: "Error desconocido"
+            detail: "Ha ocurrido un error inesperado. Por favor, contacta al soporte técnico con los detalles de la solicitud."
