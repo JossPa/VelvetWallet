@@ -167,6 +167,7 @@ CREATE TABLE transaccion (
     fecha                   date          NOT NULL,
     glosa_original          varchar(255),
     glosa_normalizada       varchar(255),
+    categoria_origen        varchar(80),
     estado                  varchar(20)   NOT NULL DEFAULT 'confirmado'
                                           CHECK (estado IN ('pendiente','confirmado','excluido')),
     hash_dedup              varchar(64)   NOT NULL UNIQUE,
@@ -181,6 +182,7 @@ COMMENT ON COLUMN transaccion.payload_crudo_ref       IS 'ObjectId del documento
 COMMENT ON COLUMN transaccion.hash_dedup              IS 'Clave de deduplicación entre fuentes: un movimiento canónico por hash (RF-09).';
 COMMENT ON COLUMN transaccion.confianza_clasificacion IS 'Confianza [0..1] del clasificador para categoria_id.';
 COMMENT ON COLUMN transaccion.glosa_normalizada       IS 'Glosa limpia (p. ej. "UBER *EATS 8829" → "Uber Eats") (RF-10).';
+COMMENT ON COLUMN transaccion.categoria_origen        IS 'Categoría tal como la manda la institución (merchantDetails.category del estándar). Es OPCIONAL y cada proveedor usa su propia taxonomía, sin equivalencia común: por eso se guarda aparte de categoria_id en vez de mezclarse con ella. Entra como señal del clasificador, que además de clasificar debe normalizar taxonomías distintas entre instituciones.';
 COMMENT ON COLUMN transaccion.id_externo              IS 'transactionID tal como lo entrega la institución. Clave de actualización (upsert) para fuentes SFA. NULL en carga manual.';
 COMMENT ON COLUMN transaccion.monto                   IS 'Con signo: negativo = cargo, positivo = abono. No existe movimiento de monto cero. El dato original queda en payload_crudo (Mongo).';
 

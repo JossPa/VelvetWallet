@@ -69,6 +69,22 @@ docker compose exec redis redis-cli ping   # -> PONG
 > perder, el cambio de esquema se hará con una migración de Alembic, no tocando
 > el DDL de init.
 
+## Si ya tienes datos cargados
+
+El DDL de arriba agrega `transaccion.categoria_origen` (05-oct-2026). Si tu base ya tiene
+movimientos, el init no se vuelve a ejecutar y hay que aplicarlo a mano **una sola vez**:
+
+```bash
+docker compose exec postgres psql -U velvet -d velvet_wallet -c "ALTER TABLE transaccion ADD COLUMN IF NOT EXISTS categoria_origen varchar(80);"
+```
+
+Alternativa si no te importa perder los datos de prueba: `docker compose down -v && docker compose up -d`
+y volver a correr la ingesta.
+
+> Este es el último cambio de esquema aplicado así. De aquí en adelante van por **Alembic**
+> (tarea A8), que es justamente el problema que resuelve: aplicar el mismo cambio a una base
+> que ya tiene datos, de forma versionada y reversible.
+
 ## Conexión desde el backend (más adelante)
 
 Las cadenas de conexión están comentadas en `.env.example`. Apuntan a
