@@ -70,12 +70,14 @@ Entre los dos cubren los **dos casos que la ingesta debe distinguir**:
 | `nuevo-pago` | Un `transactionID` que no existía | **Insertar** |
 | `avanzar` | Un `transactionID` que ya existía, con otro monto | **Actualizar**, sin duplicar |
 
+Al avanzar, las compras pre-autorizadas toman su monto definitivo **manteniendo el mismo
+`transactionID`**. Eso es lo que la ingesta tiene que detectar para actualizar en vez de insertar.
+
 `nuevo-pago` acepta `?sin_comercio=true` (llega con glosa sucia y sin `merchantDetails`, para forzar
 la abstención del clasificador) y `?pendiente=true` (llega pre-autorizado y se confirma después con
 `avanzar`).
 
-Los movimientos inyectados viven en memoria: para volver al estado inicial basta reiniciar el
-servidor, porque los datos se cargan del JSON al arrancar.
+Para volver al estado inicial basta reiniciar el servidor: los datos se cargan del JSON al arrancar.
 
 ### CORS abierto durante el desarrollo
 
