@@ -27,11 +27,26 @@ export type ResumenMes = {
 };
 
 /**
- * Sueldo detectado: el abono más reciente categorizado como sueldo.
- * Cuando exista la configuración del usuario (RF-36), esta función la combina.
+ * Sueldo detectado.
+ *
+ * Preferimos el abono ya categorizado como "Sueldo" (cuando exista el
+ * clasificador). Mientras tanto, como el backend aún no categoriza, se detecta
+ * por heurística: el ingreso recurrente más reciente que NO sea una
+ * transferencia entre cuentas propias. Así el disponible sale bien aunque la
+ * categoría todavía no exista.
  */
 export function sueldoDetectado(movimientos: Movimiento[]): Movimiento | null {
-  return movimientos.find((m) => m.monto > 0 && m.categoria === "Sueldo") ?? null;
+  const porCategoria = movimientos.find((m) => m.monto > 0 && m.categoria === "Sueldo");
+  if (porCategoria) return porCategoria;
+
+  const esTransferencia = (m: Movimiento) =>
+    /transferencia/i.test(`${m.glosaOriginal ?? ""} ${m.comercio ?? ""}`);
+
+  const abonos = movimientos
+    .filter((m) => m.monto > 0 && !m.excluido && !esTransferencia(m))
+    .sort((a, b) => (a.fecha < b.fecha ? 1 : -1)); // más reciente primero
+
+  return abonos[0] ?? null;
 }
 
 export function resumenDelMes(movimientos: Movimiento[], mes: string): ResumenMes {

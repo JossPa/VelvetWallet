@@ -1,59 +1,31 @@
 /**
  * Servicio de autenticación.
  *
- * Hoy simula al backend; cuando existan los endpoints, se reemplaza el cuerpo
- * de `registrar` e `iniciarSesion` por peticiones HTTP y no se toca ninguna
- * pantalla. Los endpoints acordados:
+ * Habla con el backend de Velvet Wallet (FastAPI, puerto 8000):
  *
  *   POST /api/auth/registro  { nombre, email, password }  -> SesionIniciada
  *   POST /api/auth/sesion    { email, password }          -> SesionIniciada
  *
- * Reglas que se mantienen igual con backend real:
+ * Reglas:
  *  · La contraseña se envía una vez y no se guarda nunca en el dispositivo.
  *  · Lo que se guarda es el token, en el almacén seguro del sistema.
  *  · El error de credenciales no dice si falló el correo o la contraseña:
- *    distinguirlos permite averiguar qué correos están registrados.
+ *    distinguirlos permitiría averiguar qué correos están registrados.
  */
-import type { Credenciales, DatosRegistro, SesionIniciada, Usuario } from "@/modelo/tipos";
+import type { Credenciales, DatosRegistro, SesionIniciada } from "@/modelo/tipos";
 import { borrar, guardar, leer } from "@/servicios/almacenamiento";
 
+// URL del backend. En web, localhost funciona. En un celular físico, cámbiala
+// por la IP de tu PC en la red (ej: http://192.168.1.20:8000).
+const API = "http://localhost:8000";
 const CLAVE_SESION = "velvet.sesion";
 
 /** Error con mensaje pensado para mostrarse tal cual al usuario. */
 export class ErrorAuth extends Error {}
 
-// ───────────────────── simulación del backend ─────────────────────
-// Cuenta de demostración, para poder mostrar el inicio de sesión sin
-// registrarse antes. Desaparece cuando exista el backend.
-type CuentaDemo = Usuario & { password: string };
-
-const CUENTAS: CuentaDemo[] = [
-  {
-    id: "usr-demo",
-    nombre: "Jossue Padrón",
-    email: "demo@velvetwallet.cl",
-    password: "velvet2026",
-    sueldoDeclarado: 850_000,
-    creadoEn: "2026-09-01T10:00:00.000Z",
-  },
-];
-
-/** Simula la latencia de red para que la interfaz se comporte como con backend. */
-const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function sesionPara(usuario: Usuario): SesionIniciada {
-  const expira = new Date();
-  expira.setDate(expira.getDate() + 30);
-  return {
-    token: `demo.${usuario.id}.${Date.now()}`,
-    expiraEn: expira.toISOString(),
-    usuario,
-  };
-}
-
 // ───────────────────────── validaciones ─────────────────────────
-// Las mismas reglas las tiene que aplicar el backend: validar solo en el
-// cliente no sirve, porque se puede llamar a la API directamente.
+// Las mismas reglas las aplica también el backend: validar solo en el cliente
+// no sirve, porque se puede llamar a la API directamente.
 
 export function emailValido(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
@@ -65,41 +37,46 @@ export function problemaPassword(password: string): string | null {
   return null;
 }
 
+// ───────────────────────── llamada al backend ─────────────────────────
+
+async function pedirSesion(ruta: string, cuerpo: object): Promise<SesionIniciada> {
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API}${ruta}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+  } catch {
+    throw new ErrorAuth("No se pudo conectar con el servidor. Revisa tu conexión.");
+  }
+
+  const datos = await respuesta.json().catch(() => null);
+  if (!respuesta.ok) {
+    // El backend manda el mensaje de error en el campo "detail".
+    const mensaje = datos?.detail ?? "Ocurrió un error. Intenta de nuevo.";
+    throw new ErrorAuth(mensaje);
+  }
+  return datos as SesionIniciada;
+}
+
 // ───────────────────────── operaciones ─────────────────────────
 
 export async function registrar(datos: DatosRegistro): Promise<SesionIniciada> {
-  await esperar(600);
-
-  const email = datos.email.trim().toLowerCase();
-  if (CUENTAS.some((c) => c.email === email)) {
-    throw new ErrorAuth("Ya existe una cuenta con este correo.");
-  }
-
-  const usuario: Usuario = {
-    id: `usr-${Date.now()}`,
+  const sesion = await pedirSesion("/api/auth/registro", {
     nombre: datos.nombre.trim(),
-    email,
-    sueldoDeclarado: null,
-    creadoEn: new Date().toISOString(),
-  };
-  CUENTAS.push({ ...usuario, password: datos.password });
-
-  const sesion = sesionPara(usuario);
+    email: datos.email.trim().toLowerCase(),
+    password: datos.password,
+  });
   await guardarSesion(sesion);
   return sesion;
 }
 
 export async function iniciarSesion({ email, password }: Credenciales): Promise<SesionIniciada> {
-  await esperar(600);
-
-  const cuenta = CUENTAS.find((c) => c.email === email.trim().toLowerCase());
-  // Mensaje único a propósito: no revelar si el correo existe.
-  if (!cuenta || cuenta.password !== password) {
-    throw new ErrorAuth("Correo o contraseña incorrectos.");
-  }
-
-  const { password: _, ...usuario } = cuenta;
-  const sesion = sesionPara(usuario);
+  const sesion = await pedirSesion("/api/auth/sesion", {
+    email: email.trim().toLowerCase(),
+    password,
+  });
   await guardarSesion(sesion);
   return sesion;
 }
@@ -131,4 +108,13 @@ export async function sesionGuardada(): Promise<SesionIniciada | null> {
     await borrar(CLAVE_SESION);
     return null;
   }
+}
+
+/**
+ * Token de la sesión actual (o null si no hay sesión válida). Lo usan los
+ * servicios que llaman al backend para mandar `Authorization: Bearer <token>`.
+ */
+export async function tokenActual(): Promise<string | null> {
+  const sesion = await sesionGuardada();
+  return sesion?.token ?? null;
 }

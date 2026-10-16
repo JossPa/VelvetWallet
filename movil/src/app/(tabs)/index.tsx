@@ -2,45 +2,27 @@
  * Inicio — responde la primera pregunta del producto:
  * "¿Cuánto tengo disponible este mes?"
  *
- * Todo lo que se muestra se calcula en utils/resumen.ts. El bloque de saldo
- * proyectado queda reservado hasta que exista el motor de proyección; se
- * prefiere un espacio honesto a una fórmula simple que después habría que botar.
+ * Se muestra lo que ya funciona con datos reales del backend: disponible,
+ * ingresos y gastos del mes, en qué se va la plata (por categoría) y cómo
+ * cambió respecto al mes anterior.
  */
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Aviso } from "@/components/Aviso";
 import { Boton } from "@/components/Boton";
 import { Comparacion } from "@/components/Comparacion";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
-import { CONEXIONES } from "@/datos/conexiones";
 import { useMovimientos } from "@/datos/MovimientosContexto";
-import type { Conexion } from "@/modelo/tipos";
-import { claveMes, fechaCorta, nombreMes, pesos, tiempoRelativo } from "@/utils/formato";
+import { claveMes, nombreMes, pesos } from "@/utils/formato";
 import {
   compararConMesAnterior,
-  conexionesConProblema,
   mesAnterior,
   repartoPorCategoria,
   resumenDelMes,
 } from "@/utils/resumen";
-
-/** Texto del aviso según el tipo de problema de la conexión. */
-function describirProblema(c: Conexion): { titulo: string; detalle: string } {
-  if (c.estado === "autorizacion_vencida") {
-    return {
-      titulo: `${c.institucion} necesita reautorización.`,
-      detalle: c.autorizacionVencioEl ? `Vencida el ${fechaCorta(c.autorizacionVencioEl)}.` : "",
-    };
-  }
-  return {
-    titulo: `Falta ${c.institucion} por actualizar.`,
-    detalle: `Último dato: ${tiempoRelativo(c.ultimaSincronizacion)}.`,
-  };
-}
 
 /** Resumen de la última sincronización, en lenguaje natural. */
 function describirResultado(r: { nuevos: number; actualizados: number }): string {
@@ -54,14 +36,9 @@ function describirResultado(r: { nuevos: number; actualizados: number }): string
 
 export default function Inicio() {
   const router = useRouter();
-  const { movimientos, sincronizando, sincronizar, error } = useMovimientos();
+  const { movimientos, sincronizando, sincronizar, conectar, error } = useMovimientos();
   const [resultado, setResultado] = useState<string | null>(null);
-
-  const mes = claveMes(movimientos[0].fecha);
-  const resumen = resumenDelMes(movimientos, mes);
-  const conProblema = conexionesConProblema(CONEXIONES);
-  const reparto = repartoPorCategoria(movimientos, mes);
-  const comparacion = compararConMesAnterior(movimientos, mes);
+  const [solicitando, setSolicitando] = useState(false);
 
   async function alSincronizar() {
     setResultado(null);
@@ -72,8 +49,65 @@ export default function Inicio() {
     }
   }
 
-  const aviso = conProblema.length > 0 ? describirProblema(conProblema[0]) : null;
-  const otros = conProblema.length - 1;
+  async function alConectar() {
+    try {
+      await conectar();
+    } catch {
+      // El mensaje ya quedó en `error`; se muestra abajo del botón.
+    }
+  }
+
+  // Usuario sin movimientos todavía (p. ej. recién registrado): aún no vinculó
+  // ningún banco. Aquí PIDE el permiso explícitamente — no se conecta solo.
+  if (movimientos.length === 0) {
+    return (
+      <Pantalla titulo="Velvet Wallet" marca>
+        <Text style={estilos.rotulo}>CONECTA TU PRIMER BANCO</Text>
+        <Text style={estilos.bienvenida}>
+          Aún no has vinculado ninguna cuenta. Conecta tu banco para traer tus movimientos.
+        </Text>
+
+        {!solicitando ? (
+          <Boton
+            titulo="Conectar mi banco"
+            onPress={() => setSolicitando(true)}
+            style={estilos.sincronizar}
+          />
+        ) : (
+          <View style={estilos.consent}>
+            <Text style={estilos.consentTitulo}>Autorización de acceso</Text>
+            <Text style={estilos.consentTexto}>
+              Velvet Wallet solicita tu permiso para acceder, en tu banco, a:
+            </Text>
+            <Text style={estilos.consentItem}>•  Tus cuentas y saldos</Text>
+            <Text style={estilos.consentItem}>•  Tus movimientos</Text>
+            <Text style={estilos.consentNota}>
+              Velvet nunca ve ni guarda la clave de tu banco. Puedes revocar el acceso cuando quieras.
+            </Text>
+
+            <Boton
+              titulo={sincronizando ? "Autorizando y trayendo tus datos…" : "Autorizar acceso"}
+              onPress={alConectar}
+              cargando={sincronizando}
+              style={estilos.autorizar}
+            />
+            {!sincronizando ? (
+              <Pressable onPress={() => setSolicitando(false)} style={estilos.cancelar}>
+                <Text style={estilos.cancelarTexto}>Cancelar</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        )}
+
+        {error ? <Text style={estilos.error}>{error}</Text> : null}
+      </Pantalla>
+    );
+  }
+
+  const mes = claveMes(movimientos[0].fecha);
+  const resumen = resumenDelMes(movimientos, mes);
+  const reparto = repartoPorCategoria(movimientos, mes);
+  const comparacion = compararConMesAnterior(movimientos, mes);
 
   return (
     <Pantalla titulo="Velvet Wallet" marca etiqueta={nombreMes(mes)}>
@@ -83,7 +117,7 @@ export default function Inicio() {
       </Text>
 
       <Boton
-        titulo={sincronizando ? "Consultando…" : "Sincronizar"}
+        titulo={sincronizando ? "Consultando tu banco…" : "Sincronizar"}
         onPress={alSincronizar}
         cargando={sincronizando}
         secundario
@@ -97,15 +131,6 @@ export default function Inicio() {
       ) : null}
 
       {error ? <Text style={estilos.error}>{error}</Text> : null}
-
-      {aviso ? (
-        <Aviso
-          detalle={otros > 0 ? `${aviso.detalle} Y ${otros} más.` : aviso.detalle}
-          onPress={() => router.push("/cuentas")}
-        >
-          {aviso.titulo}
-        </Aviso>
-      ) : null}
 
       <View style={estilos.par}>
         <View style={estilos.tarjeta}>
@@ -132,19 +157,6 @@ export default function Inicio() {
           <Comparacion variaciones={comparacion.variaciones} total={comparacion.total} />
         </>
       ) : null}
-
-      <View style={estilos.proyeccion}>
-        <Text style={estilos.rotuloTarjeta}>
-          SALDO PROYECTADO HASTA EL DÍA DE PAGO
-          {resumen.diaDePago ? ` · ${resumen.diaDePago} DE ${nombreMes(mes).toUpperCase()}` : ""}
-        </Text>
-        <View style={estilos.reservado}>
-          <Text style={estilos.reservadoTexto}>
-            Aquí va la proyección de tu saldo día a día hasta el próximo sueldo, con la probabilidad de
-            llegar con holgura. Se activa con el motor de proyección.
-          </Text>
-        </View>
-      </View>
     </Pantalla>
   );
 }
@@ -166,7 +178,31 @@ const estilos = StyleSheet.create({
     marginBottom: espacio.s,
   },
   negativo: { color: colores.acento },
+  bienvenida: {
+    color: colores.texto2,
+    fontFamily: fuente.texto,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: espacio.xs,
+    marginBottom: espacio.m,
+  },
   sincronizar: { marginTop: espacio.s },
+  // ── panel de consentimiento ──
+  consent: {
+    backgroundColor: colores.tarjeta,
+    borderRadius: radio.l,
+    padding: espacio.l,
+    marginTop: espacio.s,
+    gap: espacio.s,
+  },
+  consentTitulo: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 16, marginBottom: espacio.xs },
+  consentTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, lineHeight: 20 },
+  consentItem: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14, lineHeight: 22 },
+  consentNota: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12, lineHeight: 18, marginTop: espacio.xs },
+  autorizar: { marginTop: espacio.m },
+  cancelar: { alignItems: "center", paddingVertical: espacio.s, marginTop: espacio.xs },
+  cancelarTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 14 },
+  // ── resto ──
   resultado: {
     backgroundColor: colores.acentoSuave,
     borderRadius: radio.m,
@@ -187,21 +223,4 @@ const estilos = StyleSheet.create({
   rotuloTarjeta: { color: colores.texto3, fontFamily: fuente.tituloMedio, fontSize: 12, letterSpacing: 1.2 },
   cifra: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 24, letterSpacing: -0.5, marginTop: espacio.s },
   pieTarjeta: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },
-  proyeccion: {
-    backgroundColor: colores.tarjeta,
-    borderRadius: radio.l,
-    padding: espacio.l,
-    marginTop: espacio.xl,
-    gap: espacio.m,
-  },
-  reservado: {
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: colores.linea,
-    borderRadius: radio.m,
-    padding: espacio.l,
-    minHeight: 120,
-    justifyContent: "center",
-  },
-  reservadoTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19, textAlign: "center" },
 });
