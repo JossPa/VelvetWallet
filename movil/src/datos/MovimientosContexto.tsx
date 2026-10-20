@@ -22,12 +22,12 @@ import type { Correccion, Movimiento } from "@/modelo/tipos";
 import {
   conectarBanco,
   desvincularBanco,
+  guardarCategoria,
   iniciarVinculacion,
   obtenerConexiones,
   obtenerMovimientos,
 } from "@/servicios/sincronizacion";
 import { useSesion } from "@/sesion/SesionContexto";
-import { clasificarPorReglas } from "@/utils/sugerencias";
 import { fusionar } from "@/utils/fusion";
 
 export type Novedades = {
@@ -47,22 +47,6 @@ function urlDeRetorno(): string {
     return window.location.origin + "/";
   }
   return Linking.createURL("/"); // velvetwallet://  ó  exp://… en Expo Go
-}
-
-/**
- * Clasificación automática por reglas sobre lo que llega del backend.
- *
- * Solo toca los cargos sin categoría: si una regla reconoce el comercio le pone
- * la categoría y marca `estadoCategoria: "automatica"`. Lo que ninguna regla
- * reconoce queda sin categorizar (el sistema se abstiene) y aparece en
- * "Por revisar". Nunca pisa una corrección del usuario.
- */
-function clasificar(lista: Movimiento[]): Movimiento[] {
-  return lista.map((m) => {
-    if (m.categoria !== null) return m;
-    const categoria = clasificarPorReglas(m);
-    return categoria ? { ...m, categoria, estadoCategoria: "automatica" as const } : m;
-  });
 }
 
 type ValorMovimientos = {
@@ -135,7 +119,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     obtenerMovimientos()
       .then((lista) => {
         if (!vivo || miGeneracion !== generacion.current) return;
-        reemplazar(clasificar(lista));
+        reemplazar(lista);
         setUltima(new Date().toISOString());
         // A qué cliente del banco está vinculado (para mostrarlo). Mejor esfuerzo.
         obtenerConexiones()
@@ -166,7 +150,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       // movimientos nuevos que el banco generó desde la última vez.
       const vinculo = await conectarBanco();   // sin clave: usa el permiso guardado
       setClienteBanco(vinculo.cliente ?? null);
-      const entrantes = clasificar(await obtenerMovimientos());
+      const entrantes = await obtenerMovimientos();
 
       const r = fusionar(actualesRef.current, entrantes);
       actualesRef.current = r.movimientos;
@@ -220,7 +204,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       // El permiso ya lo dio el usuario en su banco: ahora se traen SUS datos.
       const vinculo = await conectarBanco();
       setClienteBanco(vinculo.cliente ?? null);
-      const lista = clasificar(await obtenerMovimientos());  // y cargamos lo que llegó
+      const lista = await obtenerMovimientos();  // y cargamos lo que llegó
       reemplazar(lista);
       setUltima(new Date().toISOString());
     } catch (e) {
@@ -231,11 +215,13 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     }
   }, [reemplazar]);
 
-  // El usuario asigna o corrige una categoría en "Por revisar". Se guarda la
-  // corrección aparte (el dato del banco no se toca) y la categoría pasa a
-  // estado "corregida". Es estado local: alimentaría el reentrenamiento del
-  // clasificador cuando el backend persista las correcciones.
+  // El usuario asigna o corrige una categoría (p. ej. en "Por revisar"). Se ve
+  // al tiro y se guarda en el backend como corrección: el dato del banco no se
+  // toca, sobrevive a las resincronizaciones y, si la persona consintió,
+  // alimenta el reentrenamiento del clasificador. Si no se puede guardar, se
+  // deshace y se avisa.
   const corregirCategoria = useCallback((id: string, categoria: string) => {
+    const antes = actualesRef.current.find((m) => m.id === id);
     const correccion: Correccion = {
       tipo: "recategorizar",
       fecha: new Date().toISOString(),
@@ -248,12 +234,24 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
               ...m,
               categoria,
               estadoCategoria: "corregida" as const,
+              origenClasificacion: "usuario" as const,
+              confianza: null,
               correcciones: [...m.correcciones, correccion],
             }
           : m,
       );
-    actualesRef.current = aplicar(actualesRef.current);
-    setMovimientos(actualesRef.current);
+    const poner = (lista: Movimiento[]) => {
+      actualesRef.current = lista;
+      setMovimientos(lista);
+    };
+    poner(aplicar(actualesRef.current));
+
+    guardarCategoria(id, categoria)
+      .then((guardado) => poner(actualesRef.current.map((m) => (m.id === id ? guardado : m))))
+      .catch((e) => {
+        if (antes) poner(actualesRef.current.map((m) => (m.id === id ? antes : m)));
+        setError(e instanceof Error ? e.message : "No se pudo guardar la categoría.");
+      });
   }, []);
 
   const desvincular = useCallback(async () => {

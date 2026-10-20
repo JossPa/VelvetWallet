@@ -100,7 +100,8 @@ Todo va filtrado por el usuario del token (JWT): cada usuario ve solo lo suyo.
 | Endpoint | Qué hace |
 |---|---|
 | `POST /api/auth/registro`, `POST /api/auth/sesion` | Cuenta de Velvet |
-| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario |
+| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario (cada gasto ya clasificado) |
+| `PUT /api/movimientos/{id}/categoria` | El usuario corrige la categoría; queda en `correccion` |
 | `POST /api/conexiones/iniciar` | Deja la solicitud en el banco (PAR + PKCE) y devuelve la URL de la página del banco |
 | `GET /api/conexiones/retorno` | El banco vuelve aquí con el código; se canjea y se redirige a la app con `?banco=vinculado` |
 | `POST /api/conexiones` | Trae (o re-trae) los datos con el permiso guardado |
@@ -135,3 +136,19 @@ cuando hay menos de tres meses de historial en vez de inventar un plazo.
 
 El generador va sembrado (`numpy.random.default_rng(42)`): la misma entrada da siempre
 la misma salida, que es lo que hace verificable una simulación aleatoria.
+
+## Clasificador de gastos
+
+La ingesta clasifica cada gasto al guardarlo (reglas → modelo → abstención). Lo
+que no reconoce queda sin categoría y aparece en "Por revisar". Detalle,
+resultados y reentrenamiento en [`clasificador/README.md`](clasificador/README.md).
+
+```bash
+python -m clasificador.reentrenar     # reentrena con las correcciones consentidas
+```
+
+Prueba de punta a punta (base LOCAL, borra datos; EFS en :8001):
+
+```bash
+python prueba_clasificador_e2e.py
+```

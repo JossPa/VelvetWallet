@@ -63,6 +63,21 @@ export function fusionar(actuales: Movimiento[], entrantes: Movimiento[]): Resul
     if (guardado.monto !== entrante.monto) {
       porId.set(entrante.id, combinar(guardado, entrante));
       actualizados.push({ id: entrante.id, montoAnterior: guardado.monto });
+    } else if (
+      guardado.estadoCategoria !== "corregida" &&
+      (guardado.categoria !== entrante.categoria ||
+        guardado.origenClasificacion !== entrante.origenClasificacion)
+    ) {
+      // Mismo movimiento, pero el clasificador lo resolvió distinto (un modelo
+      // reentrenado, o uno que estaba sin categoría). Se toma su categoría sin
+      // contarlo como "actualizado": el banco no cambió nada.
+      porId.set(entrante.id, {
+        ...guardado,
+        categoria: entrante.categoria,
+        estadoCategoria: entrante.estadoCategoria,
+        origenClasificacion: entrante.origenClasificacion,
+        confianza: entrante.confianza,
+      });
     }
     // Si llegó igual, no se toca: evita reescribir sin motivo.
   }

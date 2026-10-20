@@ -35,7 +35,7 @@ from datetime import datetime, timezone, timedelta
 from . import config
 from .bootstrap import asegurar_identidad, conexion_de_usuario
 from .cliente_sfa import ClienteSFA, ReautorizacionRequerida
-from .normalizador import cuenta_canonica, transaccion_canonica
+from .normalizador import categoria_propuesta, cuenta_canonica, transaccion_canonica
 from .repositorio import Repositorio
 
 # Qué datos se piden al banco (RAR — Rich Authorization Request). Es el alcance
@@ -184,6 +184,10 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
     ]
     repo.marcar_recurrentes(usuario_id, recurrentes)
 
+    # 4b. Gastos que siguen sin categoría (de antes del clasificador, o que un
+    #     modelo reentrenado ahora sí reconoce).
+    clasificados = repo.clasificar_sin_categoria(conexion_id, categoria_propuesta)
+
     # 5. Marcar la sincronización y confirmar todo de una.
     repo.marcar_sincronizacion(conexion_id)
     repo.commit()
@@ -195,6 +199,7 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
         "insertadas": insertadas,
         "actualizadas": actualizadas,
         "sin_cambio": sin_cambio,
+        "clasificados_ahora": clasificados,
     }
 
 

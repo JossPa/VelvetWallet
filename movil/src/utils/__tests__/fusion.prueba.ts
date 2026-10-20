@@ -111,4 +111,28 @@ describe("fusionar", () => {
 
     expect(r.movimientos).toHaveLength(1);
   });
+
+  it("toma la categoría nueva del clasificador sin contarlo como actualizado", () => {
+    const guardados = [movimiento({ id: "TXN-C", categoria: null, estadoCategoria: "sin_categoria",
+                                    origenClasificacion: null })];
+    const entrantes = [movimiento({ id: "TXN-C", categoria: "Seguros", origenClasificacion: "modelo",
+                                    confianza: 0.95 })];
+
+    const r = fusionar(guardados, entrantes);
+
+    expect(r.movimientos[0].categoria).toBe("Seguros");
+    expect(r.movimientos[0].confianza).toBe(0.95);
+    expect(r.actualizados).toHaveLength(0);
+  });
+
+  it("un modelo nuevo no pisa lo que corrigió el usuario", () => {
+    const guardados = [movimiento({ id: "TXN-D", categoria: "Hogar", estadoCategoria: "corregida",
+                                    origenClasificacion: "usuario" })];
+    const entrantes = [movimiento({ id: "TXN-D", categoria: "Supermercado", origenClasificacion: "modelo",
+                                    confianza: 0.9 })];
+
+    const r = fusionar(guardados, entrantes);
+
+    expect(r.movimientos[0].categoria).toBe("Hogar");
+  });
 });

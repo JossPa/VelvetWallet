@@ -54,15 +54,16 @@ function describirClasificacion(m: Movimiento): string {
   switch (m.origenClasificacion) {
     case "modelo":
       return m.confianza !== null
-        ? `El modelo, con ${Math.round(m.confianza * 100)}% de confianza`
+        ? `El modelo, con ${Math.min(99, Math.round(m.confianza * 100))}% de confianza`
         : "El modelo";
     case "regla":
       return "Una regla: comercio conocido";
     case "banco":
       return "La categoría que mandó la institución";
+    case "usuario":
+      return "Lo corregiste tú";
     default:
-      // Mientras el clasificador no esté conectado.
-      return "Pendiente: el clasificador aún no está conectado";
+      return "Sin información de quién la decidió";
   }
 }
 

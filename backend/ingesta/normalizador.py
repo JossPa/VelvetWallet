@@ -10,8 +10,10 @@ independiente del proveedor: sirve igual para el simulador o un banco real.
 from __future__ import annotations
 
 import hashlib
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
+
+from clasificador import clasificar
 
 # accountType del banco → tipo canónico (CHECK de la tabla cuenta).
 _TIPOS_CUENTA = {
@@ -46,6 +48,16 @@ def _glosa(mov: dict) -> str | None:
     """Descripción cruda: nombre del comercio, o el motivo si es transferencia."""
     comercio = (mov.get("merchantDetails") or {}).get("name")
     return comercio or mov.get("paymentPurposeCode")
+
+
+def _fecha_hora(mov: dict) -> str:
+    """bookingDateTime normalizado a UTC (ISO), para la huella."""
+    valor = mov["bookingDateTime"]
+    if not isinstance(valor, datetime):
+        valor = datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+    if valor.tzinfo is not None:
+        valor = valor.astimezone(timezone.utc)
+    return valor.isoformat()
 
 
 def _fecha(mov: dict) -> date:
@@ -86,7 +98,10 @@ def hash_dedup(usuario_id: str, account_id: str, mov: dict) -> str:
     partes = [
         str(usuario_id),
         account_id,
-        _fecha(mov).isoformat(),
+        # Fecha CON hora: dos compras iguales el mismo día (dos cafés de $3.500)
+        # son dos movimientos distintos. Con solo la fecha chocaban en la clave
+        # única y la sincronización completa fallaba.
+        _fecha_hora(mov),
         str(mov.get("amount")),
         (mov.get("transactionsType") or ""),
         (_glosa(mov) or ""),
@@ -105,18 +120,39 @@ def cuenta_canonica(cuenta: dict, saldo: dict | None) -> dict:
     }
 
 
+def categoria_propuesta(glosa: str | None, monto) -> tuple[str | None, float | None]:
+    """
+    Lo que propone el clasificador (bloque E) para un movimiento: (categoría,
+    confianza). Solo para gastos: los abonos no se categorizan. Si se abstiene,
+    (None, None) y el movimiento cae en "Por revisar" (RF-17 / RNF-33).
+    La confianza es None cuando decidió una regla (no es parcial).
+    """
+    if monto >= 0 or not glosa:
+        return None, None
+    r = clasificar(glosa)
+    if r.categoria is None:
+        return None, None
+    return r.categoria, (round(r.confianza, 4) if r.confianza is not None else None)
+
+
 def transaccion_canonica(usuario_id: str, account_id: str, mov: dict) -> dict:
     """Movimiento del banco → columnas de la tabla `transaccion`."""
+    monto = monto_con_signo(mov["amount"], mov.get("transactionsType"))
+    glosa = _glosa(mov)
+    categoria, confianza = categoria_propuesta(glosa, monto)
     return {
         "id_externo": mov["transactionID"],
-        "monto": monto_con_signo(mov["amount"], mov.get("transactionsType")),
+        "monto": monto,
         "moneda": mov.get("currency", "CLP"),
         "fecha": _fecha(mov),
-        "glosa_original": _glosa(mov),
+        "glosa_original": glosa,
         "categoria_origen": _categoria_origen(mov),
         "hash_dedup": hash_dedup(usuario_id, account_id, mov),
-        # categoria_id se deja en NULL: clasificar es otra etapa (RF-17,
-        # el clasificador se abstiene). El estado es 'confirmado' porque el
-        # estándar no expone "pendiente": eso se detecta al re-sincronizar.
+        # Categoría de Velvet que propone el clasificador (nombre; el
+        # repositorio la traduce a categoria_id). None = se abstuvo.
+        "categoria_nombre": categoria,
+        "confianza_clasificacion": confianza,
+        # El estado es 'confirmado' porque el estándar no expone "pendiente":
+        # eso se detecta al re-sincronizar.
         "estado": "confirmado",
     }
