@@ -26,9 +26,38 @@ def _conectar_dict():
     return psycopg.connect(config.DATABASE_URL, row_factory=dict_row)
 
 
+# Equivalencia entre la taxonomía del banco y la nuestra. Es la **primera capa
+# de la cascada** del clasificador (E2): lo que la institución ya clasificó se
+# resuelve sin modelo. Cada proveedor usa su propia taxonomía y no hay
+# equivalencia común, así que esta tabla es parte del trabajo de normalizar.
+#
+# PENDIENTE: cuando exista el clasificador entrenado, él llena `categoria_id` y
+# esta tabla solo cubre lo que llega ya categorizado por el banco.
+_CATEGORIA_PROPIA = {
+    "Alimentos": "Supermercado",
+    "Restaurantes": "Delivery",
+    "Entretenimiento": "Entretención",
+    "Servicios": "Servicios",
+    "Vivienda": "Vivienda",
+    "Transporte": "Transporte",
+    "Vestuario": "Vestuario",
+    "Salud": "Salud",
+    "Educacion": "Educación",
+    "Educación": "Educación",
+}
+
+
 def _movimiento(r: dict) -> dict:
     """Pasa una fila de la consulta a la forma que espera la app (camelCase)."""
-    tiene_categoria = r["categoria"] is not None
+    categoria_banco = r.get("categoria_origen")
+
+    # Primero lo que diga el clasificador; si todavía no clasificó, lo que
+    # mandó el banco traducido a nuestra taxonomía. Si no hay ninguna de las
+    # dos, queda sin categoría: el sistema se abstiene en vez de inventar
+    # (RF-17 / RNF-33) y el movimiento aparece en la bandeja Por revisar.
+    categoria = r["categoria"] or _CATEGORIA_PROPIA.get(categoria_banco or "")
+    tiene_categoria = categoria is not None
+
     return {
         "id": str(r["id"]),
         "cuentaId": r["cuenta_externa"],
@@ -38,8 +67,8 @@ def _movimiento(r: dict) -> dict:
         "moneda": r["moneda"],
         "comercio": r["glosa_normalizada"] or r["glosa_original"],
         "glosaOriginal": r["glosa_original"],
-        "categoria": r["categoria"],
-        "categoriaBanco": None,
+        "categoria": categoria,
+        "categoriaBanco": categoria_banco,
         "estadoCategoria": "automatica" if tiene_categoria else "sin_categoria",
         "esRecurrente": r["es_recurrente"],
         "excluido": r["estado"] == "excluido",
@@ -61,7 +90,7 @@ def listar_movimientos(
             """
             SELECT t.id, t.monto, t.moneda, t.fecha, t.glosa_original,
                    t.glosa_normalizada, t.estado, t.es_recurrente,
-                   t.payload_crudo_ref, t.created_at,
+                   t.payload_crudo_ref, t.created_at, t.categoria_origen,
                    c.id_externo        AS cuenta_externa,
                    cat.nombre          AS categoria,
                    inst.nombre         AS institucion,
