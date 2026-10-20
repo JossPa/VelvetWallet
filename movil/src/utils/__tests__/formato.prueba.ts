@@ -65,6 +65,13 @@ describe("fechaCorta y hora", () => {
   it("fechaConAnio agrega el año, que es lo que distingue un vencimiento", () => {
     expect(fechaConAnio("2027-01-18T12:00:00.000Z")).toBe("18 ene 2027");
   });
+
+  it("una fecha sin hora se lee como fecha local, no como UTC", () => {
+    // "2027-03-01" es medianoche UTC, que en Chile cae el 28 de febrero. Si
+    // se leyera así, quien escribe marzo vería febrero.
+    expect(fechaConAnio("2027-03-01")).toBe("1 mar 2027");
+    expect(claveMes("2027-03-01")).toBe("2027-03");
+  });
 });
 
 describe("tiempoRelativo", () => {

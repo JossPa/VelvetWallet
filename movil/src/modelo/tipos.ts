@@ -145,3 +145,56 @@ export type Movimiento = {
   /** Correcciones del usuario, en orden. Vacío si no hay. */
   correcciones: Correccion[];
 };
+
+// ───────────────────────── Metas de ahorro ─────────────────────────
+
+/**
+ * En qué quedó la proyección. Hay que mirarlo antes que los meses: salvo en
+ * "proyectada", los plazos vienen en null y la app tiene que decir otra cosa.
+ *
+ *   cumplida      → el ahorro ya llegó al objetivo.
+ *   sin_historial → faltan meses observados; el motor se abstiene de proyectar.
+ *   improbable    → se simuló y ni la mitad de los futuros llega a tiempo.
+ *   proyectada    → hay respuesta con probabilidad.
+ */
+export type EstadoProyeccion = "cumplida" | "sin_historial" | "improbable" | "proyectada";
+
+/**
+ * Resultado de la simulación de Monte Carlo (RF-24).
+ *
+ * No es "te faltan N meses" sino "en N meses con tanta probabilidad". El
+ * excedente mensual no es constante, y una sola cifra lo escondería.
+ */
+export type Proyeccion = {
+  estado: EstadoProyeccion;
+  /** Meses completos de historial que alimentaron la simulación. */
+  mesesObservados: number;
+  /** Cuántos hacen falta como mínimo para que el motor proyecte. */
+  mesesMinimos: number;
+  excedenteMediano: number;
+  excedentePeor: number;
+  excedenteMejor: number;
+  /** curva[i] = probabilidad de haberla alcanzado en el mes i+1. No decrece. */
+  curva: number[];
+  /** Meses para alcanzarla con esa probabilidad. null = no se alcanza en el horizonte. */
+  mesesP50: number | null;
+  mesesP80: number | null;
+  mesesP95: number | null;
+  /** Probabilidad de llegar al plazo que se propuso la persona. null si no se propuso ninguno. */
+  probabilidadALaFecha: number | null;
+  simulaciones: number;
+  horizonteMeses: number;
+};
+
+export type Meta = {
+  id: string;
+  nombre: string;
+  montoObjetivo: number;
+  montoAhorrado: number;
+  /** Plazo que se propuso la persona. null si no se propuso ninguno. */
+  fechaObjetivo: string | null;
+  creadaEn: string;
+  /** Fracción reunida, entre 0 y 1. */
+  avance: number;
+  proyeccion: Proyeccion;
+};

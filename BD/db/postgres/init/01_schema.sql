@@ -190,12 +190,20 @@ CREATE TABLE meta (
     usuario_id            uuid          NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
     nombre                varchar(120)  NOT NULL,
     monto_objetivo        numeric(15,2) NOT NULL CHECK (monto_objetivo > 0),
+    monto_ahorrado        numeric(15,2) NOT NULL DEFAULT 0 CHECK (monto_ahorrado >= 0),
     fecha_objetivo        date,
-    probabilidad_estimada numeric(5,4)           CHECK (probabilidad_estimada BETWEEN 0 AND 1)
+    probabilidad_estimada numeric(5,4)           CHECK (probabilidad_estimada BETWEEN 0 AND 1),
+    meses_estimados       smallint               CHECK (meses_estimados > 0),
+    proyectada_en         timestamptz,
+    creada_en             timestamptz   NOT NULL DEFAULT now()
 );
 
 COMMENT ON TABLE  meta                       IS 'Meta de ahorro del usuario (RF-26).';
+COMMENT ON COLUMN meta.monto_ahorrado        IS 'Lo que la persona lleva reunido. Punto de partida de la proyección.';
+COMMENT ON COLUMN meta.fecha_objetivo        IS 'Plazo que se propuso la persona, si se propuso alguno. La proyección responde con qué probabilidad llega a esa fecha.';
 COMMENT ON COLUMN meta.probabilidad_estimada IS 'Probabilidad de cumplimiento que entrega la proyección Monte Carlo (RF-24). 0..1.';
+COMMENT ON COLUMN meta.meses_estimados       IS 'Meses necesarios para alcanzarla con 80% de probabilidad. null si no se alcanza dentro del horizonte.';
+COMMENT ON COLUMN meta.proyectada_en         IS 'Cuándo se calculó la proyección guardada. Cambia con cada mes nuevo de historial.';
 
 -- =============================================================================
 -- 9. TRANSACCION  (ledger canónico)

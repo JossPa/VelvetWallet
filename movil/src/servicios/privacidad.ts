@@ -5,10 +5,9 @@
  * tus datos no autoriza a USARLOS para otra cosa. Cada finalidad se consiente,
  * vence y se revoca por su cuenta.
  */
-import { leer } from "@/servicios/almacenamiento";
+import { tokenActual } from "@/servicios/auth";
 
 const API = "http://localhost:8000";
-const CLAVE_SESION = "velvet.sesion";
 
 export type Finalidad = {
   id: string;
@@ -25,20 +24,17 @@ export type Finalidad = {
 
 export class ErrorPrivacidad extends Error {}
 
-async function token(): Promise<string> {
-  const bruto = await leer(CLAVE_SESION);
-  if (!bruto) throw new ErrorPrivacidad("No hay sesión.");
-  return (JSON.parse(bruto) as { token: string }).token;
-}
-
 async function pedir(ruta: string, cuerpo?: unknown): Promise<any> {
+  const token = await tokenActual();
+  if (!token) throw new ErrorPrivacidad("Tu sesión expiró. Vuelve a entrar.");
+
   let r: Response;
   try {
     r = await fetch(`${API}/api/privacidad${ruta}`, {
       method: cuerpo ? "POST" : "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${await token()}`,
+        Authorization: `Bearer ${token}`,
       },
       body: cuerpo ? JSON.stringify(cuerpo) : undefined,
     });
