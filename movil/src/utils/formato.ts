@@ -46,6 +46,16 @@ export function fechaCorta(iso: string): string {
   return `${d.getDate()} ${MESES[d.getMonth()]}`;
 }
 
+/**
+ * Fecha con año: "18 ene 2027".
+ *
+ * Para fechas que importan legalmente —hasta cuándo vale un consentimiento—
+ * donde "18 ene" a secas no dice si es dentro de tres meses o de quince.
+ */
+export function fechaConAnio(iso: string): string {
+  return `${fechaCorta(iso)} ${new Date(iso).getFullYear()}`;
+}
+
 /** Fecha y hora: "21 ago 19:42". */
 export function fechaHora(iso: string): string {
   return `${fechaCorta(iso)} ${hora(iso)}`;

@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth import router as auth_router
 from .datos import router as datos_router
 from .conexiones import router as conexiones_router
+from .privacidad import router as privacidad_router
 
 app = FastAPI(
     title="Velvet Wallet — API",
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(datos_router)
 app.include_router(conexiones_router)
+app.include_router(privacidad_router)
 
 
 @app.get("/health", tags=["Operación"], summary="Comprobación de vida")
