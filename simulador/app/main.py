@@ -530,6 +530,9 @@ CODIGO_VIGENCIA = timedelta(minutes=2)   # el código se canjea al tiro
 
 SOLICITUDES_PAR: dict[str, dict] = {}    # request_uri -> solicitud pendiente
 CODIGOS: dict[str, dict] = {}            # código de autorización -> datos (un solo uso)
+# Solicitudes ya respondidas: si el navegador reenvía la decisión (doble clic,
+# botón Atrás), se muestra que ya está lista en vez de un error.
+RESUELTAS: dict[str, dict] = {}          # request_uri -> {"autorizo": bool, "expira": datetime}
 
 NOMBRE_PERMISO = {
     "ReadAccountsBasic": "Ver tus cuentas",
@@ -672,11 +675,21 @@ async def autorizar_login(request: Request):
 async def autorizar_decision(request: Request):
     f = await _formulario(request)
     sol = _solicitud_vigente(f.get("request_uri", ""))
+    if sol is None:
+        hecha = RESUELTAS.get(f.get("request_uri", ""))
+        if hecha and hecha["expira"] > datetime.now(timezone.utc):
+            # Reenvío de una decisión ya tomada: no se repite nada.
+            return HTMLResponse(sitio_banco.pagina_lista(hecha["autorizo"]))
     if sol is None or not sol["sesion"] or not secrets.compare_digest(sol["sesion"], f.get("sesion", "")):
         return HTMLResponse(sitio_banco.pagina_error(
             "La sesión del banco no es válida o expiró. Vuelve a la aplicación e inténtalo de nuevo."),
             status_code=400)
     SOLICITUDES_PAR.pop(f["request_uri"], None)   # la solicitud se usa una sola vez
+    ahora = datetime.now(timezone.utc)
+    for r in [r for r, v in RESUELTAS.items() if v["expira"] < ahora]:
+        del RESUELTAS[r]
+    RESUELTAS[f["request_uri"]] = {"autorizo": f.get("decision") == "autorizar",
+                                   "expira": ahora + PAR_VIGENCIA}
     consentimiento = CONSENTIMIENTOS[sol["consentId"]]
 
     if f.get("decision") != "autorizar":
