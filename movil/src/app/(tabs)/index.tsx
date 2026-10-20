@@ -13,6 +13,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Comparacion } from "@/components/Comparacion";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
+import { GraficoMeses } from "@/components/GraficoMeses";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos, type VueltaDelBanco } from "@/datos/MovimientosContexto";
@@ -20,7 +21,9 @@ import { ErrorSincronizacion } from "@/servicios/sincronizacion";
 import { claveMes, nombreMes, pesos } from "@/utils/formato";
 import {
   compararConMesAnterior,
+  gastoUltimosMeses,
   mesAnterior,
+  promedioMensual,
   repartoPorCategoria,
   resumenDelMes,
 } from "@/utils/resumen";
@@ -107,6 +110,9 @@ export default function Inicio() {
   // Cuando el permiso guardado ya no sirve, hay que volver a autorizar en el banco.
   const [reautorizar, setReautorizar] = useState<string | null>(null);
   const [confirmarDesvincular, setConfirmarDesvincular] = useState(false);
+  // Mes que mira el panel. null = el más reciente con datos; cambia al tocar
+  // una barra del gráfico de meses.
+  const [mesElegido, setMesElegido] = useState<string | null>(null);
 
   async function alDesvincular() {
     try {
@@ -208,10 +214,17 @@ export default function Inicio() {
     );
   }
 
-  const mes = claveMes(movimientos[0].fecha);
+  const mes = mesElegido ?? claveMes(movimientos[0].fecha);
   const resumen = resumenDelMes(movimientos, mes);
   const reparto = repartoPorCategoria(movimientos, mes);
   const comparacion = compararConMesAnterior(movimientos, mes);
+
+  // Serie de los últimos seis meses. El gráfico la muestra y, al tocar una
+  // barra, el resto del panel se mueve a ese mes.
+  const serie = gastoUltimosMeses(movimientos, 6);
+  const promedio = promedioMensual(serie);
+  const mesesDelPeriodo = new Set(serie.map((g) => g.mes));
+  const repartoPeriodo = repartoPorCategoria(movimientos, mesesDelPeriodo);
 
   return (
     <Pantalla titulo="Velvet Wallet" marca etiqueta={nombreMes(mes)}>
@@ -288,9 +301,27 @@ export default function Inicio() {
         </View>
       </View>
 
+      <Seccion titulo="Gasto de los últimos meses" />
+      <GraficoMeses
+        serie={serie}
+        promedio={promedio}
+        seleccionado={mes}
+        onSeleccionar={setMesElegido}
+      />
+
+      {repartoPeriodo.porciones.length > 0 ? (
+        <>
+          <Seccion titulo="En qué se fue en esos meses" />
+          <GraficoCategorias
+            porciones={repartoPeriodo.porciones}
+            total={repartoPeriodo.total}
+          />
+        </>
+      ) : null}
+
       {reparto.porciones.length > 0 ? (
         <>
-          <Seccion titulo="En qué se te va" />
+          <Seccion titulo={`En qué se te va · ${nombreMes(mes)}`} />
           <GraficoCategorias porciones={reparto.porciones} total={reparto.total} />
         </>
       ) : null}

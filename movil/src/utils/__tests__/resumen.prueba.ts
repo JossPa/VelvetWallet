@@ -8,7 +8,9 @@
 import {
   compararConMesAnterior,
   conexionesConProblema,
+  gastoUltimosMeses,
   mesAnterior,
+  promedioMensual,
   repartoPorCategoria,
   resumenDelMes,
   sueldoDetectado,
@@ -180,6 +182,112 @@ describe("compararConMesAnterior", () => {
     const r = compararConMesAnterior(movimientos, "2026-09");
 
     expect(r?.variaciones.map((v) => v.categoria)).toEqual(["Salud"]);
+  });
+});
+
+describe("gastoUltimosMeses", () => {
+  // Un "hoy" fijo: si dependiera de la fecha real, la prueba fallaría sola
+  // al cambiar de mes.
+  const HOY = new Date("2026-10-20T12:00:00-03:00");
+
+  it("devuelve tantos meses como se piden, terminando en el mes en curso", () => {
+    const serie = gastoUltimosMeses([], 6, HOY);
+
+    expect(serie).toHaveLength(6);
+    expect(serie.map((g) => g.mes)).toEqual([
+      "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10",
+    ]);
+  });
+
+  it("marca el mes en curso como parcial y los demás no", () => {
+    const serie = gastoUltimosMeses([], 3, HOY);
+
+    expect(serie.map((g) => g.parcial)).toEqual([false, false, true]);
+  });
+
+  it("suma los cargos de cada mes por separado", () => {
+    const movimientos = [
+      movimiento({ monto: -100_000, fecha: "2026-09-10T12:00:00-03:00" }),
+      movimiento({ monto: -50_000, fecha: "2026-09-20T12:00:00-03:00" }),
+      movimiento({ monto: -30_000, fecha: "2026-10-02T12:00:00-03:00" }),
+    ];
+
+    const serie = gastoUltimosMeses(movimientos, 2, HOY);
+
+    expect(serie[0]).toMatchObject({ mes: "2026-09", total: 150_000, cantidad: 2 });
+    expect(serie[1]).toMatchObject({ mes: "2026-10", total: 30_000, cantidad: 1 });
+  });
+
+  it("incluye los meses sin gastos con total cero, para no romper la serie", () => {
+    const movimientos = [movimiento({ monto: -10_000, fecha: "2026-10-02T12:00:00-03:00" })];
+
+    const serie = gastoUltimosMeses(movimientos, 3, HOY);
+
+    expect(serie.map((g) => g.total)).toEqual([0, 0, 10_000]);
+  });
+
+  it("no cuenta los abonos ni lo que el usuario excluyó", () => {
+    const movimientos = [
+      sueldo({ fecha: "2026-09-30T12:00:00-03:00" }),
+      movimiento({ monto: -120_000, fecha: "2026-09-10T12:00:00-03:00", excluido: true }),
+      movimiento({ monto: -40_000, fecha: "2026-09-11T12:00:00-03:00" }),
+    ];
+
+    expect(gastoUltimosMeses(movimientos, 2, HOY)[0].total).toBe(40_000);
+  });
+
+  it("cruza bien el cambio de año", () => {
+    const serie = gastoUltimosMeses([], 3, new Date("2026-01-15T12:00:00-03:00"));
+
+    expect(serie.map((g) => g.mes)).toEqual(["2025-11", "2025-12", "2026-01"]);
+  });
+});
+
+describe("promedioMensual", () => {
+  const HOY = new Date("2026-10-20T12:00:00-03:00");
+
+  it("deja fuera el mes en curso, porque va a medias", () => {
+    const movimientos = [
+      movimiento({ monto: -800_000, fecha: "2026-08-10T12:00:00-03:00" }),
+      movimiento({ monto: -900_000, fecha: "2026-09-10T12:00:00-03:00" }),
+      // Octubre lleva poco: si entrara al promedio lo hundiría.
+      movimiento({ monto: -50_000, fecha: "2026-10-02T12:00:00-03:00" }),
+    ];
+
+    const serie = gastoUltimosMeses(movimientos, 3, HOY);
+
+    expect(promedioMensual(serie)).toBe(850_000);
+  });
+
+  it("sin meses completos devuelve cero y no divide por cero", () => {
+    expect(promedioMensual(gastoUltimosMeses([], 3, HOY))).toBe(0);
+  });
+});
+
+describe("repartoPorCategoria sobre varios meses", () => {
+  it("acumula el período completo, no solo un mes", () => {
+    const movimientos = [
+      movimiento({ monto: -60_000, categoria: "Vivienda", fecha: "2026-08-05T12:00:00-03:00" }),
+      movimiento({ monto: -40_000, categoria: "Vivienda", fecha: "2026-09-05T12:00:00-03:00" }),
+      movimiento({ monto: -150_000, categoria: "Supermercado", fecha: "2026-09-12T12:00:00-03:00" }),
+    ];
+
+    const r = repartoPorCategoria(movimientos, new Set(["2026-08", "2026-09"]));
+
+    // Vivienda suma 100.000 entre los dos meses; Supermercado 150.000 en uno.
+    // Ordena por monto, así que Supermercado va primero.
+    expect(r.total).toBe(250_000);
+    expect(r.porciones[0]).toMatchObject({ categoria: "Supermercado", monto: 150_000 });
+    expect(r.porciones[1]).toMatchObject({ categoria: "Vivienda", monto: 100_000 });
+  });
+
+  it("un mes suelto sigue funcionando igual que antes", () => {
+    const movimientos = [
+      movimiento({ monto: -60_000, categoria: "Vivienda", fecha: "2026-08-05T12:00:00-03:00" }),
+      movimiento({ monto: -40_000, categoria: "Vivienda", fecha: "2026-09-05T12:00:00-03:00" }),
+    ];
+
+    expect(repartoPorCategoria(movimientos, "2026-09").total).toBe(40_000);
   });
 });
 
