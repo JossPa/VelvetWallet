@@ -2,11 +2,16 @@
 """
 Generador de datos de prueba del banco simulado.
 
-Produce doce meses de historial financiero de una persona ficticia, con la
+Produce meses de historial financiero de una persona ficticia, con la
 irregularidad que tiene la vida real: montos que varían, fechas que se corren,
 comercios con glosas sucias y movimientos sin categoría.
 
-Se ejecuta UNA vez y escribe app/datos_banco.json. El simulador lee ese archivo.
+El historial depende de un PERFIL (cuánto gana, qué arrienda, a qué está
+suscrito, dónde compra). Así la EFS puede tener varios clientes, cada uno con
+una vida financiera distinta (ver app/clientes.py).
+
+El perfil por defecto (PERFIL_BASE) es el cliente original de la EFS. Con él y
+la semilla fija se genera app/datos_banco.json, idéntico a como estaba:
 
     python -m app.generador
 """
@@ -24,15 +29,10 @@ SEMILLA = 42
 
 MESES = 12          # cuántos meses de historia generar
 ANIO_FIN = 2026     # el historial termina en...
-MES_FIN = 10        # ...octubre de 2026
-
-# El historial llega hasta el mes en curso a propósito. Quien consume estos
-# datos descarta lo posterior a hoy —un banco solo entrega lo ocurrido—, así que
-# el mes actual queda parcial, como en la vida real. Si el historial terminara
-# un mes antes, "este mes" saldría vacío.
+MES_FIN = 10        # ...octubre de 2026 (el mes en curso queda parcial: la EFS solo entrega lo ya ocurrido)
 
 
-# ─────────────────────────── catálogos ───────────────────────────
+# ─────────────────────────── catálogos (perfil base) ───────────────────────────
 # Ingreso mensual fijo
 SUELDO = 850_000
 
@@ -73,6 +73,23 @@ GLOSAS_SUCIAS = [
     "TRANSBANK*CL 8829",
     "CL*SERV 2210",
 ]
+
+# El perfil base reúne los catálogos de arriba. Los otros perfiles (clientes.py)
+# tienen la misma forma con otros valores.
+PERFIL_BASE = {
+    "sueldo": SUELDO,
+    "dia_sueldo": 30,
+    "glosa_sueldo": "Abono de remuneracion",
+    "arriendo": ARRIENDO,
+    "glosa_arriendo": "Pago de arriendo",
+    "suscripciones": SUSCRIPCIONES,
+    "cuentas_hogar": CUENTAS_HOGAR,
+    "comercios": COMERCIOS,
+    "compras_por_mes": (8, 15),
+    "sucias_por_mes": (1, 2),
+    "glosas_sucias": GLOSAS_SUCIAS,
+    "pendientes": 3,
+}
 
 
 # ─────────────────────────── utilidades ───────────────────────────
@@ -141,71 +158,81 @@ def movimiento(tid, cuando, tipo, monto, comercio=None, categoria=None, glosa=No
 
 
 # ─────────────────────────── un mes ───────────────────────────
-def movimientos_del_mes(anio, mes, rng, contador):
+def movimientos_del_mes(anio, mes, rng, contador, perfil=None, prefijo=None):
     """
-    Genera todos los movimientos de un mes.
+    Genera todos los movimientos de un mes para un perfil.
 
     'contador' es una lista de un elemento que usamos para numerar los IDs de
     forma correlativa a lo largo de toda la generación. Se pasa así porque las
     listas son mutables: lo que modificamos acá se ve afuera.
+
+    'prefijo' distingue los transactionID de cada cliente (TXN-<prefijo>-...).
+    Sin prefijo, el formato es el original (TXN-AAAAMM-NNNN).
     """
+    p = perfil or PERFIL_BASE
     movs = []
 
     def sig_id():
         contador[0] += 1
+        if prefijo:
+            return "TXN-%s-%d%02d-%04d" % (prefijo, anio, mes, contador[0])
         return "TXN-%d%02d-%04d" % (anio, mes, contador[0])
 
-    # 1. El sueldo, día 30 (o el último del mes si es más corto)
+    # 1. El sueldo (o el último día del mes si es más corto)
     movs.append(movimiento(
-        sig_id(), fecha(anio, mes, 30, 9, 5), "Abono", SUELDO,
-        glosa="Abono de remuneracion"))
+        sig_id(), fecha(anio, mes, p["dia_sueldo"], 9, 5), "Abono", p["sueldo"],
+        glosa=p["glosa_sueldo"]))
 
-    # 2. El arriendo: monto fijo, día fijo
-    nombre, monto, dia, cat = ARRIENDO
-    movs.append(movimiento(
-        sig_id(), fecha(anio, mes, dia, 10), "Cargo", monto,
-        comercio=nombre, categoria=cat, glosa="Pago de arriendo"))
+    # 2. El arriendo / dividendo: monto fijo, día fijo (si el perfil tiene)
+    if p.get("arriendo"):
+        nombre, monto, dia, cat = p["arriendo"]
+        movs.append(movimiento(
+            sig_id(), fecha(anio, mes, dia, 10), "Cargo", monto,
+            comercio=nombre, categoria=cat, glosa=p.get("glosa_arriendo")))
 
     # 3. Suscripciones: monto fijo, pero la fecha se corre si cae fin de semana
-    for nombre, monto, dia, cat in SUSCRIPCIONES:
+    for nombre, monto, dia, cat in p["suscripciones"]:
         d = correr_si_finde(anio, mes, dia)
         movs.append(movimiento(
             sig_id(), fecha(anio, mes, d, rng.randint(8, 22)), "Cargo", monto,
             comercio=nombre, categoria=cat))
 
     # 4. Cuentas del hogar: monto variable ±20%, día variable ±3
-    for nombre, base, dia, cat in CUENTAS_HOGAR:
+    for nombre, base, dia, cat in p["cuentas_hogar"]:
         d = dia_valido(anio, mes, dia + rng.randint(-3, 3))
         movs.append(movimiento(
             sig_id(), fecha(anio, mes, d, rng.randint(9, 20)), "Cargo",
             variar(rng, base), comercio=nombre, categoria=cat))
 
-    # 5. Entre 8 y 15 compras variables repartidas por el mes
-    for _ in range(rng.randint(8, 15)):
-        nombre, cat, minimo, maximo = rng.choice(COMERCIOS)
+    # 5. Compras variables repartidas por el mes
+    minimo_c, maximo_c = p["compras_por_mes"]
+    for _ in range(rng.randint(minimo_c, maximo_c)):
+        nombre, cat, minimo, maximo = rng.choice(p["comercios"])
         movs.append(movimiento(
             sig_id(),
             fecha(anio, mes, rng.randint(1, 28), rng.randint(8, 22), rng.choice([0, 15, 30, 45])),
             "Cargo", rng.randint(minimo, maximo),
             comercio=nombre, categoria=cat))
 
-    # 6. Uno o dos movimientos con glosa sucia y SIN comercio ni categoría.
+    # 6. Movimientos con glosa sucia y SIN comercio ni categoría.
     #    Este es el caso donde el clasificador tiene que abstenerse.
-    for _ in range(rng.randint(1, 2)):
+    minimo_s, maximo_s = p["sucias_por_mes"]
+    for _ in range(rng.randint(minimo_s, maximo_s)):
         movs.append(movimiento(
             sig_id(),
             fecha(anio, mes, rng.randint(1, 28), rng.randint(8, 22)),
             "Cargo", rng.randint(3_000, 40_000),
-            glosa=rng.choice(GLOSAS_SUCIAS)))
+            glosa=rng.choice(p["glosas_sucias"])))
 
     movs.sort(key=lambda m: m["bookingDateTime"])
     return movs
 
 
 # ─────────────────────────── todo el historial ───────────────────────────
-def generar(meses=MESES):
-    """Genera 'meses' meses hacia atrás desde ANIO_FIN / MES_FIN."""
-    rng = random.Random(SEMILLA)
+def generar(meses=MESES, perfil=None, semilla=SEMILLA, prefijo=None):
+    """Genera 'meses' meses hacia atrás desde ANIO_FIN / MES_FIN para un perfil."""
+    p = perfil or PERFIL_BASE
+    rng = random.Random(semilla)
     contador = [0]
     todos = []
 
@@ -213,7 +240,7 @@ def generar(meses=MESES):
     for i in range(meses - 1, -1, -1):
         mes_abs = (ANIO_FIN * 12 + MES_FIN - 1) - i
         anio, mes = mes_abs // 12, mes_abs % 12 + 1
-        todos.extend(movimientos_del_mes(anio, mes, rng, contador))
+        todos.extend(movimientos_del_mes(anio, mes, rng, contador, p, prefijo))
 
     # Las últimas compras con tarjeta quedan como "pendientes": su monto va a
     # cambiar cuando se llame a /simulador/avanzar. Los campos con guion bajo
@@ -224,9 +251,11 @@ def generar(meses=MESES):
     # comercio, conversión de moneda). Un sueldo o un arriendo no hacen eso.
     candidatos = [m for m in todos
                   if m["transactionsType"] == "Cargo" and "merchantDetails" in m]
-    for m in candidatos[-3:]:
-        m["_pendiente"] = True
-        m["_monto_final"] = float(round(m["amount"] * rng.uniform(1.05, 1.20)))
+    n = p.get("pendientes", 3)
+    if n:
+        for m in candidatos[-n:]:
+            m["_pendiente"] = True
+            m["_monto_final"] = float(round(m["amount"] * rng.uniform(1.05, 1.20)))
 
     return todos
 

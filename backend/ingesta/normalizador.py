@@ -48,6 +48,13 @@ def _glosa(mov: dict) -> str | None:
     return comercio or mov.get("paymentPurposeCode")
 
 
+def _fecha(mov: dict) -> date:
+    valor = mov["bookingDateTime"]
+    if isinstance(valor, datetime):
+        return valor.date()
+    return datetime.fromisoformat(str(valor)).date()
+
+
 def _categoria_origen(mov: dict) -> str | None:
     """
     Categoría tal como la manda la institución.
@@ -62,23 +69,22 @@ def _categoria_origen(mov: dict) -> str | None:
     return (mov.get("merchantDetails") or {}).get("category")
 
 
-def _fecha(mov: dict) -> date:
-    valor = mov["bookingDateTime"]
-    if isinstance(valor, datetime):
-        return valor.date()
-    return datetime.fromisoformat(str(valor)).date()
-
-
-def hash_dedup(account_id: str, mov: dict) -> str:
+def hash_dedup(usuario_id: str, account_id: str, mov: dict) -> str:
     """
-    Huella del movimiento para deduplicar la MISMA compra llegada por dos
-    fuentes distintas (API y cartola CSV). Se calcula sobre campos intrínsecos,
-    no sobre el transactionID (que es propio de cada fuente). SHA-256 hex.
+    Huella del movimiento para deduplicar la MISMA compra de UN usuario llegada
+    por dos fuentes distintas (API y cartola CSV). Se calcula sobre campos
+    intrínsecos, no sobre el transactionID (que es propio de cada fuente).
+    SHA-256 hex.
+
+    Incluye el usuario_id a propósito: así dos usuarios distintos que conectan el
+    mismo banco (mismos datos) NO chocan en la clave única `hash_dedup`, pero la
+    deduplicación entre fuentes de un mismo usuario se mantiene.
 
     Nota: la actualización pendiente→confirmada NO se resuelve con este hash,
-    sino con id_externo (transactionID). Ver repositorio.upsert_transaccion.
+    sino con id_externo (transactionID). Ver repositorio.upsert_transacciones_bulk.
     """
     partes = [
+        str(usuario_id),
         account_id,
         _fecha(mov).isoformat(),
         str(mov.get("amount")),
@@ -99,7 +105,7 @@ def cuenta_canonica(cuenta: dict, saldo: dict | None) -> dict:
     }
 
 
-def transaccion_canonica(account_id: str, mov: dict) -> dict:
+def transaccion_canonica(usuario_id: str, account_id: str, mov: dict) -> dict:
     """Movimiento del banco → columnas de la tabla `transaccion`."""
     return {
         "id_externo": mov["transactionID"],
@@ -108,7 +114,7 @@ def transaccion_canonica(account_id: str, mov: dict) -> dict:
         "fecha": _fecha(mov),
         "glosa_original": _glosa(mov),
         "categoria_origen": _categoria_origen(mov),
-        "hash_dedup": hash_dedup(account_id, mov),
+        "hash_dedup": hash_dedup(usuario_id, account_id, mov),
         # categoria_id se deja en NULL: clasificar es otra etapa (RF-17,
         # el clasificador se abstiene). El estado es 'confirmado' porque el
         # estándar no expone "pendiente": eso se detecta al re-sincronizar.

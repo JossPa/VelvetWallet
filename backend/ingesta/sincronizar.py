@@ -4,9 +4,19 @@ Orquestador de la ingesta:
     token participante → consentimiento (RAR) → proveedor SFA →
     Mongo (crudo) → Postgres (canónico).
 
-Correr desde la carpeta backend/ con:
+Dos formas de usarlo:
 
-    python -m ingesta.sincronizar
+  · Por línea de comandos (usuario de demostración):
+        python -m ingesta.sincronizar
+
+  · Desde la API, para un usuario real que vincula su banco:
+        vincular_conexion(usuario_id, tokens_del_canje)   # después de autorizar en el banco
+        sincronizar_usuario(usuario_id)                   # trae / re-trae los datos
+
+Al vincular, el usuario inicia sesión EN EL SITIO DEL BANCO (Velvet nunca ve su
+clave), aprueba, y el banco entrega SOLO sus cuentas. Las sincronizaciones siguientes usan el refresh
+token guardado de esa conexión: no se vuelve a pedir la clave, y no hay forma de
+apuntar a otro cliente (el RUT queda fijado a la conexión).
 
 Requisitos: la EFS (simulador) levantada (uvicorn, puerto 8001) y las bases
 arriba (Postgres y Mongo; hoy en la nube: Neon y Atlas).
@@ -19,11 +29,12 @@ El flujo de seguridad va primero, alineado con la guía ATENA de la CMF:
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
 from . import config
-from .bootstrap import asegurar_identidad
-from .cliente_sfa import ClienteSFA
+from .bootstrap import asegurar_identidad, conexion_de_usuario
+from .cliente_sfa import ClienteSFA, ReautorizacionRequerida
 from .normalizador import cuenta_canonica, transaccion_canonica
 from .repositorio import Repositorio
 
@@ -32,76 +43,154 @@ from .repositorio import Repositorio
 PERMISOS = ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsDetail"]
 
 
-def sincronizar(desde: str | None = None) -> dict:
+class ConexionDeOtroCliente(Exception):
     """
-    Trae todo lo del proveedor y lo deja en las dos bases.
-    `desde` ('YYYY-MM-DD') limita a lo nuevo desde esa fecha (sync incremental).
+    La conexión ya está atada a otro cliente del banco. Se rechaza para no
+    mezclar en un mismo usuario las cuentas de dos personas distintas: primero
+    hay que desvincular el banco.
     """
-    repo = Repositorio()
+
+
+def _obtener_acceso(repo: Repositorio, banco: ClienteSFA, conexion_id: str,
+                    rut: str | None, clave: str | None,
+                    otorgado: dict | None = None) -> tuple[str, dict, dict]:
+    """
+    Consigue el token de acceso para la conexión y arma el alcance que se
+    guarda en `consentimiento.alcance_rar`. Devuelve (consentId, token, alcance).
+
+    · `otorgado`: los tokens que el banco entregó al canjear el código, después
+      de que el usuario autorizó EN EL SITIO DEL BANCO (el flujo normal).
+    · Con RUT y clave: autorización directa, solo para la demo por CLI.
+    · Sin nada: se renueva con el refresh token guardado (re-sincronizar).
+    """
+    previo = repo.consentimiento_vigente(conexion_id) or {}
+    # Conexiones anteriores a este cambio no guardaban el RUT: se crearon con el
+    # cliente por defecto de la EFS.
+    rut_previo = previo.get("rutCliente") or (config.SFA_RUT_DEMO if previo else None)
+
+    if otorgado or rut:
+        if otorgado:
+            info = otorgado
+            consent_id = info["consentId"]
+            banco._token = info["access_token"]
+        else:
+            consent_id, info = banco.obtener_acceso(
+                config.SFA_CLIENT_ID, config.SFA_CLIENT_SECRET, PERMISOS, rut, clave
+            )
+        cliente = info.get("cliente") or {}
+        if rut_previo and cliente.get("rut") and not _mismo_rut(cliente["rut"], rut_previo):
+            banco.revocar_consentimiento(consent_id)  # no dejar un permiso colgando
+            raise ConexionDeOtroCliente(
+                "Este banco ya está vinculado al RUT %s. Desvincúlalo antes de "
+                "conectar otro cliente." % rut_previo
+            )
+        refresh = info.get("refresh_token")
+    else:
+        refresh = previo.get("refreshToken")
+        if not refresh:
+            raise ReautorizacionRequerida(
+                "Este banco todavía no está vinculado: autoriza el acceso en el "
+                "sitio de tu banco."
+            )
+        info = banco.renovar_acceso(config.SFA_CLIENT_ID, config.SFA_CLIENT_SECRET, refresh)
+        consent_id = info.get("consentId") or previo.get("consentId")
+        cliente = info.get("cliente") or {"rut": previo.get("rutCliente"),
+                                          "nombre": previo.get("nombreCliente")}
+
+    alcance = {
+        "permisos": PERMISOS,
+        "consentId": consent_id,
+        "proveedor": config.INSTITUCION_NOMBRE,
+        # A qué cliente del banco corresponde esta conexión.
+        "rutCliente": cliente.get("rut"),
+        "nombreCliente": cliente.get("nombre"),
+        # Para renovar el acceso sin volver a pedir la clave. En producción se
+        # guarda cifrado. La clave del banco NO se guarda nunca.
+        "refreshToken": refresh,
+    }
+    return consent_id, info, alcance
+
+
+def _mismo_rut(a: str, b: str) -> bool:
+    limpio = lambda r: r.replace(".", "").replace(" ", "").upper()  # noqa: E731
+    return limpio(a) == limpio(b)
+
+
+def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
+                          desde: str | None = None, rut: str | None = None,
+                          clave: str | None = None) -> dict:
+    """
+    Núcleo de la sincronización para una conexión ya existente. Pide el
+    consentimiento, trae del proveedor y deja todo en las dos bases. Confirma al
+    final. Lo usan tanto la demo por CLI como la API.
+    """
     cuentas_vistas = 0
     insertadas = 0
     actualizadas = 0
     sin_cambio = 0
-    consent_id = None
+    # Para el detector de recurrencias: por comercio, cuántas veces y en cuántos
+    # meses distintos aparece como cargo.
+    frecuencia: dict = defaultdict(lambda: {"n": 0, "meses": set()})
 
-    try:
-        # 1. Identidad mínima (usuario/institución/conexión), idempotente.
-        usuario_id, conexion_id = asegurar_identidad(repo.conn)
+    with ClienteSFA(config.SFA_BASE_URL) as banco:
+        # 1. Seguridad: el cliente se identifica en su banco (o se renueva el
+        #    acceso con el refresh token). El token queda atado a ESE cliente.
+        consent_id, info_token, alcance = _obtener_acceso(
+            repo, banco, conexion_id, rut, clave
+        )
 
-        with ClienteSFA(config.SFA_BASE_URL) as banco:
-            # 2. Seguridad: token de participante + consentimiento + autorización.
-            #    A partir de aquí el cliente manda el token de acceso en cada llamada.
-            consent_id, info_token = banco.obtener_acceso(
-                config.SFA_CLIENT_ID, config.SFA_CLIENT_SECRET, PERMISOS
+        # 1a. Dejar registrado el consentimiento vigente en la base.
+        expira = datetime.now(timezone.utc) + timedelta(
+            seconds=info_token.get("expires_in", 0)
+        )
+        repo.registrar_consentimiento(conexion_id, alcance, expira)
+
+        # 2. Por cada cuenta del banco...
+        for cuenta in banco.listar_cuentas():
+            account_id = cuenta["accountId"]
+            saldo = banco.obtener_saldo(account_id)
+
+            cuenta_id = repo.upsert_cuenta(
+                conexion_id, usuario_id, cuenta_canonica(cuenta, saldo)
             )
+            cuentas_vistas += 1
 
-            # 2a. Dejar registrado el consentimiento vigente en la base.
-            expira = datetime.now(timezone.utc) + timedelta(
-                seconds=info_token.get("expires_in", 0)
-            )
-            repo.registrar_consentimiento(
-                conexion_id,
-                {
-                    "permisos": PERMISOS,
-                    "consentId": consent_id,
-                    "proveedor": config.INSTITUCION_NOMBRE,
-                },
-                expira,
-            )
+            # 3. Los movimientos, EN LOTE: crudo a Mongo (insert_many) y
+            #    normalizado a Postgres (un solo upsert). Pocas idas y vueltas
+            #    a la nube en vez de una por movimiento.
+            endpoint = "/accounts/%s/transactions" % account_id
+            movs = banco.obtener_movimientos(account_id, desde=desde)
+            if movs:
+                refs = repo.guardar_crudo_bulk(conexion_id, endpoint, movs)
+                datos = [transaccion_canonica(usuario_id, account_id, m) for m in movs]
+                res = repo.upsert_transacciones_bulk(cuenta_id, refs, datos)
+                insertadas += res["insertadas"]
+                actualizadas += res["actualizadas"]
+                sin_cambio += res["sin_cambio"]
 
-            # 3. Por cada cuenta del banco...
-            for cuenta in banco.listar_cuentas():
-                account_id = cuenta["accountId"]
-                saldo = banco.obtener_saldo(account_id)
+                # Acumular frecuencia por comercio (solo cargos, con glosa).
+                for d in datos:
+                    if d["monto"] < 0 and d["glosa_original"]:
+                        g = d["glosa_original"]
+                        frecuencia[g]["n"] += 1
+                        frecuencia[g]["meses"].add((d["fecha"].year, d["fecha"].month))
 
-                # 3a. Upsert de la cuenta (clave: conexion_id + accountId).
-                cuenta_id = repo.upsert_cuenta(
-                    conexion_id, usuario_id, cuenta_canonica(cuenta, saldo)
-                )
-                cuentas_vistas += 1
+    # 4. Detectar recurrentes: aparece ~una vez al mes en 4 meses o más. Eso
+    #    separa membresías/servicios/arriendo del gasto variable (supermercado,
+    #    retail), que cae varias veces por mes.
+    recurrentes = [
+        g for g, s in frecuencia.items()
+        if len(s["meses"]) >= 4 and s["n"] <= len(s["meses"]) * 1.3
+    ]
+    repo.marcar_recurrentes(usuario_id, recurrentes)
 
-                # 3b. Cada movimiento: crudo a Mongo, normalizado a Postgres.
-                endpoint = "/accounts/%s/transactions" % account_id
-                for mov in banco.obtener_movimientos(account_id, desde=desde):
-                    ref = repo.guardar_crudo(conexion_id, endpoint, mov)
-                    resultado = repo.upsert_transaccion(
-                        cuenta_id, ref, transaccion_canonica(account_id, mov)
-                    )
-                    if resultado == "nuevo":
-                        insertadas += 1
-                    elif resultado == "actualizado":
-                        actualizadas += 1
-                    else:
-                        sin_cambio += 1
-
-        # 4. Marcar la sincronización y confirmar todo de una.
-        repo.marcar_sincronizacion(conexion_id)
-        repo.commit()
-    finally:
-        repo.close()
+    # 5. Marcar la sincronización y confirmar todo de una.
+    repo.marcar_sincronizacion(conexion_id)
+    repo.commit()
 
     return {
         "consentimiento": consent_id,
+        "cliente": {"rut": alcance["rutCliente"], "nombre": alcance["nombreCliente"]},
         "cuentas": cuentas_vistas,
         "insertadas": insertadas,
         "actualizadas": actualizadas,
@@ -109,9 +198,69 @@ def sincronizar(desde: str | None = None) -> dict:
     }
 
 
+def vincular_conexion(usuario_id: str, otorgado: dict,
+                      institucion_nombre: str | None = None) -> dict:
+    """
+    Guarda el permiso que el usuario acaba de otorgar en el sitio del banco
+    (los tokens del canje), sin traer datos todavía: así el retorno al usuario
+    es inmediato y la app muestra el avance mientras se sincroniza.
+
+    Rechaza (ConexionDeOtroCliente) si la conexión ya estaba atada a otro
+    cliente del banco.
+    """
+    repo = Repositorio()
+    try:
+        conexion_id = conexion_de_usuario(
+            repo.conn, usuario_id, institucion_nombre or config.INSTITUCION_NOMBRE
+        )
+        with ClienteSFA(config.SFA_BASE_URL) as banco:
+            consent_id, info, alcance = _obtener_acceso(
+                repo, banco, conexion_id, None, None, otorgado
+            )
+        expira = datetime.now(timezone.utc) + timedelta(seconds=info.get("expires_in", 0))
+        repo.registrar_consentimiento(conexion_id, alcance, expira)
+        repo.commit()
+        return {"conexion_id": str(conexion_id), "consentimiento": consent_id,
+                "cliente": {"rut": alcance["rutCliente"], "nombre": alcance["nombreCliente"]}}
+    finally:
+        repo.close()
+
+
+def sincronizar_usuario(usuario_id: str, institucion_nombre: str | None = None,
+                        desde: str | None = None, rut: str | None = None,
+                        clave: str | None = None) -> dict:
+    """
+    Vincula (con RUT y clave) o re-sincroniza (sin ellos) un banco para un
+    usuario YA existente. Es lo que llama la API.
+
+    Si algo falla antes del commit final, no queda nada a medias: la conexión
+    recién creada y lo leído se descartan (la transacción no se confirma).
+    """
+    repo = Repositorio()
+    try:
+        conexion_id = conexion_de_usuario(
+            repo.conn, usuario_id, institucion_nombre or config.INSTITUCION_NOMBRE
+        )
+        return _sincronizar_conexion(repo, usuario_id, conexion_id, desde, rut, clave)
+    finally:
+        repo.close()
+
+
+def sincronizar(desde: str | None = None) -> dict:
+    """Demo por CLI: usa el usuario de demostración y el cliente demo de la EFS."""
+    repo = Repositorio()
+    try:
+        usuario_id, conexion_id = asegurar_identidad(repo.conn)
+        return _sincronizar_conexion(repo, usuario_id, conexion_id, desde,
+                                     config.SFA_RUT_DEMO, config.SFA_CLAVE_DEMO)
+    finally:
+        repo.close()
+
+
 if __name__ == "__main__":
     resumen = sincronizar()
     print("Sincronización lista:")
+    print("  Cliente del banco  : %s (%s)" % (resumen["cliente"]["nombre"], resumen["cliente"]["rut"]))
     print("  Consentimiento     : %s" % resumen["consentimiento"])
     print("  Cuentas procesadas : %d" % resumen["cuentas"])
     print("  Movimientos nuevos : %d" % resumen["insertadas"])

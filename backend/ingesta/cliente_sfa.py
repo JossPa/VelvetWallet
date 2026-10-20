@@ -26,6 +26,21 @@ from __future__ import annotations
 import httpx
 
 
+class CredencialesBancoInvalidas(Exception):
+    """El banco rechazó el RUT o la clave del cliente al autorizar."""
+
+
+class ReautorizacionRequerida(Exception):
+    """
+    El acceso guardado ya no sirve (consentimiento vencido, revocado o el
+    cliente ya no existe): el usuario tiene que volver a autorizar en su banco.
+    """
+
+
+class AutorizacionFallida(Exception):
+    """El banco no aceptó el código de autorización (vencido, reusado o PKCE inválido)."""
+
+
 class ClienteSFA:
     def __init__(self, base_url: str, timeout: float = 30.0):
         self.base_url = base_url.rstrip("/")
@@ -76,31 +91,109 @@ class ClienteSFA:
         r.raise_for_status()
         return r.json()["data"]["consentId"]
 
-    def autorizar_consentimiento(self, consent_id: str) -> dict:
+    def autorizar_consentimiento(self, consent_id: str, rut: str | None = None,
+                                 clave: str | None = None) -> dict:
         """
-        Autoriza el consentimiento (el usuario aprueba) y recibe el token de
-        acceso. Deja ese token puesto en el cliente para leer datos.
+        El cliente del banco se identifica (RUT + clave) y aprueba. Se recibe el
+        token de acceso —atado a ESE cliente: solo ve sus cuentas— y un refresh
+        token para renovar el acceso más adelante sin pedirle de nuevo la clave.
+
+        En el SFA real este paso ocurre en el sitio del banco (redirección) y
+        Velvet nunca ve la clave; en la EFS se simula con esta llamada. La clave
+        solo viaja al banco: no se guarda ni se registra en ningún lado.
         """
+        cuerpo = {"rut": rut, "clave": clave} if rut else None
         r = self._http.post("/consents/%s/authorise" % consent_id,
-                             headers=self._headers())
+                            json=cuerpo, headers=self._headers())
+        if r.status_code == 401:
+            raise CredencialesBancoInvalidas("El banco rechazó el RUT o la clave.")
         r.raise_for_status()
         datos = r.json()
         self._token = datos["access_token"]
         return datos
 
     def obtener_acceso(self, client_id: str, client_secret: str,
-                       permisos: list[str]) -> tuple[str, dict]:
+                       permisos: list[str], rut: str | None = None,
+                       clave: str | None = None) -> tuple[str, dict]:
         """
         Flujo completo de seguridad, en orden:
           1. token de participante (Client Credentials),
           2. solicitar consentimiento (RAR),
-          3. autorizar y quedar con el token de acceso cargado.
+          3. el cliente se identifica y autoriza → token de acceso cargado.
         Devuelve (consentId, datos_del_token_de_acceso).
         """
         self.obtener_token_participante(client_id, client_secret)
         consent_id = self.solicitar_consentimiento(permisos)
-        datos_token = self.autorizar_consentimiento(consent_id)
+        datos_token = self.autorizar_consentimiento(consent_id, rut, clave)
         return consent_id, datos_token
+
+    # -- autorización en el sitio del banco (OAuth 2.0 + PAR + PKCE) ---------
+    def solicitar_autorizacion(self, client_id: str, client_secret: str,
+                               permisos: list[str], redirect_uri: str, state: str,
+                               code_challenge: str) -> str:
+        """
+        PAR: deja la solicitud de autorización en el banco (autenticado como
+        participante) y devuelve el request_uri con el que se arma la URL de la
+        página del banco. La clave del usuario la escribe él allá, no aquí.
+        """
+        r = self._http.post("/par", json={
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
+            "permissions": permisos,
+        })
+        r.raise_for_status()
+        return r.json()["request_uri"]
+
+    def canjear_codigo(self, client_id: str, client_secret: str, code: str,
+                       redirect_uri: str, code_verifier: str) -> dict:
+        """
+        Canjea el código que devolvió el banco por los tokens. Va con el
+        code_verifier de PKCE: sin él, un código interceptado no sirve. Deja el
+        token de acceso puesto para leer datos.
+        """
+        r = self._http.post("/token", json={
+            "grant_type": "authorization_code",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "code": code,
+            "redirect_uri": redirect_uri,
+            "code_verifier": code_verifier,
+        })
+        if r.status_code == 400:
+            raise AutorizacionFallida(r.json().get("detail", "El banco no aceptó el código."))
+        r.raise_for_status()
+        datos = r.json()
+        self._token = datos["access_token"]
+        return datos
+
+    def renovar_acceso(self, client_id: str, client_secret: str,
+                       refresh_token: str) -> dict:
+        """
+        Pide un token de acceso nuevo con el refresh token guardado, para el
+        mismo cliente y consentimiento. Es lo que permite sincronizar de nuevo
+        sin volver a pedirle la clave al usuario.
+        """
+        r = self._http.post("/token", json={
+            "grant_type": "refresh_token",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+        })
+        if r.status_code == 401:
+            raise ReautorizacionRequerida(r.json().get("detail", "Hay que autorizar de nuevo."))
+        r.raise_for_status()
+        datos = r.json()
+        self._token = datos["access_token"]
+        return datos
+
+    def revocar_consentimiento(self, consent_id: str) -> None:
+        """El usuario retira el permiso: el banco invalida sus tokens."""
+        r = self._http.delete("/consents/%s" % consent_id, headers=self._headers())
+        r.raise_for_status()
 
     # -- endpoints del estándar (requieren token de acceso) -------------------
     def listar_cuentas(self) -> list[dict]:

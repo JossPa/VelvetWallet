@@ -30,6 +30,20 @@ SFA_BASE_URL = os.getenv("SFA_BASE_URL", "http://localhost:8001/accounts/v1")
 SFA_CLIENT_ID = os.getenv("SFA_CLIENT_ID", "velvet-wallet")
 SFA_CLIENT_SECRET = os.getenv("SFA_CLIENT_SECRET", "secreto-demo")
 
+# ── Autorización en el sitio del banco (OAuth 2.0 + PAR + PKCE) ─────────────
+# Página del banco a la que se manda al usuario para que inicie sesión y
+# apruebe, y la URL de Velvet a la que el banco lo devuelve con el código.
+# La redirect_uri tiene que estar registrada en la EFS (SFA_REDIRECT_URIS).
+SFA_AUTORIZAR_URL = os.getenv("SFA_AUTORIZAR_URL", "http://localhost:8001/autorizar")
+SFA_REDIRECT_URI = os.getenv("SFA_REDIRECT_URI", "http://localhost:8000/api/conexiones/retorno")
+
+# ── Cliente del banco para la demo por línea de comandos ────────────────────
+# `python -m ingesta.sincronizar` no pasa por la app, así que necesita saber a
+# qué cliente de la EFS conectar. Desde la app, en cambio, el usuario inicia
+# sesión en el sitio del banco y Velvet nunca ve su clave.
+SFA_RUT_DEMO = os.getenv("SFA_RUT_DEMO", "11.111.111-1")
+SFA_CLAVE_DEMO = os.getenv("SFA_CLAVE_DEMO", "1234")
+
 # ── PostgreSQL (modelo canónico) ────────────────────────────────────────────
 DATABASE_URL = os.getenv(
     "DATABASE_URL",

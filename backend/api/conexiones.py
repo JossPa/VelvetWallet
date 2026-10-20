@@ -1,0 +1,272 @@
+# -*- coding: utf-8 -*-
+"""
+Conexión del usuario con los bancos (entidades financieras del SFA).
+
+La clave del banco NUNCA entra a Velvet. Para vincular, la app manda al usuario
+al SITIO DE SU BANCO; allá inicia sesión y aprueba, y el banco lo devuelve aquí
+con un código de un solo uso que se canjea por el permiso (OAuth 2.0 con PAR y
+PKCE, como pide el estándar del SFA / FAPI).
+
+  POST   /api/conexiones/iniciar  -> URL de la página del banco para autorizar
+  GET    /api/conexiones/retorno  -> el banco vuelve aquí con el código (callback)
+  POST   /api/conexiones          -> sincroniza el banco ya autorizado
+  GET    /api/conexiones          -> bancos conectados del usuario
+  DELETE /api/conexiones/{id}     -> desvincula: revoca el permiso y borra sus datos
+
+Flujo:
+  app ──POST /iniciar──▶ backend ──PAR (credenciales + PKCE)──▶ banco
+  app ◀── urlAutorizacion ── backend
+  app ──abre──▶ sitio del banco: login + "Autorizar"
+  banco ──303 ?code&state──▶ /retorno ──canje code + verifier──▶ banco (tokens)
+  /retorno ──303 ?banco=vinculado──▶ app ──POST /conexiones──▶ trae los datos
+"""
+import base64
+import hashlib
+import secrets
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from psycopg.rows import dict_row
+import psycopg
+
+from . import config
+from .sesion_actual import usuario_actual
+
+# La ingesta vive en backend/ingesta; se corre desde backend/, así que es importable.
+from ingesta.cliente_sfa import AutorizacionFallida, ClienteSFA, ReautorizacionRequerida
+from ingesta.repositorio import Repositorio
+from ingesta.sincronizar import (PERMISOS, ConexionDeOtroCliente, sincronizar_usuario,
+                                 vincular_conexion)
+from ingesta import config as config_ingesta
+
+router = APIRouter(prefix="/api", tags=["Conexiones (bancos)"])
+
+# Vinculaciones en curso, por `state`. Viven en memoria y duran lo que la
+# solicitud en el banco (10 min). Si el backend se reinicia a mitad, el usuario
+# vuelve a tocar "Ir al banco". En producción esto iría en Redis o en la base.
+VIGENCIA_INICIO = timedelta(minutes=10)
+PENDIENTES: dict[str, dict] = {}
+
+
+def _explicar_falla(e: Exception) -> str:
+    """Dice QUÉ servicio falló, para no culpar al banco de un problema de la base."""
+    import httpx
+    import pymongo.errors
+
+    nombre = type(e).__name__
+    if isinstance(e, pymongo.errors.PyMongoError):
+        return ("No se pudo conectar con MongoDB (Atlas). Revisa que tu IP esté permitida en "
+                "Network Access y que el cluster no esté pausado. (%s)" % nombre)
+    if isinstance(e, psycopg.Error):
+        return "No se pudo conectar con PostgreSQL (Neon). Revisa DATABASE_URL. (%s)" % nombre
+    if isinstance(e, httpx.ConnectError):
+        return "No se pudo conectar con el banco simulado. ¿Está corriendo la EFS en el 8001? (%s)" % nombre
+    if isinstance(e, httpx.HTTPStatusError):
+        return "El banco respondió con error %d. (%s)" % (e.response.status_code, nombre)
+    return "No se pudo sincronizar con el banco. (%s)" % nombre
+
+
+def _retorno_permitido(url: str | None) -> str:
+    """Solo se vuelve a destinos de la lista blanca (evita redirección abierta)."""
+    if url and any(url.startswith(p) for p in config.RETORNOS_PERMITIDOS):
+        return url
+    return config.RETORNO_POR_DEFECTO
+
+
+def _volver_a_la_app(retorno: str, **resultado) -> RedirectResponse:
+    """Devuelve al usuario a la app con el resultado. Sin datos personales en la URL."""
+    union = "&" if "?" in retorno else "?"
+    return RedirectResponse(retorno + union + urlencode(resultado), status_code=303)
+
+
+def _limpiar_vencidas() -> None:
+    ahora = datetime.now(timezone.utc)
+    for st in [s for s, p in PENDIENTES.items() if p["expira"] < ahora]:
+        PENDIENTES.pop(st, None)
+
+
+class SolicitudInicio(BaseModel):
+    """
+    · institucion: qué banco (hoy solo la EFS).
+    · retorno: a dónde debe volver el usuario al terminar (URL de la app). Tiene
+      que estar en VELVET_RETORNOS_PERMITIDOS; si no, se usa el de por defecto.
+    """
+    institucion: str | None = None
+    retorno: str | None = None
+
+
+@router.post("/conexiones/iniciar", summary="Empezar la vinculación en el sitio del banco")
+def iniciar_vinculacion(datos: SolicitudInicio | None = None,
+                        usuario_id: str = Depends(usuario_actual)):
+    """
+    Deja la solicitud de autorización en el banco (PAR) y devuelve la URL de la
+    página del banco a la que la app debe mandar al usuario.
+    """
+    datos = datos or SolicitudInicio()
+    _limpiar_vencidas()
+
+    # PKCE: el verifier se queda aquí; al banco solo va su huella (challenge).
+    verifier = secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+    # state: ata la vuelta del banco con ESTA solicitud de ESTE usuario.
+    state = secrets.token_urlsafe(24)
+
+    try:
+        with ClienteSFA(config_ingesta.SFA_BASE_URL) as banco:
+            request_uri = banco.solicitar_autorizacion(
+                config_ingesta.SFA_CLIENT_ID, config_ingesta.SFA_CLIENT_SECRET, PERMISOS,
+                config_ingesta.SFA_REDIRECT_URI, state, challenge)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=_explicar_falla(e))
+
+    PENDIENTES[state] = {
+        "usuario_id": usuario_id,
+        "code_verifier": verifier,
+        "institucion": datos.institucion or config_ingesta.INSTITUCION_NOMBRE,
+        "retorno": _retorno_permitido(datos.retorno),
+        "expira": datetime.now(timezone.utc) + VIGENCIA_INICIO,
+    }
+    url = config_ingesta.SFA_AUTORIZAR_URL + "?" + urlencode(
+        {"client_id": config_ingesta.SFA_CLIENT_ID, "request_uri": request_uri})
+    return {"urlAutorizacion": url, "expiraEn": int(VIGENCIA_INICIO.total_seconds())}
+
+
+@router.get("/conexiones/retorno", summary="El banco vuelve aquí (callback OAuth)",
+            include_in_schema=False)
+def retorno_del_banco(state: str | None = None, code: str | None = None,
+                      error: str | None = None):
+    """
+    No lleva JWT: lo abre el navegador del usuario, que viene del banco. Lo que
+    lo identifica es el `state`, que es secreto, de un solo uso y vence.
+    """
+    pendiente = PENDIENTES.pop(state or "", None)
+    if pendiente is None or pendiente["expira"] < datetime.now(timezone.utc):
+        return _volver_a_la_app(config.RETORNO_POR_DEFECTO, banco="error", motivo="expirado")
+    retorno = pendiente["retorno"]
+
+    if error or not code:
+        # access_denied = el usuario tocó "Rechazar" en su banco.
+        return _volver_a_la_app(retorno, banco="rechazado" if error == "access_denied" else "error",
+                                **({} if error == "access_denied" else {"motivo": "fallo"}))
+
+    try:
+        with ClienteSFA(config_ingesta.SFA_BASE_URL) as banco:
+            otorgado = banco.canjear_codigo(
+                config_ingesta.SFA_CLIENT_ID, config_ingesta.SFA_CLIENT_SECRET, code,
+                config_ingesta.SFA_REDIRECT_URI, pendiente["code_verifier"])
+        vincular_conexion(pendiente["usuario_id"], otorgado, pendiente["institucion"])
+    except AutorizacionFallida:
+        return _volver_a_la_app(retorno, banco="error", motivo="expirado")
+    except ConexionDeOtroCliente:
+        return _volver_a_la_app(retorno, banco="error", motivo="otro_cliente")
+    except Exception:  # noqa: BLE001
+        return _volver_a_la_app(retorno, banco="error", motivo="fallo")
+    return _volver_a_la_app(retorno, banco="vinculado")
+
+
+class SolicitudConexion(BaseModel):
+    institucion: str | None = None
+
+
+@router.post("/conexiones", summary="Sincronizar un banco ya autorizado")
+def conectar_banco(
+    datos: SolicitudConexion | None = None,
+    usuario_id: str = Depends(usuario_actual),
+):
+    """
+    Trae (o vuelve a traer) las cuentas y movimientos del banco ya autorizado,
+    usando el permiso guardado. Si todavía no hay permiso responde 409
+    `reautorizar`: la app debe mandar al usuario al banco (/iniciar).
+    """
+    datos = datos or SolicitudConexion()
+    institucion = datos.institucion or config_ingesta.INSTITUCION_NOMBRE
+    try:
+        resumen = sincronizar_usuario(usuario_id, institucion)
+    except ReautorizacionRequerida as e:
+        raise HTTPException(status_code=409, detail={"codigo": "reautorizar", "mensaje": str(e)})
+    except ConexionDeOtroCliente as e:
+        raise HTTPException(status_code=409, detail={"codigo": "otro_cliente", "mensaje": str(e)})
+    except Exception as e:  # noqa: BLE001 — se traduce a un error claro para la app
+        raise HTTPException(status_code=502, detail=_explicar_falla(e))
+    return {
+        "institucion": institucion,
+        "cliente": resumen["cliente"],
+        "cuentas": resumen["cuentas"],
+        "movimientosNuevos": resumen["insertadas"],
+        "movimientosActualizados": resumen["actualizadas"],
+        "movimientosSinCambio": resumen["sin_cambio"],
+    }
+
+
+@router.get("/conexiones", summary="Bancos conectados del usuario")
+def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
+    with psycopg.connect(config.DATABASE_URL, row_factory=dict_row) as conn:
+        filas = conn.execute(
+            """
+            SELECT cx.id, cx.estado, cx.ultima_sincronizacion,
+                   inst.nombre AS institucion,
+                   (SELECT COUNT(*) FROM cuenta c WHERE c.conexion_id = cx.id) AS cuentas,
+                   (SELECT cs.alcance_rar FROM consentimiento cs
+                     WHERE cs.conexion_id = cx.id AND cs.estado = 'vigente'
+                     ORDER BY cs.fecha_inicio DESC LIMIT 1) AS alcance
+            FROM conexion cx
+            JOIN institucion inst ON inst.id = cx.institucion_id
+            WHERE cx.usuario_id = %s
+            ORDER BY inst.nombre
+            """,
+            (usuario_id,),
+        ).fetchall()
+
+    conexiones = [
+        {
+            "id": str(r["id"]),
+            "institucion": r["institucion"],
+            "estado": r["estado"],
+            "cuentas": r["cuentas"],
+            # A qué cliente del banco está atada (nunca el refresh token).
+            "rutCliente": (r["alcance"] or {}).get("rutCliente"),
+            "nombreCliente": (r["alcance"] or {}).get("nombreCliente"),
+            "autorizada": bool((r["alcance"] or {}).get("refreshToken")),
+            "ultimaSincronizacion": r["ultima_sincronizacion"].isoformat()
+            if r["ultima_sincronizacion"] else None,
+        }
+        for r in filas
+    ]
+    return {"conexiones": conexiones, "total": len(conexiones)}
+
+
+@router.delete("/conexiones/{conexion_id}", summary="Desvincular un banco")
+def desvincular_banco(conexion_id: str, usuario_id: str = Depends(usuario_actual)):
+    """
+    Retira el permiso: lo revoca en el banco (si se puede) y borra la conexión
+    con sus cuentas, movimientos y payloads crudos. Solo el dueño puede hacerlo.
+    """
+    repo = Repositorio()
+    try:
+        fila = repo.conn.execute(
+            "SELECT id FROM conexion WHERE id = %s AND usuario_id = %s",
+            (conexion_id, usuario_id),
+        ).fetchone()
+        if fila is None:
+            # Ajena o inexistente: misma respuesta, no se filtra nada.
+            raise HTTPException(status_code=404, detail="Conexión no encontrada.")
+
+        alcance = repo.consentimiento_vigente(conexion_id) or {}
+        if alcance.get("consentId"):
+            try:  # mejor esfuerzo: si la EFS no está, igual se borra de nuestro lado
+                with ClienteSFA(config_ingesta.SFA_BASE_URL) as banco:
+                    banco.obtener_token_participante(config_ingesta.SFA_CLIENT_ID,
+                                                     config_ingesta.SFA_CLIENT_SECRET)
+                    banco.revocar_consentimiento(alcance["consentId"])
+            except Exception:  # noqa: BLE001
+                pass
+
+        repo.eliminar_conexion(conexion_id)
+        repo.commit()
+    finally:
+        repo.close()
+    return {"desvinculada": conexion_id}

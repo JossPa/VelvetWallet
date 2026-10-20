@@ -23,3 +23,8 @@ env/
 #   - modelos_sfa.py lo importa la aplicación, tiene que estar
 #   - datos_banco.json es la data de prueba compartida del equipo; al ser
 #     determinista, versionarlo garantiza que ambos trabajen sobre lo mismo
+
+# Estado que la EFS crea en vivo (clientes creados, permisos otorgados).
+# Es de cada máquina: no se versiona. Borrarlos = volver a los clientes de base.
+app/clientes_creados.json
+app/refresh_tokens.json

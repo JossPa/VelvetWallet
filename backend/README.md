@@ -88,3 +88,27 @@ docker compose -f ../BD/docker-compose.yml exec postgres \
 ```
 
 El `sum(monto)` es, literalmente, el saldo: cargos negativos y abonos positivos.
+
+## API para la app (puerto 8000)
+
+```bash
+uvicorn api.main:app --reload --port 8000     # desde backend/, con la EFS en el 8001
+```
+
+Todo va filtrado por el usuario del token (JWT): cada usuario ve solo lo suyo.
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /api/auth/registro`, `POST /api/auth/sesion` | Cuenta de Velvet |
+| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario |
+| `POST /api/conexiones/iniciar` | Deja la solicitud en el banco (PAR + PKCE) y devuelve la URL de la página del banco |
+| `GET /api/conexiones/retorno` | El banco vuelve aquí con el código; se canjea y se redirige a la app con `?banco=vinculado` |
+| `POST /api/conexiones` | Trae (o re-trae) los datos con el permiso guardado |
+| `GET /api/conexiones`, `DELETE /api/conexiones/{id}` | Bancos vinculados; desvincular revoca el permiso y borra sus datos |
+
+**La clave del banco nunca pasa por Velvet**: el usuario la escribe en la página del banco
+(ver `simulador/README.md`, "Autorización en el sitio del banco"). Velvet guarda solo el refresh
+token del permiso (en producción, cifrado).
+
+Si la base se creó antes de la columna `transaccion.categoria_origen`, la ingesta la agrega sola la
+primera vez (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`).

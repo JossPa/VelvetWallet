@@ -25,3 +25,13 @@ JWT_SECRET = os.getenv("JWT_SECRET", "cambia-esta-clave-secreta-en-produccion")
 
 # Duración del token en días (la app renueva cuando expira).
 TOKEN_DIAS = int(os.getenv("TOKEN_DIAS", "30"))
+
+# A dónde puede volver el usuario después de autorizar en su banco. Es una
+# lista cerrada a propósito: si el backend redirigiera a cualquier URL que le
+# pasen, serviría para mandar al usuario a un sitio falso (redirección abierta).
+#   · http://localhost:8081  → la app en el navegador (desarrollo)
+#   · velvetwallet://        → la app instalada (esquema de app.json)
+#   · exp://                 → la app en Expo Go (desarrollo en el celular)
+RETORNOS_PERMITIDOS = [r.strip() for r in os.getenv(
+    "VELVET_RETORNOS_PERMITIDOS", "http://localhost:8081,velvetwallet://,exp://").split(",") if r.strip()]
+RETORNO_POR_DEFECTO = os.getenv("VELVET_RETORNO", "http://localhost:8081/")

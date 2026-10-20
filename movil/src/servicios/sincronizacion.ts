@@ -19,7 +19,34 @@ import { tokenActual } from "@/servicios/auth";
  */
 const API = "http://localhost:8000";
 
-export class ErrorSincronizacion extends Error {}
+/**
+ * Error con un código opcional para que la pantalla sepa qué hacer:
+ *  · "reautorizar"  → el permiso venció o nunca se dio: mandar al sitio del banco.
+ *  · "otro_cliente" → ese banco ya está vinculado a otro RUT.
+ */
+export class ErrorSincronizacion extends Error {
+  codigo?: string;
+  constructor(mensaje: string, codigo?: string) {
+    super(mensaje);
+    this.codigo = codigo;
+  }
+}
+
+/** Traduce la respuesta de error del backend a un mensaje y código claros. */
+async function errorDeRespuesta(respuesta: Response, porDefecto: string): Promise<ErrorSincronizacion> {
+  let detalle: unknown = null;
+  try {
+    detalle = ((await respuesta.json()) as { detail?: unknown }).detail;
+  } catch {
+    // sin cuerpo JSON
+  }
+  if (detalle && typeof detalle === "object" && "mensaje" in detalle) {
+    const d = detalle as { mensaje: string; codigo?: string };
+    return new ErrorSincronizacion(d.mensaje, d.codigo);
+  }
+  if (typeof detalle === "string") return new ErrorSincronizacion(detalle);
+  return new ErrorSincronizacion(porDefecto);
+}
 
 /**
  * Trae los movimientos del usuario autenticado. Manda el token de sesión; el
@@ -52,15 +79,50 @@ export async function obtenerMovimientos(): Promise<Movimiento[]> {
 
 export type ResultadoConexion = {
   institucion: string;
+  /** El cliente del banco con el que quedó vinculada la conexión. */
+  cliente: { rut: string; nombre: string };
   cuentas: number;
   movimientosNuevos: number;
   movimientosActualizados: number;
 };
 
 /**
- * Vincula un banco al usuario: ES la "petición de permiso" del SFA. El usuario
- * la pide explícitamente; recién entonces el backend obtiene el consentimiento,
- * el token, y trae sus datos. Puede tardar unos segundos (baja el historial).
+ * Empieza la vinculación: el backend deja la solicitud en el banco (PAR + PKCE)
+ * y devuelve la URL de la PÁGINA DEL BANCO. Allá el usuario inicia sesión con
+ * su RUT y su clave y aprueba; Velvet nunca ve esos datos.
+ *
+ * `retorno` es a dónde vuelve el usuario al terminar (la URL de la app). El
+ * banco vuelve al backend, y el backend redirige ahí con `?banco=vinculado`,
+ * `?banco=rechazado` o `?banco=error&motivo=...`.
+ */
+export async function iniciarVinculacion(retorno: string): Promise<string> {
+  const token = await tokenActual();
+  if (!token) {
+    throw new ErrorSincronizacion("Tu sesión no está activa. Inicia sesión de nuevo.");
+  }
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API}/api/conexiones/iniciar`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ retorno }),
+    });
+  } catch {
+    throw new ErrorSincronizacion(
+      "No se pudo conectar con el servidor. Revisa que el backend esté corriendo.",
+    );
+  }
+  if (!respuesta.ok) {
+    throw await errorDeRespuesta(respuesta, "No se pudo abrir el sitio del banco.");
+  }
+  return ((await respuesta.json()) as { urlAutorizacion: string }).urlAutorizacion;
+}
+
+/**
+ * Trae (o vuelve a traer) los datos del banco ya autorizado, con el permiso
+ * guardado. Si todavía no hay permiso, falla con codigo "reautorizar".
+ *
+ * Puede tardar unos segundos (baja el historial).
  */
 export async function conectarBanco(): Promise<ResultadoConexion> {
   const token = await tokenActual();
@@ -73,7 +135,7 @@ export async function conectarBanco(): Promise<ResultadoConexion> {
     respuesta = await fetch(`${API}/api/conexiones`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: "{}",
+      body: JSON.stringify({}),
     });
   } catch {
     throw new ErrorSincronizacion(
@@ -82,7 +144,47 @@ export async function conectarBanco(): Promise<ResultadoConexion> {
   }
 
   if (!respuesta.ok) {
-    throw new ErrorSincronizacion("No se pudo vincular el banco. Intenta de nuevo.");
+    throw await errorDeRespuesta(respuesta, "No se pudo vincular el banco. Intenta de nuevo.");
   }
   return (await respuesta.json()) as ResultadoConexion;
+}
+
+export type ConexionBanco = {
+  id: string;
+  institucion: string;
+  rutCliente: string | null;
+  nombreCliente: string | null;
+  cuentas: number;
+  /** false si el permiso es de antes del flujo por el banco y hay que re-autorizar. */
+  autorizada?: boolean;
+  ultimaSincronizacion: string | null;
+};
+
+/** Bancos vinculados del usuario (y a qué cliente del banco está atado cada uno). */
+export async function obtenerConexiones(): Promise<ConexionBanco[]> {
+  const token = await tokenActual();
+  if (!token) return [];
+  const respuesta = await fetch(`${API}/api/conexiones`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) return [];
+  return ((await respuesta.json()) as { conexiones: ConexionBanco[] }).conexiones;
+}
+
+/**
+ * Desvincula un banco: el permiso se revoca en el banco y se borran de Velvet
+ * las cuentas y movimientos de esa conexión.
+ */
+export async function desvincularBanco(conexionId: string): Promise<void> {
+  const token = await tokenActual();
+  if (!token) {
+    throw new ErrorSincronizacion("Tu sesión no está activa. Inicia sesión de nuevo.");
+  }
+  const respuesta = await fetch(`${API}/api/conexiones/${conexionId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!respuesta.ok) {
+    throw await errorDeRespuesta(respuesta, "No se pudo desvincular el banco.");
+  }
 }

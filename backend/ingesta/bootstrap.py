@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Siembra idempotente de la identidad mínima que las claves foráneas exigen.
+Identidad mínima que las claves foráneas exigen, de forma idempotente.
 
 Una transacción necesita una cuenta; una cuenta, una conexión; una conexión,
-un usuario y una institución. En producción todo eso nace del registro y del
-consentimiento OAuth. Mientras esa parte no existe, aquí se crea una vez y se
-reutiliza en cada corrida (no duplica).
+un usuario y una institución.
+
+  · En el flujo real, el usuario YA existe (nace del registro) y solo falta
+    asegurar la institución y la conexión cuando vincula su banco:
+    ver `conexion_de_usuario`.
+  · Para correr la ingesta por línea de comandos sin pasar por el registro,
+    `asegurar_identidad` crea además un usuario de demostración.
 """
 from __future__ import annotations
 
@@ -14,12 +18,53 @@ import psycopg
 from . import config
 
 
+def asegurar_institucion(conn: psycopg.Connection, nombre: str) -> str:
+    """Get-or-create de la institución por nombre. Devuelve institucion_id."""
+    fila = conn.execute(
+        "SELECT id FROM institucion WHERE nombre = %s", (nombre,)
+    ).fetchone()
+    if fila:
+        return fila[0]
+    return conn.execute(
+        """INSERT INTO institucion (nombre, tipo, participante_sfa)
+           VALUES (%s, 'banco', true) RETURNING id""",
+        (nombre,),
+    ).fetchone()[0]
+
+
+def asegurar_conexion(conn: psycopg.Connection, usuario_id: str,
+                      institucion_id: str) -> str:
+    """Get-or-create de la conexión del par usuario+institución. Devuelve conexion_id."""
+    fila = conn.execute(
+        """SELECT id FROM conexion
+           WHERE usuario_id = %s AND institucion_id = %s""",
+        (usuario_id, institucion_id),
+    ).fetchone()
+    if fila:
+        return fila[0]
+    return conn.execute(
+        """INSERT INTO conexion (usuario_id, institucion_id, estado)
+           VALUES (%s, %s, 'activa') RETURNING id""",
+        (usuario_id, institucion_id),
+    ).fetchone()[0]
+
+
+def conexion_de_usuario(conn: psycopg.Connection, usuario_id: str,
+                        institucion_nombre: str) -> str:
+    """
+    Para un usuario que YA existe (viene del registro/login): asegura la
+    institución y la conexión, y devuelve conexion_id. Es lo que usa la API
+    cuando el usuario vincula un banco.
+    """
+    institucion_id = asegurar_institucion(conn, institucion_nombre)
+    return asegurar_conexion(conn, usuario_id, institucion_id)
+
+
 def asegurar_identidad(conn: psycopg.Connection) -> tuple[str, str]:
     """
-    Garantiza que existan usuario + institución + conexión, y devuelve
-    (usuario_id, conexion_id): ambos los necesita la tabla cuenta.
+    Demo por línea de comandos: crea/usa un usuario de demostración y su
+    conexión. Devuelve (usuario_id, conexion_id).
     """
-    # -- usuario (clave natural: email, que es UNIQUE) -----------------------
     fila = conn.execute(
         "SELECT id FROM usuario WHERE email = %s", (config.USUARIO_EMAIL,)
     ).fetchone()
@@ -32,32 +77,5 @@ def asegurar_identidad(conn: psycopg.Connection) -> tuple[str, str]:
             (config.USUARIO_EMAIL, config.USUARIO_NOMBRE, "demo-no-usar"),
         ).fetchone()[0]
 
-    # -- institución (sin clave única en el esquema: get-or-create por nombre) --
-    fila = conn.execute(
-        "SELECT id FROM institucion WHERE nombre = %s", (config.INSTITUCION_NOMBRE,)
-    ).fetchone()
-    if fila:
-        institucion_id = fila[0]
-    else:
-        institucion_id = conn.execute(
-            """INSERT INTO institucion (nombre, tipo, participante_sfa)
-               VALUES (%s, 'banco', true) RETURNING id""",
-            (config.INSTITUCION_NOMBRE,),
-        ).fetchone()[0]
-
-    # -- conexión (get-or-create por el par usuario+institución) -------------
-    fila = conn.execute(
-        """SELECT id FROM conexion
-           WHERE usuario_id = %s AND institucion_id = %s""",
-        (usuario_id, institucion_id),
-    ).fetchone()
-    if fila:
-        conexion_id = fila[0]
-    else:
-        conexion_id = conn.execute(
-            """INSERT INTO conexion (usuario_id, institucion_id, estado)
-               VALUES (%s, %s, 'activa') RETURNING id""",
-            (usuario_id, institucion_id),
-        ).fetchone()[0]
-
+    conexion_id = conexion_de_usuario(conn, usuario_id, config.INSTITUCION_NOMBRE)
     return usuario_id, conexion_id
