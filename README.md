@@ -89,11 +89,19 @@ Por iniciar.
 
 | Capa | Tecnología |
 |---|---|
-| Backend y simulador | Python 3.12 · FastAPI · Pydantic |
+| Backend y simulador | Python · FastAPI · Pydantic |
 | Persistencia | PostgreSQL · MongoDB · Redis |
-| Inteligencia sobre los datos | scikit-learn · NumPy · pandas |
+| Inteligencia sobre los datos | scikit-learn · NumPy |
 | Aplicación móvil | React Native · Expo · TypeScript |
-| Estándar SFA | httpx · Authlib · mTLS · OpenAPI |
+| Estándar SFA | httpx · OAuth 2.0 (PAR + PKCE) · OpenAPI |
+
+> **Qué del estándar está implementado y qué no.** El flujo de autorización va completo
+> —PAR, PKCE, `state`, lista cerrada de URLs de retorno— y la clave del banco nunca pasa
+> por Velvet: el usuario la escribe en el sitio de la institución. **Faltan a propósito las
+> capas de FAPI 2.0 que no se pueden ejercitar contra un simulador propio**: mTLS entre
+> participantes, firma JWS de los mensajes y registro dinámico de clientes (DCR). Están
+> declaradas como pendientes en `simulador/app/main.py` y en `backend/ingesta/cliente_sfa.py`,
+> que es donde entrarían.
 
 Se usan dos bases de datos por una razón de arquitectura, no por requisito: los payloads que
 entregan las instituciones no tienen esquema fijo, porque cada una responde distinto. **PostgreSQL
