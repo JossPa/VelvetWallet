@@ -870,6 +870,42 @@ def detalle_cliente(rut: str = Path(...)):
     }
 
 
+@app.get("/simulador/clientes/{rut}/movimientos", tags=["Simulador"],
+         summary="Últimos movimientos de un cliente (para el panel)")
+def movimientos_cliente(rut: str = Path(...),
+                        limite: int = Query(15, ge=1, le=100)):
+    """
+    Los movimientos más recientes de un cliente, de todas sus cuentas, ya
+    ocurridos. Marca los pendientes y los creados en vivo. Es lo que muestra
+    /panel; no es un endpoint del estándar (ese exige token y va por cuenta).
+    """
+    cliente = _cliente_o_404(rut)
+    todos = [(cuenta, m) for cuenta, movs in cliente["movimientos"].items()
+             for m in ocurridos(movs)]
+    todos.sort(key=lambda par: par[1]["bookingDateTime"], reverse=True)
+    # Los pendientes se cuentan todos (también los de fecha futura): son los que
+    # confirma /simulador/avanzar.
+    pendientes = sum(1 for movs in cliente["movimientos"].values()
+                     for m in movs if m.get("_pendiente"))
+
+    def describir(cuenta, m):
+        comercio = (m.get("merchantDetails") or {}).get("name")
+        signo = 1 if m["transactionsType"] == "Abono" else -1
+        return {
+            "id": m["transactionID"],
+            "cuenta": cuenta,
+            "fecha": m["bookingDateTime"].isoformat(),
+            "descripcion": comercio or m.get("paymentPurposeCode") or m["transactionsType"],
+            "monto": signo * m["amount"],
+            "pendiente": bool(m.get("_pendiente")),
+            "en_vivo": m["transactionID"].startswith("TXN-LIVE-"),
+            "sin_comercio": comercio is None and m["transactionsType"] == "Cargo",
+        }
+
+    return {"cliente": cliente["rut"], "pendientes": pendientes,
+            "movimientos": [describir(c, m) for c, m in todos[:limite]]}
+
+
 @app.post("/simulador/clientes", tags=["Simulador"], status_code=201,
           summary="Crear un cliente nuevo con su propia historia")
 def crear_cliente(sol: NuevoCliente):
@@ -1045,3 +1081,14 @@ def nuevo_movimiento(
 
     return {"cliente": cliente["rut"], "cuenta": cuenta, "creado": sin_internos(mov),
             "pendiente": pendiente, "total_cuenta": len(movs)}
+
+
+# ───────────────────────── panel de demostración ─────────────────────────
+from app.panel import PANEL_HTML  # noqa: E402
+
+
+@app.get("/panel", response_class=HTMLResponse, tags=["Simulador"],
+         summary="Panel para hacer compras en vivo y confirmar pendientes")
+def panel():
+    """Página para manejar la demo desde el navegador (usa los endpoints /simulador/*)."""
+    return HTMLResponse(PANEL_HTML)
