@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { BarraCategorias } from "@/components/BarraCategorias";
 import { Boton } from "@/components/Boton";
 import { Comparacion } from "@/components/Comparacion";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
@@ -312,9 +313,10 @@ export default function Inicio() {
       {repartoPeriodo.porciones.length > 0 ? (
         <>
           <Seccion titulo="En qué se fue en esos meses" />
-          <GraficoCategorias
+          <BarraCategorias
             porciones={repartoPeriodo.porciones}
             total={repartoPeriodo.total}
+            periodo={`en los últimos ${serie.length} meses`}
           />
         </>
       ) : null}
