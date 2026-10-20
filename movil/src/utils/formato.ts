@@ -17,9 +17,22 @@ const MESES_LARGO = [
 
 const dosDigitos = (n: number) => n.toString().padStart(2, "0");
 
+/**
+ * Texto ISO a Date.
+ *
+ * Una fecha sola ("2027-03-01") la norma la define como medianoche **UTC**, y
+ * en Chile (UTC−3) eso cae el día anterior: la persona escribe marzo y la app
+ * le muestra 28 de febrero. Cuando no viene hora, se interpreta como fecha
+ * local, que es lo que quiso decir. Los movimientos sí traen hora y zona, y
+ * esos se leen tal cual.
+ */
+function aFecha(iso: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T00:00:00`) : new Date(iso);
+}
+
 /** "2026-09" → clave de mes; sirve para agrupar y filtrar. */
 export function claveMes(iso: string): string {
-  const d = new Date(iso);
+  const d = aFecha(iso);
   return `${d.getFullYear()}-${dosDigitos(d.getMonth() + 1)}`;
 }
 
@@ -32,7 +45,7 @@ export function nombreMes(clave: string): string {
 
 /** Fecha como la muestra la lista: "hoy", "ayer" o "22 ago". */
 export function fechaLista(iso: string, ahora: Date = new Date()): string {
-  const d = new Date(iso);
+  const d = aFecha(iso);
   if (d.toDateString() === ahora.toDateString()) return "hoy";
   const ayer = new Date(ahora);
   ayer.setDate(ahora.getDate() - 1);
@@ -42,8 +55,18 @@ export function fechaLista(iso: string, ahora: Date = new Date()): string {
 
 /** Fecha corta: "3 sep". */
 export function fechaCorta(iso: string): string {
-  const d = new Date(iso);
+  const d = aFecha(iso);
   return `${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+
+/**
+ * Fecha con año: "18 ene 2027".
+ *
+ * Para fechas que importan legalmente —hasta cuándo vale un consentimiento—
+ * donde "18 ene" a secas no dice si es dentro de tres meses o de quince.
+ */
+export function fechaConAnio(iso: string): string {
+  return `${fechaCorta(iso)} ${aFecha(iso).getFullYear()}`;
 }
 
 /** Fecha y hora: "21 ago 19:42". */
@@ -53,7 +76,7 @@ export function fechaHora(iso: string): string {
 
 /** Hora: "14:32". */
 export function hora(iso: string): string {
-  const d = new Date(iso);
+  const d = aFecha(iso);
   return `${dosDigitos(d.getHours())}:${dosDigitos(d.getMinutes())}`;
 }
 
@@ -62,7 +85,7 @@ export function hora(iso: string): string {
  * "recién", "hace 12 min", "hace 2 horas", "ayer 14:32", "el 3 sep".
  */
 export function tiempoRelativo(iso: string, ahora: Date = new Date()): string {
-  const fecha = new Date(iso);
+  const fecha = aFecha(iso);
   const minutos = Math.floor((ahora.getTime() - fecha.getTime()) / 60_000);
 
   if (minutos < 1) return "recién";

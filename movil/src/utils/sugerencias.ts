@@ -27,7 +27,34 @@ const REGLAS: { patron: RegExp; categoria: string }[] = [
   { patron: /(COPEC|SHELL|PETROBRAS|UBER|CABIFY|DIDI|METRO)/i, categoria: "Transporte" },
   { patron: /(LIDER|JUMBO|UNIMARC|SANTA ISABEL|TOTTUS|ACUENTA)/i, categoria: "Supermercado" },
   { patron: /(FARMACIA|AHUMADA|CRUZ VERDE|SALCOBRAND)/i, categoria: "Salud" },
+  { patron: /(SMART ?FIT|SPORTLIFE|GYM|PACIFIC)/i, categoria: "Gimnasio" },
+  { patron: /(ICLOUD|GOOGLE|MICROSOFT|DROPBOX|APPLE\.COM)/i, categoria: "Suscripciones" },
 ];
+
+/** Aplica una regla a un texto. Devuelve la categoría o null si ninguna calza. */
+function reglaPara(texto: string): string | null {
+  for (const regla of REGLAS) {
+    if (regla.patron.test(texto)) return regla.categoria;
+  }
+  return null;
+}
+
+/**
+ * Clasificación automática por reglas: la primera capa del clasificador.
+ *
+ * Corre sobre la glosa y el comercio de un cargo. Devuelve la categoría si una
+ * regla reconoce el comercio; null si ninguna calza. Cuando devuelve null el
+ * sistema se ABSTIENE (no inventa) y el movimiento cae en "Por revisar".
+ *
+ * Esto vive en la app a propósito, de forma provisional: el backend todavía no
+ * clasifica (deja categoria_id en NULL). Cuando exista el clasificador del
+ * bloque E en el backend, estas reglas se mueven allá y la app recibe la
+ * categoría ya puesta.
+ */
+export function clasificarPorReglas(m: Movimiento): string | null {
+  if (m.monto >= 0) return null; // solo cargos
+  return reglaPara(`${m.glosaOriginal} ${m.comercio ?? ""}`);
+}
 
 /** Categorías que el usuario más usa, de mayor a menor. */
 function masUsadas(movimientos: Movimiento[], cuantas: number): string[] {
@@ -73,10 +100,9 @@ export function sugerirCategorias(
     if (categoria && !categorias.includes(categoria)) categorias.push(categoria);
   };
 
-  for (const regla of REGLAS) {
-    if (regla.patron.test(texto)) agregar(regla.categoria);
-    if (categorias.length >= cuantas) return { categorias, porRegla: true };
-  }
+  const porReglaTexto = reglaPara(texto);
+  if (porReglaTexto) agregar(porReglaTexto);
+  if (categorias.length >= cuantas) return { categorias, porRegla: true };
 
   const porRegla = categorias.length > 0 || movimiento.categoriaBanco !== null;
   agregar(movimiento.categoriaBanco);

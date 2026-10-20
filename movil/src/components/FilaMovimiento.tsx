@@ -22,7 +22,9 @@ type Props = {
 };
 
 export function FilaMovimiento({ movimiento: m, onPress, novedad, montoAnterior }: Props) {
-  const sinIdentificar = m.estadoCategoria === "sin_categoria";
+  // "Sin identificar" es que no hay comercio reconocido (avatar "?"), cosa
+  // distinta de "sin categorizar" (eso lo resuelve el clasificador, aparte).
+  const sinIdentificar = !m.comercio;
   const nombre = m.comercio ?? m.glosaOriginal;
   const subtitulo = `${m.excluido ? "No es gasto" : (m.categoria ?? "Sin categorizar")} · ${fechaLista(m.fecha)}`;
 

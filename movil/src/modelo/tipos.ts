@@ -81,6 +81,17 @@ export type OrigenMovimiento = "sfa" | "cartola" | "manual";
 /** Cómo quedó la categoría: la puso el clasificador, la corrigió el usuario, o no hay. */
 export type EstadoCategoria = "automatica" | "corregida" | "sin_categoria";
 
+/**
+ * Quién decidió la categoría. Es trazabilidad de la decisión, no una métrica:
+ * permite responder "¿por qué esto quedó en Supermercado?".
+ *
+ *   regla    → una regla reconoció el comercio. Sin modelo, alta precisión.
+ *   modelo   → lo clasificó el modelo entrenado, con su confianza.
+ *   banco    → la institución ya lo mandó categorizado.
+ *   usuario  → lo corrigió la persona.
+ */
+export type OrigenClasificacion = "regla" | "modelo" | "banco" | "usuario";
+
 /** Corrección hecha por el usuario. Se guarda aparte; el dato original no se modifica. */
 export type Correccion = {
   tipo: "recategorizar" | "marcar_duplicado" | "excluir" | "dividir";
@@ -112,6 +123,14 @@ export type Movimiento = {
   /** Categoría que mandó la institución, si la mandó. Sin taxonomía común entre bancos. */
   categoriaBanco: string | null;
   estadoCategoria: EstadoCategoria;
+  /** Quién decidió la categoría. null mientras no haya clasificador. */
+  origenClasificacion: OrigenClasificacion | null;
+  /**
+   * Qué tan seguro estaba el modelo, entre 0 y 1. Solo cuando
+   * `origenClasificacion` es "modelo"; las reglas y el usuario no tienen
+   * confianza parcial. Bajo el umbral, el sistema se abstiene y no clasifica.
+   */
+  confianza: number | null;
   /** Detectado como cargo recurrente (suscripción, arriendo, cuenta del hogar). */
   esRecurrente: boolean;
   /** No es gasto: transferencia entre cuentas propias, por ejemplo. */
@@ -125,4 +144,57 @@ export type Movimiento = {
   payloadCrudoRef: string | null;
   /** Correcciones del usuario, en orden. Vacío si no hay. */
   correcciones: Correccion[];
+};
+
+// ───────────────────────── Metas de ahorro ─────────────────────────
+
+/**
+ * En qué quedó la proyección. Hay que mirarlo antes que los meses: salvo en
+ * "proyectada", los plazos vienen en null y la app tiene que decir otra cosa.
+ *
+ *   cumplida      → el ahorro ya llegó al objetivo.
+ *   sin_historial → faltan meses observados; el motor se abstiene de proyectar.
+ *   improbable    → se simuló y ni la mitad de los futuros llega a tiempo.
+ *   proyectada    → hay respuesta con probabilidad.
+ */
+export type EstadoProyeccion = "cumplida" | "sin_historial" | "improbable" | "proyectada";
+
+/**
+ * Resultado de la simulación de Monte Carlo (RF-24).
+ *
+ * No es "te faltan N meses" sino "en N meses con tanta probabilidad". El
+ * excedente mensual no es constante, y una sola cifra lo escondería.
+ */
+export type Proyeccion = {
+  estado: EstadoProyeccion;
+  /** Meses completos de historial que alimentaron la simulación. */
+  mesesObservados: number;
+  /** Cuántos hacen falta como mínimo para que el motor proyecte. */
+  mesesMinimos: number;
+  excedenteMediano: number;
+  excedentePeor: number;
+  excedenteMejor: number;
+  /** curva[i] = probabilidad de haberla alcanzado en el mes i+1. No decrece. */
+  curva: number[];
+  /** Meses para alcanzarla con esa probabilidad. null = no se alcanza en el horizonte. */
+  mesesP50: number | null;
+  mesesP80: number | null;
+  mesesP95: number | null;
+  /** Probabilidad de llegar al plazo que se propuso la persona. null si no se propuso ninguno. */
+  probabilidadALaFecha: number | null;
+  simulaciones: number;
+  horizonteMeses: number;
+};
+
+export type Meta = {
+  id: string;
+  nombre: string;
+  montoObjetivo: number;
+  montoAhorrado: number;
+  /** Plazo que se propuso la persona. null si no se propuso ninguno. */
+  fechaObjetivo: string | null;
+  creadaEn: string;
+  /** Fracción reunida, entre 0 y 1. */
+  avance: number;
+  proyeccion: Proyeccion;
 };

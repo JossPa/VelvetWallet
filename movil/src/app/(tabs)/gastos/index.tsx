@@ -46,7 +46,7 @@ export default function Gastos() {
 
   // Si una sincronización trae un mes que no existía, se salta a él.
   useEffect(() => {
-    if (!meses.includes(mes)) setMes(meses[0]);
+    if (meses.length > 0 && !meses.includes(mes)) setMes(meses[0]);
   }, [meses, mes]);
 
   // Al salir de la pantalla, las novedades dejan de estar destacadas: ya se
@@ -86,6 +86,15 @@ export default function Gastos() {
     setCategoria(TODAS);
   }
 
+  // Usuario sin movimientos todavía (p. ej. recién registrado): nada que listar.
+  if (movimientos.length === 0) {
+    return (
+      <Pantalla titulo="Gastos">
+        <Nota>Aún no tienes movimientos. Sincroniza para ver tus gastos aquí.</Nota>
+      </Pantalla>
+    );
+  }
+
   return (
     <Pantalla titulo="Gastos" accesorio={<SelectorMes meses={meses} valor={mes} onCambio={cambiarMes} />}>
       <Segmentos opciones={TIPOS} valor={tipo} onCambio={setTipo} />
@@ -114,15 +123,11 @@ export default function Gastos() {
             key={m.id}
             movimiento={m}
             onPress={() => router.push(`/gastos/${m.id}`)}
-            // Se mira primero "actualizado": si un movimiento llegó y después
-            // se confirmó sin que el usuario saliera de la pantalla, lo último
-            // que pasó es la actualización. Marcarlo NUEVO junto al monto
-            // anterior se contradice.
             novedad={
-              m.id in novedades.actualizados
-                ? "actualizado"
-                : novedades.nuevos.includes(m.id)
-                  ? "nuevo"
+              novedades.nuevos.includes(m.id)
+                ? "nuevo"
+                : m.id in novedades.actualizados
+                  ? "actualizado"
                   : undefined
             }
             montoAnterior={novedades.actualizados[m.id]}

@@ -121,6 +121,51 @@ COMMENT ON TABLE  consentimiento             IS 'Consentimiento granular otorgad
 COMMENT ON COLUMN consentimiento.alcance_rar IS 'Detalle RAR: a qué cuentas y datos se accede y por cuánto tiempo (Rich Authorization Requests).';
 
 -- =============================================================================
+-- 6b. CONSENTIMIENTO_TRATAMIENTO  (finalidades distintas del acceso bancario)
+-- =============================================================================
+-- Autorizar a Velvet a LEER los datos del banco no autoriza a USARLOS para
+-- otra cosa. La Ley 21.719 exige consentimiento **específico por finalidad**:
+-- entrenar un modelo con los gastos de alguien es un fin distinto de
+-- mostrárselos, y necesita su propio permiso, otorgado por separado y
+-- revocable por separado.
+--
+-- Por qué una tabla y no una columna booleana en `usuario`: un consentimiento
+-- tiene fecha, vigencia y puede revocarse, y la ley obliga a poder **demostrar**
+-- cuándo y a qué consintió la persona. Un booleano no guarda nada de eso.
+--
+-- Al revocar NO se borra la fila: se marca `revocado` con su fecha. El registro
+-- de que hubo consentimiento, y de cuándo terminó, es parte de la bitácora de
+-- tratamiento.
+--
+-- La ausencia de fila significa que NO hay consentimiento. Es opt-in por
+-- construcción: nadie queda autorizado por omisión.
+CREATE TABLE consentimiento_tratamiento (
+    id               uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id       uuid         NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+    finalidad        varchar(60)  NOT NULL
+                                  CHECK (finalidad IN ('entrenamiento_modelos')),
+    estado           varchar(20)  NOT NULL DEFAULT 'vigente'
+                                  CHECK (estado IN ('vigente','expirado','revocado')),
+    version_texto    varchar(20)  NOT NULL,
+    fecha_inicio     timestamptz  NOT NULL DEFAULT now(),
+    fecha_expiracion timestamptz  NOT NULL,
+    revocado_at      timestamptz
+);
+
+COMMENT ON TABLE  consentimiento_tratamiento IS 'Consentimiento por finalidad de tratamiento, separado del acceso bancario (Ley 21.719).';
+COMMENT ON COLUMN consentimiento_tratamiento.finalidad     IS 'Para qué se usan los datos. Cada finalidad se consiente aparte; no hay consentimiento general.';
+COMMENT ON COLUMN consentimiento_tratamiento.version_texto IS 'Qué versión del texto aceptó la persona. Si el texto cambia, el consentimiento anterior no cubre la finalidad nueva y hay que volver a pedirlo.';
+COMMENT ON COLUMN consentimiento_tratamiento.revocado_at   IS 'Cuándo se revocó. La fila no se borra: queda como registro de que hubo consentimiento y de cuándo terminó.';
+
+-- Un solo consentimiento vigente por finalidad y persona. Los revocados y
+-- expirados quedan como historia y no estorban.
+CREATE UNIQUE INDEX uq_tratamiento_vigente
+    ON consentimiento_tratamiento (usuario_id, finalidad)
+    WHERE estado = 'vigente';
+
+CREATE INDEX idx_tratamiento_usuario ON consentimiento_tratamiento (usuario_id);
+
+-- =============================================================================
 -- 7. SUSCRIPCION  (recurrencias detectadas)
 -- =============================================================================
 CREATE TABLE suscripcion (
@@ -145,12 +190,20 @@ CREATE TABLE meta (
     usuario_id            uuid          NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
     nombre                varchar(120)  NOT NULL,
     monto_objetivo        numeric(15,2) NOT NULL CHECK (monto_objetivo > 0),
+    monto_ahorrado        numeric(15,2) NOT NULL DEFAULT 0 CHECK (monto_ahorrado >= 0),
     fecha_objetivo        date,
-    probabilidad_estimada numeric(5,4)           CHECK (probabilidad_estimada BETWEEN 0 AND 1)
+    probabilidad_estimada numeric(5,4)           CHECK (probabilidad_estimada BETWEEN 0 AND 1),
+    meses_estimados       smallint               CHECK (meses_estimados > 0),
+    proyectada_en         timestamptz,
+    creada_en             timestamptz   NOT NULL DEFAULT now()
 );
 
 COMMENT ON TABLE  meta                       IS 'Meta de ahorro del usuario (RF-26).';
+COMMENT ON COLUMN meta.monto_ahorrado        IS 'Lo que la persona lleva reunido. Punto de partida de la proyección.';
+COMMENT ON COLUMN meta.fecha_objetivo        IS 'Plazo que se propuso la persona, si se propuso alguno. La proyección responde con qué probabilidad llega a esa fecha.';
 COMMENT ON COLUMN meta.probabilidad_estimada IS 'Probabilidad de cumplimiento que entrega la proyección Monte Carlo (RF-24). 0..1.';
+COMMENT ON COLUMN meta.meses_estimados       IS 'Meses necesarios para alcanzarla con 80% de probabilidad. null si no se alcanza dentro del horizonte.';
+COMMENT ON COLUMN meta.proyectada_en         IS 'Cuándo se calculó la proyección guardada. Cambia con cada mes nuevo de historial.';
 
 -- =============================================================================
 -- 9. TRANSACCION  (ledger canónico)

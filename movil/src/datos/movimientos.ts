@@ -16,11 +16,18 @@ import type { Movimiento } from "@/modelo/tipos";
 
 import datos from "./movimientos.json";
 
-// Se compara por día, no por hora, igual que el filtro `toDate` del estándar.
-// Si acá se descartara por hora exacta, los movimientos de hoy más tarde que
-// este momento aparecerían como "nuevos" en la primera sincronización sin serlo.
-const hoy = new Date().toISOString().slice(0, 10);
+const ahora = new Date().toISOString();
 
-export const MOVIMIENTOS_INICIALES: Movimiento[] = (datos as Movimiento[]).filter(
-  (m) => m.fecha.slice(0, 10) <= hoy,
-);
+// El JSON se generó antes de que el contrato llevara el origen de la
+// clasificación, así que acá se completa: lo que trae categoría la trae del
+// banco, y lo que no, no la clasificó nadie.
+export const MOVIMIENTOS_INICIALES: Movimiento[] = (datos as Omit<
+  Movimiento,
+  "origenClasificacion" | "confianza"
+>[])
+  .filter((m) => m.fecha <= ahora)
+  .map((m) => ({
+    ...m,
+    origenClasificacion: m.categoria ? ("banco" as const) : null,
+    confianza: null,
+  }));

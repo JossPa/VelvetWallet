@@ -88,3 +88,50 @@ docker compose -f ../BD/docker-compose.yml exec postgres \
 ```
 
 El `sum(monto)` es, literalmente, el saldo: cargos negativos y abonos positivos.
+
+## API para la app (puerto 8000)
+
+```bash
+uvicorn api.main:app --reload --port 8000     # desde backend/, con la EFS en el 8001
+```
+
+Todo va filtrado por el usuario del token (JWT): cada usuario ve solo lo suyo.
+
+| Endpoint | Qué hace |
+|---|---|
+| `POST /api/auth/registro`, `POST /api/auth/sesion` | Cuenta de Velvet |
+| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario |
+| `POST /api/conexiones/iniciar` | Deja la solicitud en el banco (PAR + PKCE) y devuelve la URL de la página del banco |
+| `GET /api/conexiones/retorno` | El banco vuelve aquí con el código; se canjea y se redirige a la app con `?banco=vinculado` |
+| `POST /api/conexiones` | Trae (o re-trae) los datos con el permiso guardado |
+| `GET /api/conexiones`, `DELETE /api/conexiones/{id}` | Bancos vinculados; desvincular revoca el permiso y borra sus datos |
+| `GET/POST/PATCH/DELETE /api/metas` | Metas de ahorro, cada una con su proyección Monte Carlo |
+| `GET /api/privacidad/finalidades`, `POST .../{finalidad}` | Para qué se usan los datos; consentir y revocar por finalidad |
+
+**La clave del banco nunca pasa por Velvet**: el usuario la escribe en la página del banco
+(ver `simulador/README.md`, "Autorización en el sitio del banco"). Velvet guarda solo el refresh
+token del permiso (en producción, cifrado).
+
+Si la base se creó antes de la columna `transaccion.categoria_origen`, la ingesta la agrega sola la
+primera vez (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`).
+
+## Motor de proyección (Monte Carlo)
+
+`motor/proyeccion.py` responde "¿cuándo alcanzo esta meta?" simulando 10.000 futuros
+posibles con los excedentes mensuales que la persona realmente tuvo, en distinto orden.
+La respuesta no es un plazo sino una probabilidad por mes: *8 meses con 80%, 11 con 95%*.
+
+No toca la base ni la red, así que se prueba solo:
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest                      # desde backend/
+```
+
+Las 21 pruebas verifican propiedades, no números mágicos: que la curva nunca baje, que
+ahorrar más nunca empeore el plazo, que dos personas con el mismo excedente *promedio*
+pero distinta variabilidad no reciban la misma respuesta, y que el motor **se abstenga**
+cuando hay menos de tres meses de historial en vez de inventar un plazo.
+
+El generador va sembrado (`numpy.random.default_rng(42)`): la misma entrada da siempre
+la misma salida, que es lo que hace verificable una simulación aleatoria.

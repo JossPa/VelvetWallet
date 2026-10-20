@@ -11,27 +11,48 @@ integración, autenticación y consumo de APIs.
 Flujo de seguridad simulado (alineado con la guía ATENA):
   1. El participante obtiene un token por Client Credentials  (POST /token)
   2. Solicita un consentimiento con alcance RAR                (POST /consents)
-  3. El usuario autoriza y se emite un token de acceso         (POST /consents/{id}/authorise)
-  4. Con ese token se leen los datos                           (GET /accounts/...)
+  3. El CLIENTE del banco se identifica (RUT + clave) y autoriza EN EL SITIO
+     DEL BANCO: OAuth 2.0 Authorization Code con PAR y PKCE, como FAPI:
+       a. el participante empuja la solicitud                   (POST /par)
+       b. el usuario es redirigido a la página del banco,
+          inicia sesión y aprueba el consentimiento             (GET /autorizar)
+       c. el banco vuelve al participante con un código         (redirect_uri?code=...)
+       d. el participante canjea el código + PKCE por tokens    (POST /token, authorization_code)
+     El participante NUNCA ve la clave del cliente.
+  4. Con ese token se leen los datos, SOLO los de ese cliente  (GET /accounts/...)
+  5. Las siguientes veces, el participante renueva el acceso con el
+     refresh token, sin volver a pedir la clave                (POST /token, grant refresh_token)
+
+(POST /consents/{id}/authorise con RUT y clave sigue existiendo solo para
+pruebas automatizadas sin navegador: simula que el cliente ya aprobó.)
+
+La EFS tiene varios clientes (app/clientes.py), cada uno con sus cuentas e
+historial. Un token nunca ve cuentas de otro cliente.
 
 Todavía sin mTLS, sin firma JWS y sin DCR: esas capas se agregan después, sobre
 algo que ya funciona (igual que en ATENA, donde los certificados son autofirmados).
 
 Levantar con:  uvicorn app.main:app --reload --port 8001
 """
+import base64
+import hashlib
+import json
 import os
 import random
 import secrets
+from html import escape
 from datetime import date, datetime, timezone, timedelta
 from urllib.parse import urlencode
 
-from fastapi import FastAPI, HTTPException, Query, Path, Header, Depends
+from fastapi import FastAPI, HTTPException, Query, Path, Header, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pathlib import Path as RutaArchivo
+
 from pydantic import BaseModel, Field
 
-from app.datos import CUENTAS, SALDOS, MOVIMIENTOS
+from app import clientes as C
 
 # El backend de Velvet Wallet corre en el 8000. La EFS va en el 8001
 # para que se puedan levantar los dos a la vez.
@@ -94,7 +115,40 @@ PERMISOS_VALIDOS = {
 # datos (que se cargan del JSON al arrancar). No es una base de datos: es una EFS.
 PARTICIPANTES: dict[str, dict] = {}     # token de participante -> {expira}
 CONSENTIMIENTOS: dict[str, dict] = {}   # consentId -> datos del consentimiento
-TOKENS: dict[str, dict] = {}            # token de acceso -> {consentId, expira, permisos}
+TOKENS: dict[str, dict] = {}            # token de acceso -> {consentId, expira, permisos, rut}
+
+# Refresh tokens: lo que el participante guarda para renovar el acceso sin pedir
+# otra vez la clave al cliente (como en OAuth real). Se persisten en un archivo
+# para que sobrevivan a un reinicio de la EFS; si no, cada reinicio obligaría a
+# todos los usuarios a volver a vincular su banco.
+ARCHIVO_REFRESH = RutaArchivo(__file__).parent / "refresh_tokens.json"
+REFRESH: dict[str, dict] = {}           # refresh token -> {client_id, rut, consentId, permisos, expira}
+
+# Cliente al que se atribuye una autorización que llega SIN RUT (compatibilidad
+# con versiones anteriores del backend/app). Vacío = exigir siempre el RUT.
+CLIENTE_POR_DEFECTO = os.getenv("SFA_CLIENTE_POR_DEFECTO", C.RUT_POR_DEFECTO)
+
+
+def _cargar_refresh():
+    if not ARCHIVO_REFRESH.exists():
+        return
+    try:
+        crudo = json.loads(ARCHIVO_REFRESH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    for tok, info in crudo.items():
+        info["expira"] = datetime.fromisoformat(info["expira"])
+        REFRESH[tok] = info
+
+
+def _guardar_refresh():
+    ARCHIVO_REFRESH.write_text(
+        json.dumps({t: {**i, "expira": i["expira"].isoformat()} for t, i in REFRESH.items()},
+                   ensure_ascii=False, indent=1),
+        encoding="utf-8")
+
+
+_cargar_refresh()
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -145,11 +199,43 @@ def exigir_token_acceso(
 
 
 class SolicitudToken(BaseModel):
-    """Client Credentials: el participante se autentica con su id y secreto."""
-    grant_type: str = Field("client_credentials", description="Debe ser 'client_credentials'.")
+    """
+    Dos usos, como en OAuth:
+      · grant_type='client_credentials' → token del participante.
+      · grant_type='refresh_token'      → token de acceso nuevo para un cliente
+        que ya autorizó antes (sin volver a pedirle la clave).
+    """
+    grant_type: str = Field("client_credentials",
+                            description="'client_credentials', 'authorization_code' o 'refresh_token'.")
     client_id: str = Field(..., description="Identificador del participante.")
     client_secret: str = Field(..., description="Secreto del participante.")
+    refresh_token: str | None = Field(None, description="Solo con grant_type='refresh_token'.")
+    code: str | None = Field(None, description="Solo con 'authorization_code': el código recibido.")
+    redirect_uri: str | None = Field(None, description="Solo con 'authorization_code': el mismo del PAR.")
+    code_verifier: str | None = Field(None, description="Solo con 'authorization_code': PKCE.")
     scope: str | None = None
+
+
+class SolicitudAutorizacion(BaseModel):
+    """
+    Lo que el CLIENTE del banco ingresa al aprobar: su RUT y su clave del banco.
+    En el SFA real esto ocurre en el sitio del banco (redirección) y el
+    participante nunca ve la clave; aquí se simula con esta llamada.
+    """
+    rut: str | None = Field(None, description="RUT del cliente, p. ej. '15.432.876-9'.")
+    clave: str | None = Field(None, description="Clave del cliente en el banco.")
+
+
+class NuevoCliente(BaseModel):
+    """Cliente que se crea en vivo para una simulación específica."""
+    rut: str = Field(..., description="RUT válido (con dígito verificador).")
+    nombre: str = Field(..., min_length=2, max_length=80)
+    clave: str = Field("1234", min_length=4, max_length=20)
+    perfil: str = Field("profesional", description="profesional | estudiante | familia")
+    sueldo: int | None = Field(None, ge=100_000, le=20_000_000,
+                               description="Opcional: reemplaza el sueldo del perfil.")
+    # Tope 12: la app pide hasta 500 movimientos, y una familia genera ~32 al mes.
+    meses: int = Field(12, ge=1, le=12, description="Meses de historial a generar (1 a 12).")
 
 
 class SolicitudConsentimiento(BaseModel):
@@ -205,18 +291,61 @@ def sin_internos(movimiento):
     return {k: v for k, v in movimiento.items() if not k.startswith("_")}
 
 
-def cuenta_o_404(account_id):
-    c = next((c for c in CUENTAS if c["accountId"] == account_id), None)
+def cliente_del_acceso(acceso: dict | None) -> dict:
+    """
+    El cliente dueño del token de acceso. Si la EFS no exige token (modo
+    abierto), se usa el cliente por defecto.
+    """
+    rut = (acceso or {}).get("rut") or C.RUT_POR_DEFECTO
+    cliente = C.CLIENTES.get(rut)
+    if cliente is None:
+        # El cliente fue eliminado después de emitir el token.
+        raise HTTPException(status_code=401, detail="El cliente de este consentimiento ya no existe.")
+    return cliente
+
+
+def cuenta_o_404(account_id, cliente):
+    """
+    La cuenta, SOLO si es del cliente del token. Una cuenta de otro cliente
+    responde 404 igual que una inexistente: así no se filtra ni que existe.
+    """
+    c = next((c for c in cliente["cuentas"] if c["accountId"] == account_id), None)
     if c is None:
         raise HTTPException(status_code=404, detail="Cuenta no encontrada")
     return c
 
 
+def ocurridos(movs):
+    """
+    Solo lo que ya pasó. El historial llega hasta fin del mes en curso, pero un
+    banco no informa movimientos futuros: el sueldo del 30 aparece el 30.
+    """
+    ahora = datetime.now(timezone.utc)
+    return [m for m in movs if m["bookingDateTime"] <= ahora]
+
+
+def saldo_de(cliente, account_id):
+    """Saldo calculado en vivo: abonos menos cargos (cuadra con /simulador/nuevo)."""
+    total = 0.0
+    for m in ocurridos(cliente["movimientos"].get(account_id, [])):
+        total += m["amount"] if m["transactionsType"] == "Abono" else -m["amount"]
+    return {"amount": float(round(total)), "currency": "CLP", "type": "Disponible"}
+
+
+def _emitir_acceso(consent_id: str, rut: str, permisos: list[str], expira) -> dict:
+    """Token de acceso atado al consentimiento y al cliente."""
+    token = secrets.token_urlsafe(32)
+    TOKENS[token] = {"consentId": consent_id, "expira": expira,
+                     "permisos": permisos, "rut": rut}
+    segundos = max(0, int((expira - datetime.now(timezone.utc)).total_seconds()))
+    return {"access_token": token, "token_type": "Bearer", "expires_in": segundos}
+
+
 # ───────────────────────── operación ─────────────────────────
 @app.get("/health", tags=["Operación"], summary="Comprobación de vida")
 def health():
-    return {"ok": True, "servicio": "efs-sfa", "cuentas": len(CUENTAS),
-            "exige_token": EXIGIR_TOKEN}
+    return {"ok": True, "servicio": "efs-sfa", "clientes": len(C.CLIENTES),
+            "cuentas": len(C.DUENO_CUENTA), "exige_token": EXIGIR_TOKEN}
 
 
 # ───────────────────────── autenticación del participante ─────────────────────────
@@ -231,10 +360,31 @@ def emitir_token_participante(sol: SolicitudToken):
     (En OAuth real este endpoint recibe los datos como formulario y vive en el
     servidor de autorización; aquí se simplifica a JSON para poder probarlo.)
     """
-    if sol.grant_type != "client_credentials":
-        raise HTTPException(status_code=400, detail="grant_type debe ser 'client_credentials'.")
+    if sol.grant_type not in ("client_credentials", "authorization_code", "refresh_token"):
+        raise HTTPException(status_code=400, detail="grant_type no soportado (unsupported_grant_type).")
     if sol.client_id != CLIENTE_ID or sol.client_secret != CLIENTE_SECRET:
         raise HTTPException(status_code=401, detail="Credenciales de participante inválidas (invalid_client).")
+
+    if sol.grant_type == "authorization_code":
+        return _canjear_codigo(sol)
+
+    if sol.grant_type == "refresh_token":
+        # Renovar el acceso de un cliente que ya autorizó: sin pedirle la clave.
+        info = REFRESH.get(sol.refresh_token or "")
+        if info is None or info["client_id"] != sol.client_id:
+            raise HTTPException(status_code=401, detail="refresh_token inválido (invalid_grant).")
+        if info["expira"] < datetime.now(timezone.utc):
+            REFRESH.pop(sol.refresh_token, None)
+            _guardar_refresh()
+            raise HTTPException(status_code=401,
+                                detail="El consentimiento expiró: el cliente debe autorizar de nuevo.")
+        if info["rut"] not in C.CLIENTES:
+            raise HTTPException(status_code=401, detail="El cliente de este consentimiento ya no existe.")
+        acceso = _emitir_acceso(info["consentId"], info["rut"], info["permisos"], info["expira"])
+        cliente = C.CLIENTES[info["rut"]]
+        return {**acceso, "consentId": info["consentId"],
+                "scope": " ".join(info["permisos"]),
+                "cliente": {"rut": cliente["rut"], "nombre": cliente["nombre"]}}
 
     token = secrets.token_urlsafe(32)
     expira = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -277,30 +427,74 @@ def crear_consentimiento(sol: SolicitudConsentimiento,
 
 
 @app.post("/accounts/v1/consents/{consentId}/authorise", tags=["Consentimiento"],
-          summary="2) Autorizar (el usuario aprueba en el banco) y emitir token de acceso")
-def autorizar_consentimiento(consentId: str = Path(...)):
+          summary="2) El cliente se identifica (RUT + clave), aprueba y se emite el token")
+def autorizar_consentimiento(consentId: str = Path(...),
+                             sol: SolicitudAutorizacion | None = None,
+                             participante: dict | None = Depends(exigir_token_participante)):
     """
-    Representa el momento en que el usuario entra a su banco y aprueba el acceso.
+    Representa el momento en que el cliente entra a su banco y aprueba el acceso.
     En el SFA real esto es un login + redirección (flujo de autorización); aquí
-    es una llamada. Al aprobar, la EFS emite un token de acceso ligado a este
-    consentimiento, con el que se leen los datos.
+    es una llamada con su RUT y su clave.
+
+    El token de acceso que se emite queda atado a ESE cliente: con él solo se ven
+    sus cuentas. Además se entrega un refresh token, para que el participante
+    renueve el acceso más adelante sin pedirle de nuevo la clave.
     """
     c = CONSENTIMIENTOS.get(consentId)
     if c is None:
         raise HTTPException(status_code=404, detail="Consentimiento no encontrado.")
+    if c["status"] == "Revoked":
+        raise HTTPException(status_code=409, detail="El consentimiento fue revocado.")
 
+    rut = (sol.rut if sol else None)
+    if rut:
+        cliente = C.cliente_por_rut(rut)
+        # Mismo mensaje para RUT inexistente y clave errada: no revelar quién es cliente.
+        if cliente is None or (sol.clave or "") != cliente["clave"]:
+            raise HTTPException(status_code=401, detail="RUT o clave incorrectos.")
+    elif CLIENTE_POR_DEFECTO:
+        cliente = C.CLIENTES[C.normalizar_rut(CLIENTE_POR_DEFECTO)]
+    else:
+        raise HTTPException(status_code=400,
+                            detail="Falta identificar al cliente: envíe su RUT y clave.")
+
+    rut_n = cliente["rut_normalizado"]
     c["status"] = "Authorised"
-    token = secrets.token_urlsafe(32)
+    c["rut"] = cliente["rut"]
     expira = c["expirationDateTime"]
-    TOKENS[token] = {"consentId": consentId, "expira": expira, "permisos": c["permissions"]}
-    segundos = max(0, int((expira - datetime.now(timezone.utc)).total_seconds()))
+    acceso = _emitir_acceso(consentId, rut_n, c["permissions"], expira)
+
+    refresh = secrets.token_urlsafe(32)
+    REFRESH[refresh] = {"client_id": (participante or {}).get("client_id", CLIENTE_ID),
+                        "rut": rut_n, "consentId": consentId,
+                        "permisos": c["permissions"], "expira": expira}
+    _guardar_refresh()
+
     return {
-        "access_token": token,
-        "token_type": "Bearer",
-        "expires_in": segundos,
+        **acceso,
+        "refresh_token": refresh,
         "consentId": consentId,
         "scope": " ".join(c["permissions"]),
+        "cliente": {"rut": cliente["rut"], "nombre": cliente["nombre"]},
     }
+
+
+@app.delete("/accounts/v1/consents/{consentId}", tags=["Consentimiento"],
+            summary="Revocar un consentimiento")
+def revocar_consentimiento(consentId: str = Path(...)):
+    """
+    El cliente retira el permiso. Los tokens de acceso y de renovación de ese
+    consentimiento dejan de servir de inmediato.
+    """
+    c = CONSENTIMIENTOS.get(consentId)
+    if c is not None:
+        c["status"] = "Revoked"
+    for t in [t for t, i in TOKENS.items() if i["consentId"] == consentId]:
+        del TOKENS[t]
+    for r in [r for r, i in REFRESH.items() if i["consentId"] == consentId]:
+        del REFRESH[r]
+    _guardar_refresh()
+    return {"consentId": consentId, "status": "Revoked"}
 
 
 @app.get("/accounts/v1/consents/{consentId}", tags=["Consentimiento"],
@@ -312,6 +506,233 @@ def ver_consentimiento(consentId: str = Path(...)):
     return {"data": c, "links": {"self": "%s/consents/%s" % (BASE, consentId)}, "meta": {}}
 
 
+# ═══════════════════════════════════════════════════════════════════
+#  Autorización en el SITIO DEL BANCO (OAuth 2.0 + PAR + PKCE, como FAPI)
+#
+#  El cliente escribe su RUT y su clave en una página DEL BANCO, nunca en la
+#  app del participante. El participante solo recibe un código de un solo uso,
+#  que canjea (con PKCE) por los tokens.
+# ═══════════════════════════════════════════════════════════════════
+from app import sitio_banco  # noqa: E402  (páginas HTML del banco)
+
+# Participantes registrados en la EFS. En ATENA esto sale del registro del
+# participante (DCR): su nombre visible y las URL a las que se le puede volver.
+PARTICIPANTES_REGISTRADOS = {
+    CLIENTE_ID: {
+        "nombre": "Velvet Wallet",
+        "redirect_uris": [u.strip() for u in os.getenv(
+            "SFA_REDIRECT_URIS", "http://localhost:8000/api/conexiones/retorno").split(",") if u.strip()],
+    },
+}
+
+PAR_VIGENCIA = timedelta(minutes=10)     # tiempo para iniciar sesión y decidir
+CODIGO_VIGENCIA = timedelta(minutes=2)   # el código se canjea al tiro
+
+SOLICITUDES_PAR: dict[str, dict] = {}    # request_uri -> solicitud pendiente
+CODIGOS: dict[str, dict] = {}            # código de autorización -> datos (un solo uso)
+
+NOMBRE_PERMISO = {
+    "ReadAccountsBasic": "Ver tus cuentas",
+    "ReadAccountsDetail": "Ver el detalle de tus cuentas",
+    "ReadBalances": "Ver tus saldos",
+    "ReadTransactionsBasic": "Ver tus movimientos",
+    "ReadTransactionsDetail": "Ver el detalle de tus movimientos",
+}
+
+
+class SolicitudPAR(BaseModel):
+    """
+    Pushed Authorization Request: el participante (no el navegador) deja la
+    solicitud en el banco, autenticado con sus credenciales. Así los parámetros
+    no viajan expuestos en la URL y no se pueden manipular.
+    """
+    client_id: str
+    client_secret: str
+    redirect_uri: str = Field(..., description="Debe estar registrada para el participante.")
+    state: str = Field(..., min_length=8, description="Valor opaco que el banco devuelve tal cual.")
+    code_challenge: str = Field(..., min_length=43, description="PKCE: BASE64URL(SHA256(code_verifier)).")
+    code_challenge_method: str = Field("S256", description="Solo S256.")
+    permissions: list[str] = Field(
+        default_factory=lambda: ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsDetail"],
+        description="Alcance pedido (RAR).")
+
+
+def _pkce_valido(verifier: str | None, challenge: str) -> bool:
+    if not verifier or not (43 <= len(verifier) <= 128):
+        return False
+    calculado = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+    return secrets.compare_digest(calculado, challenge)
+
+
+def _solicitud_vigente(request_uri: str) -> dict | None:
+    sol = SOLICITUDES_PAR.get(request_uri or "")
+    if sol is None:
+        return None
+    if sol["expira"] < datetime.now(timezone.utc):
+        SOLICITUDES_PAR.pop(request_uri, None)
+        return None
+    return sol
+
+
+async def _formulario(request: Request) -> dict[str, str]:
+    """Lee un formulario HTML (x-www-form-urlencoded) sin depender de python-multipart."""
+    from urllib.parse import parse_qs
+    cuerpo = (await request.body()).decode("utf-8", errors="replace")
+    return {k: v[0] for k, v in parse_qs(cuerpo, keep_blank_values=True).items()}
+
+
+def _volver(sol: dict, **params) -> RedirectResponse:
+    """Redirige el navegador al participante (303: el navegador hace GET)."""
+    sep = "&" if "?" in sol["redirect_uri"] else "?"
+    return RedirectResponse(sol["redirect_uri"] + sep + urlencode({**params, "state": sol["state"]}),
+                            status_code=303)
+
+
+@app.post("/accounts/v1/par", tags=["Autorización en el banco (OAuth)"], status_code=201,
+          summary="1) Solicitud de autorización (PAR), la hace el participante")
+def solicitud_par(sol: SolicitudPAR):
+    """
+    El participante deja la solicitud de autorización en el banco: quién es, a
+    qué datos pide acceso (RAR), a dónde volver y el desafío PKCE. Recibe un
+    `request_uri` para mandar al usuario a la página del banco.
+    """
+    if sol.client_id != CLIENTE_ID or sol.client_secret != CLIENTE_SECRET:
+        raise HTTPException(status_code=401, detail="Credenciales de participante inválidas (invalid_client).")
+    registro = PARTICIPANTES_REGISTRADOS[sol.client_id]
+    if sol.redirect_uri not in registro["redirect_uris"]:
+        raise HTTPException(status_code=400, detail="redirect_uri no registrada para el participante.")
+    if sol.code_challenge_method != "S256":
+        raise HTTPException(status_code=400, detail="PKCE obligatorio con code_challenge_method=S256.")
+    invalidos = [p for p in sol.permissions if p not in PERMISOS_VALIDOS]
+    if invalidos:
+        raise HTTPException(status_code=422, detail="Permisos no reconocidos: %s" % invalidos)
+
+    ahora = datetime.now(timezone.utc)
+    consent_id = "urn:velvet:consent:" + secrets.token_hex(8)
+    CONSENTIMIENTOS[consent_id] = {
+        "consentId": consent_id,
+        "status": "AwaitingAuthorisation",
+        "permissions": sol.permissions,
+        "creationDateTime": ahora,
+        "expirationDateTime": ahora + timedelta(days=90),
+    }
+    request_uri = "urn:ietf:params:oauth:request_uri:" + secrets.token_urlsafe(24)
+    SOLICITUDES_PAR[request_uri] = {
+        "client_id": sol.client_id,
+        "redirect_uri": sol.redirect_uri,
+        "state": sol.state,
+        "code_challenge": sol.code_challenge,
+        "permisos": sol.permissions,
+        "consentId": consent_id,
+        "expira": ahora + PAR_VIGENCIA,
+        "rut": None,          # se llena cuando el cliente inicia sesión en el banco
+        "sesion": None,       # ata la decisión al login (protege contra CSRF)
+    }
+    return {"request_uri": request_uri, "expires_in": int(PAR_VIGENCIA.total_seconds())}
+
+
+@app.get("/autorizar", response_class=HTMLResponse, tags=["Autorización en el banco (OAuth)"],
+         summary="2) Página del banco: el cliente inicia sesión")
+def pagina_autorizar(request_uri: str = Query(...), client_id: str = Query(...)):
+    sol = _solicitud_vigente(request_uri)
+    if sol is None or sol["client_id"] != client_id:
+        return HTMLResponse(sitio_banco.pagina_error(
+            "Esta solicitud expiró o no es válida. Vuelve a la aplicación e inténtalo de nuevo."),
+            status_code=400)
+    return sitio_banco.pagina_login(request_uri, PARTICIPANTES_REGISTRADOS[client_id]["nombre"])
+
+
+@app.post("/autorizar/login", response_class=HTMLResponse, include_in_schema=False)
+async def autorizar_login(request: Request):
+    f = await _formulario(request)
+    sol = _solicitud_vigente(f.get("request_uri", ""))
+    if sol is None:
+        return HTMLResponse(sitio_banco.pagina_error(
+            "Esta solicitud expiró. Vuelve a la aplicación e inténtalo de nuevo."), status_code=400)
+    participante = PARTICIPANTES_REGISTRADOS[sol["client_id"]]["nombre"]
+
+    cliente = C.cliente_por_rut(f.get("rut", ""))
+    if cliente is None or f.get("clave", "") != cliente["clave"]:
+        return HTMLResponse(sitio_banco.pagina_login(
+            f["request_uri"], participante, error="RUT o clave incorrectos.", rut=f.get("rut", "")),
+            status_code=401)
+
+    sol["rut"] = cliente["rut_normalizado"]
+    sol["sesion"] = secrets.token_urlsafe(16)
+    expira = CONSENTIMIENTOS[sol["consentId"]]["expirationDateTime"]
+    return sitio_banco.pagina_consentimiento(
+        request_uri=f["request_uri"], sesion=sol["sesion"], participante=participante,
+        nombre_cliente=cliente["nombre"],
+        permisos=[NOMBRE_PERMISO.get(p, p) for p in sol["permisos"]],
+        cuentas=[(c["accountType"], c["accountId"]) for c in cliente["cuentas"]],
+        vence=expira.strftime("%d-%m-%Y"))
+
+
+@app.post("/autorizar/decision", include_in_schema=False)
+async def autorizar_decision(request: Request):
+    f = await _formulario(request)
+    sol = _solicitud_vigente(f.get("request_uri", ""))
+    if sol is None or not sol["sesion"] or not secrets.compare_digest(sol["sesion"], f.get("sesion", "")):
+        return HTMLResponse(sitio_banco.pagina_error(
+            "La sesión del banco no es válida o expiró. Vuelve a la aplicación e inténtalo de nuevo."),
+            status_code=400)
+    SOLICITUDES_PAR.pop(f["request_uri"], None)   # la solicitud se usa una sola vez
+    consentimiento = CONSENTIMIENTOS[sol["consentId"]]
+
+    if f.get("decision") != "autorizar":
+        consentimiento["status"] = "Rejected"
+        return _volver(sol, error="access_denied",
+                       error_description="El cliente rechazó la solicitud")
+
+    consentimiento["status"] = "Authorised"
+    consentimiento["rut"] = C.CLIENTES[sol["rut"]]["rut"]
+    codigo = secrets.token_urlsafe(32)
+    CODIGOS[codigo] = {
+        "client_id": sol["client_id"],
+        "redirect_uri": sol["redirect_uri"],
+        "code_challenge": sol["code_challenge"],
+        "rut": sol["rut"],
+        "consentId": sol["consentId"],
+        "permisos": sol["permisos"],
+        "expira": datetime.now(timezone.utc) + CODIGO_VIGENCIA,
+    }
+    return _volver(sol, code=codigo)
+
+
+def _canjear_codigo(sol: "SolicitudToken") -> dict:
+    """
+    4) El participante canjea el código por los tokens. El código es de UN solo
+    uso, expira en 2 minutos, y exige el code_verifier de PKCE: si alguien roba
+    el código en el camino, sin el verifier no le sirve.
+    """
+    info = CODIGOS.pop(sol.code or "", None)
+    if info is None or info["client_id"] != sol.client_id:
+        raise HTTPException(status_code=400, detail="Código inválido o ya usado (invalid_grant).")
+    if info["expira"] < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="El código expiró (invalid_grant).")
+    if sol.redirect_uri != info["redirect_uri"]:
+        raise HTTPException(status_code=400, detail="redirect_uri no coincide (invalid_grant).")
+    if not _pkce_valido(sol.code_verifier, info["code_challenge"]):
+        raise HTTPException(status_code=400, detail="PKCE inválido: code_verifier no corresponde (invalid_grant).")
+
+    consentimiento = CONSENTIMIENTOS[info["consentId"]]
+    expira = consentimiento["expirationDateTime"]
+    acceso = _emitir_acceso(info["consentId"], info["rut"], info["permisos"], expira)
+    refresh = secrets.token_urlsafe(32)
+    REFRESH[refresh] = {"client_id": sol.client_id, "rut": info["rut"],
+                        "consentId": info["consentId"], "permisos": info["permisos"], "expira": expira}
+    _guardar_refresh()
+    cliente = C.CLIENTES[info["rut"]]
+    return {
+        **acceso,
+        "refresh_token": refresh,
+        "consentId": info["consentId"],
+        "scope": " ".join(info["permisos"]),
+        # Equivalente a los datos del id_token de OpenID Connect: quién autorizó.
+        "cliente": {"rut": cliente["rut"], "nombre": cliente["nombre"]},
+    }
+
+
 # ───────────────────────── cuentas (protegidas por token de acceso) ─────────────────────────
 @app.get("/accounts/v1/accounts", tags=["Cuentas"],
          summary="Listado de cuentas del cliente")
@@ -321,7 +742,8 @@ def listar_cuentas(
     x_fapi_interaction_id: str | None = Header(None, alias="x-fapi-interaction-id"),
     _acceso: dict | None = Depends(exigir_token_acceso),
 ):
-    datos, links, meta = paginar(CUENTAS, page, pageSize, "/accounts")
+    cliente = cliente_del_acceso(_acceso)
+    datos, links, meta = paginar(cliente["cuentas"], page, pageSize, "/accounts")
     return {"data": {"accounts": datos}, "links": links, "meta": meta}
 
 
@@ -329,7 +751,7 @@ def listar_cuentas(
          summary="Detalle de una cuenta")
 def detalle_cuenta(accountID: str = Path(...),
                    _acceso: dict | None = Depends(exigir_token_acceso)):
-    c = cuenta_o_404(accountID)
+    c = cuenta_o_404(accountID, cliente_del_acceso(_acceso))
     _, links, meta = paginar([c], 1, 1, "/accounts/%s" % accountID)
     return {"data": {"account": c}, "links": links, "meta": meta}
 
@@ -338,8 +760,9 @@ def detalle_cuenta(accountID: str = Path(...),
          summary="Saldos de la cuenta")
 def saldo_cuenta(accountID: str = Path(...),
                  _acceso: dict | None = Depends(exigir_token_acceso)):
-    cuenta_o_404(accountID)
-    s = SALDOS.get(accountID, {"amount": 0.0, "currency": "CLP", "type": "Disponible"})
+    cliente = cliente_del_acceso(_acceso)
+    cuenta_o_404(accountID, cliente)
+    s = saldo_de(cliente, accountID)
     _, links, meta = paginar([], 1, 1, "/accounts/%s/balance" % accountID)
     return {"data": {"balance": s}, "links": links, "meta": meta}
 
@@ -354,8 +777,9 @@ def movimientos_cuenta(
     toDate: date | None = Query(None, description="Filtra hasta esta fecha"),
     _acceso: dict | None = Depends(exigir_token_acceso),
 ):
-    cuenta_o_404(accountID)
-    movs = list(MOVIMIENTOS.get(accountID, []))
+    cliente = cliente_del_acceso(_acceso)
+    cuenta_o_404(accountID, cliente)
+    movs = ocurridos(cliente["movimientos"].get(accountID, []))
 
     # Filtro por fecha: esto es lo que permite la sincronización incremental,
     # pedir solo lo nuevo desde la última consulta.
@@ -387,7 +811,7 @@ def movimientos_cuenta(
          summary="Movimientos de sobregiro")
 def sobregiro(accountID: str = Path(...),
               _acceso: dict | None = Depends(exigir_token_acceso)):
-    cuenta_o_404(accountID)
+    cuenta_o_404(accountID, cliente_del_acceso(_acceso))
     _, links, meta = paginar([], 1, 1, "/accounts/%s/overdraft" % accountID)
     return {"data": {"overdraft": []}, "links": links, "meta": meta}
 
@@ -396,7 +820,7 @@ def sobregiro(accountID: str = Path(...),
          tags=["Cuentas"], summary="Límite de sobregiro vigente")
 def limite_sobregiro(accountID: str = Path(...),
                      _acceso: dict | None = Depends(exigir_token_acceso)):
-    cuenta_o_404(accountID)
+    cuenta_o_404(accountID, cliente_del_acceso(_acceso))
     _, links, meta = paginar([], 1, 1,
                              "/accounts/%s/current-overdraft-limit" % accountID)
     return {"data": {"currentOverdraftLimit": []}, "links": links, "meta": meta}
@@ -407,29 +831,106 @@ def limite_sobregiro(accountID: str = Path(...),
 #
 #  Estos endpoints NO son parte del estándar. Van bajo otro prefijo
 #  justamente para dejarlo claro: un banco real no tiene un botón para
-#  adelantar el tiempo. Existen solo para poder probar qué hace la
-#  ingesta cuando un movimiento cambia de monto entre sincronizaciones.
+#  adelantar el tiempo ni para inventar clientes. Existen solo para poder
+#  armar y probar escenarios: varios clientes, compras en vivo y movimientos
+#  que cambian de monto entre sincronizaciones.
 # ═══════════════════════════════════════════════════════════════════
+def _cliente_o_404(rut: str) -> dict:
+    cliente = C.cliente_por_rut(rut)
+    if cliente is None:
+        raise HTTPException(status_code=404, detail="No hay un cliente con RUT %s" % rut)
+    return cliente
+
+
+def _clientes_objetivo(rut: str | None) -> list[dict]:
+    """Un cliente (si se pide RUT) o todos."""
+    return [_cliente_o_404(rut)] if rut else list(C.CLIENTES.values())
+
+
+# ───────────────────────── clientes ─────────────────────────
+@app.get("/simulador/clientes", tags=["Simulador"],
+         summary="Clientes del banco (RUT, clave de demo, cuentas)")
+def listar_clientes():
+    """
+    Los clientes que existen en la EFS, con su clave de demostración, para saber
+    qué RUT y clave ingresar al vincular el banco desde la app.
+    """
+    return {"clientes": [C.resumen(c) for c in C.CLIENTES.values()],
+            "perfiles": list(C.PERFILES)}
+
+
+@app.get("/simulador/clientes/{rut}", tags=["Simulador"],
+         summary="Detalle de un cliente: cuentas y saldos")
+def detalle_cliente(rut: str = Path(...)):
+    cliente = _cliente_o_404(rut)
+    return {
+        **C.resumen(cliente),
+        "saldos": {c["accountId"]: saldo_de(cliente, c["accountId"])["amount"]
+                   for c in cliente["cuentas"]},
+    }
+
+
+@app.post("/simulador/clientes", tags=["Simulador"], status_code=201,
+          summary="Crear un cliente nuevo con su propia historia")
+def crear_cliente(sol: NuevoCliente):
+    """
+    Crea un cliente para una simulación específica: elige su RUT, nombre, clave,
+    perfil (profesional, estudiante o familia), sueldo y meses de historia. La
+    historia se genera al tiro y de forma reproducible (la semilla sale del RUT).
+    Queda guardado: sobrevive a un reinicio de la EFS.
+    """
+    try:
+        cliente = C.crear_cliente(sol.rut, sol.nombre, sol.clave, sol.perfil,
+                                  sol.sueldo, sol.meses)
+    except ValueError as e:
+        texto = str(e)
+        codigo = 409 if texto.startswith("Ya existe") else 422
+        raise HTTPException(status_code=codigo, detail=texto)
+    return C.resumen(cliente)
+
+
+@app.delete("/simulador/clientes/{rut}", tags=["Simulador"],
+            summary="Eliminar un cliente creado en vivo")
+def eliminar_cliente(rut: str = Path(...)):
+    try:
+        cliente = C.eliminar_cliente(rut)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="No hay un cliente con RUT %s" % rut)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    # Sus permisos dejan de valer.
+    rut_n = cliente["rut_normalizado"]
+    for t in [t for t, i in TOKENS.items() if i.get("rut") == rut_n]:
+        del TOKENS[t]
+    for r in [r for r, i in REFRESH.items() if i.get("rut") == rut_n]:
+        del REFRESH[r]
+    _guardar_refresh()
+    return {"eliminado": cliente["rut"]}
+
+
+# ───────────────────────── tiempo y compras ─────────────────────────
 @app.get("/simulador/estado", tags=["Simulador"],
          summary="Qué movimientos están pendientes de confirmar")
-def estado_simulador():
+def estado_simulador(rut: str | None = Query(None, description="Solo este cliente")):
     pendientes = []
-    for cuenta, movs in MOVIMIENTOS.items():
-        for m in movs:
-            if m.get("_pendiente"):
-                pendientes.append({
-                    "cuenta": cuenta,
-                    "transactionID": m["transactionID"],
-                    "comercio": m.get("merchantDetails", {}).get("name"),
-                    "monto_actual": m["amount"],
-                    "monto_al_confirmar": m["_monto_final"],
-                })
+    for cliente in _clientes_objetivo(rut):
+        for cuenta, movs in cliente["movimientos"].items():
+            for m in movs:
+                if m.get("_pendiente"):
+                    pendientes.append({
+                        "cliente": cliente["rut"],
+                        "cuenta": cuenta,
+                        "transactionID": m["transactionID"],
+                        "comercio": (m.get("merchantDetails") or {}).get("name"),
+                        "monto_actual": m["amount"],
+                        "monto_al_confirmar": m["_monto_final"],
+                    })
     return {"pendientes": len(pendientes), "movimientos": pendientes}
 
 
 @app.post("/simulador/avanzar", tags=["Simulador"],
           summary="Confirma los movimientos pendientes")
-def avanzar_simulador():
+def avanzar_simulador(rut: str | None = Query(None, description="Solo este cliente")):
     """
     Simula el paso del tiempo: las compras pre-autorizadas se confirman y
     su monto pasa al definitivo.
@@ -438,24 +939,26 @@ def avanzar_simulador():
     tiene que detectar la ingesta para actualizar en vez de insertar.
     """
     confirmados = []
-    for cuenta, movs in MOVIMIENTOS.items():
-        for m in movs:
-            if m.get("_pendiente"):
-                antes = m["amount"]
-                m["amount"] = m["_monto_final"]
-                m["_pendiente"] = False
-                confirmados.append({
-                    "cuenta": cuenta,
-                    "transactionID": m["transactionID"],
-                    "monto_antes": antes,
-                    "monto_despues": m["amount"],
-                })
+    for cliente in _clientes_objetivo(rut):
+        for cuenta, movs in cliente["movimientos"].items():
+            for m in movs:
+                if m.get("_pendiente"):
+                    antes = m["amount"]
+                    m["amount"] = m["_monto_final"]
+                    m["_pendiente"] = False
+                    confirmados.append({
+                        "cliente": cliente["rut"],
+                        "cuenta": cuenta,
+                        "transactionID": m["transactionID"],
+                        "monto_antes": antes,
+                        "monto_despues": m["amount"],
+                    })
 
     return {
         "confirmados": len(confirmados),
         "movimientos": confirmados,
         "nota": ("Para volver al estado inicial, reinicia el servidor: "
-                 "los datos se cargan del JSON al arrancar."),
+                 "los movimientos se regeneran al arrancar."),
     }
 
 
@@ -475,60 +978,70 @@ _contador_demo = {"n": 0}
 _GLOSAS_SUCIAS = ["PAGO PSP 4471 STGO", "TRANSBANK*CL 8829", "CL*SERV 2210"]
 
 
-@app.post("/simulador/nuevo-pago", tags=["Simulador"],
-          summary="Crea un movimiento nuevo (demo en vivo)")
+@app.post("/simulador/nuevo", tags=["Simulador"],
+          summary="Crea un movimiento nuevo para un cliente (demo en vivo)")
+@app.post("/simulador/nuevo-pago", include_in_schema=False)  # nombre anterior
 def nuevo_movimiento(
-    accountID: str = Query("CTA-0001", description="Cuenta a la que se carga"),
+    rut: str | None = Query(None, description="Cliente al que se le agrega la compra"),
+    accountID: str | None = Query(None, description="Cuenta específica (opcional)"),
+    comercio: str | None = Query(None, description="Nombre del comercio (opcional)"),
+    monto: float | None = Query(None, gt=0, description="Monto en CLP (opcional)"),
     sin_comercio: bool = Query(False, description="Sin merchantDetails: llega con glosa sucia"),
     pendiente: bool = Query(False, description="Llega pre-autorizado; se confirma con /avanzar"),
 ):
     """
-    Inyecta un movimiento nuevo en la cuenta, como si el cliente acabara de
-    hacer una compra. Queda disponible de inmediato en el endpoint de
-    movimientos: es lo que la app consume en vivo por la API.
+    Inyecta un movimiento nuevo, como si el cliente acabara de hacer una compra.
+    Queda disponible de inmediato en el endpoint de movimientos.
+
+    · Con `rut`: va a la cuenta principal de ese cliente (o a `accountID`).
+    · Solo con `accountID`: va a esa cuenta, sea de quien sea.
+    · Sin nada: a la cuenta principal del cliente por defecto.
+    · sin_comercio → llega sin merchantDetails y con glosa sucia: el
+      clasificador debe abstenerse en vez de inventar una categoría.
+    · pendiente    → llega pre-autorizado con un monto y /avanzar lo confirma
+      con otro, manteniendo el mismo transactionID (la ingesta debe actualizar,
+      no duplicar).
 
     NO es parte del estándar — es un botón para demostrar el flujo. Al reiniciar
-    el servidor, los datos vuelven al JSON original.
-
-    Junto con /avanzar cubre los dos casos que la ingesta debe distinguir:
-    insertar algo nuevo, y actualizar algo que ya estaba sin duplicarlo.
-
-    · sin_comercio → llega sin merchantDetails y con glosa sucia. Es el caso que
-      obliga al clasificador a abstenerse en vez de inventar una categoría.
-    · pendiente    → llega pre-autorizado con un monto y se confirma después con
-      otro, manteniendo el mismo transactionID.
+    el servidor, los datos vuelven a su estado inicial.
     """
-    cuenta_o_404(accountID)
+    if rut:
+        cliente = _cliente_o_404(rut)
+        cuenta = cuenta_o_404(accountID, cliente)["accountId"] if accountID \
+            else cliente["cuentas"][0]["accountId"]
+    elif accountID:
+        dueno = C.DUENO_CUENTA.get(accountID)
+        if dueno is None:
+            raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+        cliente, cuenta = C.CLIENTES[dueno], accountID
+    else:
+        cliente = C.CLIENTES[C.RUT_POR_DEFECTO]
+        cuenta = cliente["cuentas"][0]["accountId"]
+
     _contador_demo["n"] += 1
     ahora = datetime.now(timezone.utc)
+    detalle = ({"name": comercio, "category": None} if comercio
+               else random.choice(_COMERCIOS_DEMO))
 
     # Se fecha "ahora": la compra recién ocurrida. Es la más reciente entre las
-    # que ya pasaron, así aparece arriba tanto en la pantalla en vivo como en el
-    # resto de la app (que solo muestra lo ocurrido hasta el momento).
-    movs = MOVIMIENTOS.setdefault(accountID, [])
+    # que ya pasaron, así aparece arriba en la app.
+    movs = cliente["movimientos"].setdefault(cuenta, [])
     mov = {
         "transactionID": "TXN-LIVE-%s-%03d" % (ahora.strftime("%m%d%H%M%S"),
                                                _contador_demo["n"]),
         "bookingDateTime": ahora,
         "transactionsType": "Cargo",
-        "amount": float(random.randrange(2000, 60000, 10)),
+        "amount": float(round(monto)) if monto else float(random.randrange(2000, 60000, 10)),
         "currency": "CLP",
     }
-
     if sin_comercio:
         mov["paymentPurposeCode"] = random.choice(_GLOSAS_SUCIAS)
     else:
-        mov["merchantDetails"] = random.choice(_COMERCIOS_DEMO)
-
+        mov["merchantDetails"] = detalle
     if pendiente:
-        # Pre-autorizado: llega con un monto y se confirma con otro, mismo ID.
         mov["_pendiente"] = True
         mov["_monto_final"] = float(round(mov["amount"] * 1.15))
-
     movs.append(mov)
 
-    return {
-        "creado": sin_internos(mov),
-        "pendiente": pendiente,
-        "total_cuenta": len(movs),
-    }
+    return {"cliente": cliente["rut"], "cuenta": cuenta, "creado": sin_internos(mov),
+            "pendiente": pendiente, "total_cuenta": len(movs)}

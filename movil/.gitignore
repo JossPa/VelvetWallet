@@ -36,11 +36,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# pruebas
-coverage/
-
 example
 
 # generated native folders
 /ios
 /android
+
+coverage/

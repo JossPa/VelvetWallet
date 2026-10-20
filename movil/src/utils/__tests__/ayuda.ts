@@ -20,6 +20,8 @@ export function movimiento(campos: Partial<Movimiento> = {}): Movimiento {
     categoria: "Supermercado",
     categoriaBanco: "Alimentos",
     estadoCategoria: "automatica",
+    origenClasificacion: "regla",
+    confianza: null,
     esRecurrente: false,
     excluido: false,
     origen: "sfa",
@@ -38,6 +40,8 @@ export function sinCategoria(campos: Partial<Movimiento> = {}): Movimiento {
     categoria: null,
     categoriaBanco: null,
     estadoCategoria: "sin_categoria",
+    // Sin categoría es sin clasificar: nadie decidió, ni regla ni modelo.
+    origenClasificacion: null,
     ...campos,
   });
 }

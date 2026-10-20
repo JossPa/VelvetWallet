@@ -4,7 +4,16 @@
  * Son las funciones que más se usan en toda la aplicación, así que un error
  * acá se ve en todas las pantallas a la vez.
  */
-import { claveMes, fechaCorta, fechaLista, hora, nombreMes, pesos, tiempoRelativo } from "@/utils/formato";
+import {
+  claveMes,
+  fechaConAnio,
+  fechaCorta,
+  fechaLista,
+  hora,
+  nombreMes,
+  pesos,
+  tiempoRelativo,
+} from "@/utils/formato";
 
 describe("pesos", () => {
   it("separa los miles con punto", () => {
@@ -51,6 +60,17 @@ describe("fechaCorta y hora", () => {
 
   it("escribe la hora con dos dígitos", () => {
     expect(hora("2026-09-03T09:05:00.000Z")).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it("fechaConAnio agrega el año, que es lo que distingue un vencimiento", () => {
+    expect(fechaConAnio("2027-01-18T12:00:00.000Z")).toBe("18 ene 2027");
+  });
+
+  it("una fecha sin hora se lee como fecha local, no como UTC", () => {
+    // "2027-03-01" es medianoche UTC, que en Chile cae el 28 de febrero. Si
+    // se leyera así, quien escribe marzo vería febrero.
+    expect(fechaConAnio("2027-03-01")).toBe("1 mar 2027");
+    expect(claveMes("2027-03-01")).toBe("2027-03");
   });
 });
 

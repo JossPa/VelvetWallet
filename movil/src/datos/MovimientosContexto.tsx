@@ -1,17 +1,33 @@
 /**
- * Los movimientos, como estado compartido que puede cambiar.
+ * Los movimientos del usuario, como estado compartido.
  *
- * Antes eran un archivo fijo que se cargaba al arrancar. Ahora arrancan de ahí
- * —el historial de doce meses— y la sincronización trae lo nuevo encima.
+ * Se cargan desde el backend cuando el usuario inicia sesión (solo los suyos) y
+ * se limpian cuando cierra sesión. Antes se partía de un archivo local igual
+ * para todos; ahora cada usuario ve únicamente su propia información.
+ *
+ * Al recibir los datos se corre la PRIMERA CAPA del clasificador (reglas por
+ * palabra clave, ver utils/sugerencias). El backend todavía no categoriza, así
+ * que esto vive en la app de forma provisional: cuando el clasificador exista
+ * en el backend, la categoría llegará ya puesta y este paso se quita.
  *
  * `novedades` guarda qué cambió en la última sincronización para que la lista
  * pueda destacarlo. Se limpia cuando el usuario las mira.
  */
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Platform } from "react-native";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 
-import { MOVIMIENTOS_INICIALES } from "@/datos/movimientos";
-import type { Movimiento } from "@/modelo/tipos";
-import { obtenerMovimientos } from "@/servicios/sincronizacion";
+import type { Correccion, Movimiento } from "@/modelo/tipos";
+import {
+  conectarBanco,
+  desvincularBanco,
+  iniciarVinculacion,
+  obtenerConexiones,
+  obtenerMovimientos,
+} from "@/servicios/sincronizacion";
+import { useSesion } from "@/sesion/SesionContexto";
+import { clasificarPorReglas } from "@/utils/sugerencias";
 import { fusionar } from "@/utils/fusion";
 
 export type Novedades = {
@@ -22,42 +38,135 @@ export type Novedades = {
 
 const SIN_NOVEDADES: Novedades = { nuevos: [], actualizados: {} };
 
+/** Con qué vuelve el usuario desde el sitio del banco. */
+export type VueltaDelBanco = { banco: string; motivo?: string };
+
+/** A dónde debe volver el usuario después de autorizar en su banco. */
+function urlDeRetorno(): string {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return window.location.origin + "/";
+  }
+  return Linking.createURL("/"); // velvetwallet://  ó  exp://… en Expo Go
+}
+
+/**
+ * Clasificación automática por reglas sobre lo que llega del backend.
+ *
+ * Solo toca los cargos sin categoría: si una regla reconoce el comercio le pone
+ * la categoría y marca `estadoCategoria: "automatica"`. Lo que ninguna regla
+ * reconoce queda sin categorizar (el sistema se abstiene) y aparece en
+ * "Por revisar". Nunca pisa una corrección del usuario.
+ */
+function clasificar(lista: Movimiento[]): Movimiento[] {
+  return lista.map((m) => {
+    if (m.categoria !== null) return m;
+    const categoria = clasificarPorReglas(m);
+    return categoria ? { ...m, categoria, estadoCategoria: "automatica" as const } : m;
+  });
+}
+
 type ValorMovimientos = {
   movimientos: Movimiento[];
   novedades: Novedades;
   sincronizando: boolean;
   ultimaSincronizacion: string | null;
   error: string | null;
-  /** Consulta la institución y fusiona. Devuelve cuántos cambiaron. */
+  /** Vuelve a consultar el backend y fusiona. Devuelve cuántos cambiaron. */
   sincronizar: () => Promise<{ nuevos: number; actualizados: number }>;
+  /**
+   * Manda al usuario al SITIO DE SU BANCO para que inicie sesión y autorice.
+   * En web la página se va al banco (y vuelve con ?banco=…): devuelve null.
+   * En el celular se abre el navegador y devuelve cómo volvió.
+   */
+  irAlBanco: () => Promise<VueltaDelBanco | null>;
+  /** Después de volver con ?banco=vinculado: trae los datos del banco. */
+  completarVinculacion: () => Promise<void>;
+  /** Retira el permiso del banco y borra sus datos de Velvet. */
+  desvincular: () => Promise<void>;
+  /** Con qué cliente del banco quedó vinculado el usuario (null si no se sabe). */
+  clienteBanco: { rut: string; nombre: string } | null;
+  /** Asigna o corrige la categoría de un movimiento (el usuario en "Por revisar"). */
+  corregirCategoria: (id: string, categoria: string) => void;
   /** Apaga el destacado y el contador de la pestaña. */
   marcarVistas: () => void;
-  /** Asigna una categoría a mano. Queda registrada como corrección del usuario. */
-  corregirCategoria: (id: string, categoria: string) => void;
 };
 
 const Contexto = createContext<ValorMovimientos | null>(null);
 
 export function ProveedorMovimientos({ children }: { children: ReactNode }) {
-  const [movimientos, setMovimientos] = useState<Movimiento[]>(MOVIMIENTOS_INICIALES);
+  const { usuario } = useSesion();
+
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   // Espejo de `movimientos` para fusionar sin depender de cuándo React aplique
-  // el cambio de estado: la fusión necesita la lista actual en el mismo
-  // instante, y el resumen se devuelve a quien llamó.
-  const actualesRef = useRef<Movimiento[]>(MOVIMIENTOS_INICIALES);
+  // el cambio de estado.
+  const actualesRef = useRef<Movimiento[]>([]);
   const [novedades, setNovedades] = useState<Novedades>(SIN_NOVEDADES);
   const [sincronizando, setSincronizando] = useState(false);
   const [ultimaSincronizacion, setUltima] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [clienteBanco, setClienteBanco] = useState<{ rut: string; nombre: string } | null>(null);
+
+  // Cada operación que carga datos sube la generación; la carga inicial solo se
+  // aplica si nadie cargó algo más nuevo mientras tanto (evita que una carga
+  // vieja y vacía pise lo recién vinculado al volver del banco).
+  const generacion = useRef(0);
+
+  const reemplazar = useCallback((lista: Movimiento[]) => {
+    actualesRef.current = lista;
+    setMovimientos(lista);
+  }, []);
+
+  // Carga inicial de los datos del usuario al entrar; limpieza al salir.
+  useEffect(() => {
+    let vivo = true;
+
+    if (!usuario) {
+      reemplazar([]);
+      setClienteBanco(null);
+      setNovedades(SIN_NOVEDADES);
+      setUltima(null);
+      setError(null);
+      return;
+    }
+
+    setSincronizando(true);
+    setError(null);
+    const miGeneracion = ++generacion.current;
+    obtenerMovimientos()
+      .then((lista) => {
+        if (!vivo || miGeneracion !== generacion.current) return;
+        reemplazar(clasificar(lista));
+        setUltima(new Date().toISOString());
+        // A qué cliente del banco está vinculado (para mostrarlo). Mejor esfuerzo.
+        obtenerConexiones()
+          .then((cx) => {
+            const c = cx.find((x) => x.nombreCliente);
+            if (vivo) setClienteBanco(c ? { rut: c.rutCliente ?? "", nombre: c.nombreCliente ?? "" } : null);
+          })
+          .catch(() => {});
+      })
+      .catch((e) => {
+        if (vivo) setError(e instanceof Error ? e.message : "No se pudieron cargar los datos.");
+      })
+      .finally(() => {
+        if (vivo) setSincronizando(false);
+      });
+
+    return () => {
+      vivo = false;
+    };
+  }, [usuario?.id, reemplazar]);
 
   const sincronizar = useCallback(async () => {
     setSincronizando(true);
     setError(null);
     try {
-      // Se pide el mes en curso, no el historial completo: sincronización
-      // incremental. El backend hará lo mismo con la última fecha sincronizada.
-      const desde = new Date();
-      desde.setDate(1);
-      const entrantes = await obtenerMovimientos(desde.toISOString());
+      generacion.current++;
+      // Vuelve a pedir al banco (re-corre la ingesta): así llegan los
+      // movimientos nuevos que el banco generó desde la última vez.
+      const vinculo = await conectarBanco();   // sin clave: usa el permiso guardado
+      setClienteBanco(vinculo.cliente ?? null);
+      const entrantes = clasificar(await obtenerMovimientos());
 
       const r = fusionar(actualesRef.current, entrantes);
       actualesRef.current = r.movimientos;
@@ -83,18 +192,55 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const marcarVistas = useCallback(() => setNovedades(SIN_NOVEDADES), []);
+  const irAlBanco = useCallback(async (): Promise<VueltaDelBanco | null> => {
+    setError(null);
+    const retorno = urlDeRetorno();
+    let url: string;
+    try {
+      url = await iniciarVinculacion(retorno);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo abrir el sitio del banco.");
+      throw e;
+    }
+    if (Platform.OS === "web") {
+      window.location.assign(url); // la app vuelve sola con ?banco=…
+      return null;
+    }
+    const r = await WebBrowser.openAuthSessionAsync(url, retorno);
+    if (r.type !== "success") return null; // cerró el navegador sin terminar
+    const q = Linking.parse(r.url).queryParams ?? {};
+    return { banco: String(q.banco ?? "error"), motivo: q.motivo ? String(q.motivo) : undefined };
+  }, []);
 
-  /**
-   * La corrección se guarda como una capa encima del dato: se marca
-   * `estadoCategoria: "corregida"` y se agrega a `correcciones`. El dato
-   * original del banco (glosaOriginal, categoriaBanco) no se toca, y la
-   * fusión respeta esta categoría cuando el banco reenvía la suya (RF-14).
-   *
-   * PENDIENTE: persistir en el backend. Hoy vive en memoria y se pierde al
-   * reiniciar la app.
-   */
+  const completarVinculacion = useCallback(async () => {
+    setSincronizando(true);
+    setError(null);
+    generacion.current++;
+    try {
+      // El permiso ya lo dio el usuario en su banco: ahora se traen SUS datos.
+      const vinculo = await conectarBanco();
+      setClienteBanco(vinculo.cliente ?? null);
+      const lista = clasificar(await obtenerMovimientos());  // y cargamos lo que llegó
+      reemplazar(lista);
+      setUltima(new Date().toISOString());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo conectar el banco.");
+      throw e;
+    } finally {
+      setSincronizando(false);
+    }
+  }, [reemplazar]);
+
+  // El usuario asigna o corrige una categoría en "Por revisar". Se guarda la
+  // corrección aparte (el dato del banco no se toca) y la categoría pasa a
+  // estado "corregida". Es estado local: alimentaría el reentrenamiento del
+  // clasificador cuando el backend persista las correcciones.
   const corregirCategoria = useCallback((id: string, categoria: string) => {
+    const correccion: Correccion = {
+      tipo: "recategorizar",
+      fecha: new Date().toISOString(),
+      detalle: categoria,
+    };
     const aplicar = (lista: Movimiento[]) =>
       lista.map((m) =>
         m.id === id
@@ -102,17 +248,33 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
               ...m,
               categoria,
               estadoCategoria: "corregida" as const,
-              correcciones: [
-                ...m.correcciones,
-                { tipo: "recategorizar" as const, fecha: new Date().toISOString(), detalle: categoria },
-              ],
+              correcciones: [...m.correcciones, correccion],
             }
           : m,
       );
-
     actualesRef.current = aplicar(actualesRef.current);
     setMovimientos(actualesRef.current);
   }, []);
+
+  const desvincular = useCallback(async () => {
+    setSincronizando(true);
+    setError(null);
+    try {
+      for (const c of await obtenerConexiones()) {
+        await desvincularBanco(c.id);
+      }
+      reemplazar([]);
+      setNovedades(SIN_NOVEDADES);
+      setClienteBanco(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo desvincular el banco.");
+      throw e;
+    } finally {
+      setSincronizando(false);
+    }
+  }, [reemplazar]);
+
+  const marcarVistas = useCallback(() => setNovedades(SIN_NOVEDADES), []);
 
   const valor = useMemo(
     () => ({
@@ -122,10 +284,14 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       ultimaSincronizacion,
       error,
       sincronizar,
-      marcarVistas,
+      irAlBanco,
+      completarVinculacion,
+      desvincular,
+      clienteBanco,
       corregirCategoria,
+      marcarVistas,
     }),
-    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, marcarVistas, corregirCategoria],
+    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, corregirCategoria, marcarVistas],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

@@ -53,38 +53,111 @@ irregulares a propósito: las cuentas del hogar varían ±20% de monto y ±3 dí
 suscripciones se corren si caen en fin de semana, y hay movimientos sin comercio ni categoría para
 forzar la abstención del clasificador.
 
+## Clientes del banco
+
+La EFS tiene **varios clientes**, cada uno con su RUT, su clave del banco, sus cuentas y su propia
+historia (`app/clientes.py`). Los nombres y RUT son ficticios; las claves son de demostración.
+
+| Cliente | RUT | Clave | Perfil | Cuentas |
+|---|---|---|---|---|
+| Jossue Padrón | 11.111.111-1 | 1234 | profesional (el de siempre: `datos_banco.json`) | CTA-0001, CTA-0002 |
+| Camila Rojas | 15.432.876-9 | 2468 | familia: dividendo, colegio, Jumbo, Ripley | CTA-15432876-1/-2 |
+| Diego Muñoz | 21.004.567-8 | 1357 | estudiante: pieza, Rappi, Metro, Starbucks | CTA-21004567-1/-2 |
+
+**Cómo se respeta que cada uno vea lo suyo:** al autorizar el consentimiento, el cliente se
+identifica con RUT y clave **en la página del banco** (ver más abajo). El token de acceso queda
+atado a ese cliente: `/accounts` devuelve solo sus cuentas, y pedir la cuenta de otro responde
+**404** (igual que una inexistente, para no revelar nada). Junto al token se entrega un
+**refresh token**: el participante lo usa (`POST /token`, `grant_type=refresh_token`) para renovar el
+acceso en las sincronizaciones siguientes **sin volver a pedir la clave**.
+`DELETE /accounts/v1/consents/{id}` revoca el permiso.
+
+Si una autorización llega sin RUT (versiones anteriores del backend), se atribuye al cliente por
+defecto (Jossue). Para exigir siempre el RUT: `SFA_CLIENTE_POR_DEFECTO=""`.
+
+## Autorización en el sitio del banco (OAuth 2.0 + PAR + PKCE)
+
+El RUT y la clave del usuario **no pasan por Velvet**. Como en el SFA real, el usuario los escribe en
+la página de su banco, que la EFS sirve en `/autorizar` (`app/sitio_banco.py`):
+
+```
+Velvet (backend)  ──POST /accounts/v1/par──────────▶  EFS   credenciales del participante,
+                  ◀── request_uri (vence en 10 min) ──        redirect_uri, state, code_challenge
+Navegador ──GET /autorizar?client_id&request_uri──▶  EFS   página de login del banco
+          ──POST /autorizar/login (RUT + clave)───▶  EFS   pantalla de consentimiento:
+                                                            qué pide, qué cuentas, vencimiento
+          ──POST /autorizar/decision──────────────▶  EFS
+          ◀── 303 redirect_uri?code&state ─────────        (o ?error=access_denied)
+Velvet    ──POST /token  grant_type=authorization_code──▶ EFS   code + code_verifier (PKCE)
+          ◀── access_token + refresh_token + cliente ──
+```
+
+Qué protege cada pieza:
+
+- **PAR:** los parámetros de la solicitud no viajan en la URL del navegador; los deja el
+  participante autenticado, y el navegador solo lleva un `request_uri` opaco.
+- **redirect_uri registrada:** el banco solo devuelve el código a las URL inscritas para ese
+  participante (`SFA_REDIRECT_URIS`, por defecto `http://localhost:8000/api/conexiones/retorno`).
+- **PKCE (S256):** un código interceptado no sirve sin el `code_verifier`, que nunca salió del backend.
+- **Código de un solo uso, 2 minutos.** Un intento fallido también lo quema.
+- **state:** ata la vuelta a la solicitud que la originó (lo valida el participante).
+- **Sesión del banco:** la decisión solo se acepta tras el login en esa misma solicitud (anti-CSRF).
+
+```bash
+python -m app.prueba_autorizacion
+```
+
+22 comprobaciones: secreto del participante, redirect_uri ajena, PKCE, escape de HTML, solo las
+cuentas del cliente en el consentimiento, CSRF, código robado o reusado, rechazo y solicitud vencida.
+
+`POST /accounts/v1/consents/{id}/authorise` con `{rut, clave}` se mantiene para las pruebas y la demo
+por línea de comandos; la app ya no lo usa.
+
+### Simular un cliente específico
+
+```bash
+# Ver los clientes (con su clave de demo)
+curl http://localhost:8001/simulador/clientes
+
+# Crear uno nuevo con su propia historia (perfil: profesional | estudiante | familia)
+curl -X POST http://localhost:8001/simulador/clientes -H "Content-Type: application/json" \
+     -d '{"rut":"17.654.321-3","nombre":"Valentina Soto","clave":"9999","perfil":"estudiante","sueldo":600000,"meses":6}'
+
+# Una compra en vivo para ese cliente (comercio y monto opcionales)
+curl -X POST "http://localhost:8001/simulador/nuevo?rut=17.654.321-3&comercio=Rappi&monto=12990"
+
+# Confirmar las compras pendientes solo de un cliente
+curl -X POST "http://localhost:8001/simulador/avanzar?rut=15.432.876-9"
+
+# Eliminar un cliente creado en vivo
+curl -X DELETE http://localhost:8001/simulador/clientes/17.654.321-3
+```
+
+La historia de un cliente creado se genera de forma reproducible (la semilla sale del RUT) y queda
+guardada en `app/clientes_creados.json`: sobrevive a un reinicio. Los permisos otorgados quedan en
+`app/refresh_tokens.json`. Ninguno de los dos se versiona; borrarlos vuelve a los clientes de base.
+
+### Probar el aislamiento
+
+```bash
+python -m app.prueba_clientes
+```
+
+23 comprobaciones: cada cliente ve solo lo suyo, un token no lee cuentas ajenas, clave errada → 401,
+refresh token del mismo cliente, revocación, cliente creado en vivo y compra en vivo por cliente.
+
 ## Endpoints de control — fuera del estándar
 
 No son parte de la API conforme. Existen solo para poder probar la ingesta.
 
 ```bash
-curl http://localhost:8001/simulador/estado             # qué está pendiente
-curl -X POST http://localhost:8001/simulador/avanzar    # confirma los pendientes
-curl -X POST http://localhost:8001/simulador/nuevo-pago # inyecta un pago con fecha de ahora
+curl http://localhost:8001/simulador/estado          # qué está pendiente
+curl -X POST http://localhost:8001/simulador/avanzar # confirma los pendientes (todos, o ?rut=)
 ```
-
-Entre los dos cubren los **dos casos que la ingesta debe distinguir**:
-
-| Endpoint | Qué provoca | Qué debe hacer la ingesta |
-|---|---|---|
-| `nuevo-pago` | Un `transactionID` que no existía | **Insertar** |
-| `avanzar` | Un `transactionID` que ya existía, con otro monto | **Actualizar**, sin duplicar |
 
 Al avanzar, las compras pre-autorizadas toman su monto definitivo **manteniendo el mismo
 `transactionID`**. Eso es lo que la ingesta tiene que detectar para actualizar en vez de insertar.
-
-`nuevo-pago` acepta `?sin_comercio=true` (llega con glosa sucia y sin `merchantDetails`, para forzar
-la abstención del clasificador) y `?pendiente=true` (llega pre-autorizado y se confirma después con
-`avanzar`).
-
 Para volver al estado inicial basta reiniciar el servidor: los datos se cargan del JSON al arrancar.
-
-### CORS abierto durante el desarrollo
-
-El simulador acepta llamadas desde cualquier origen para que la app, que corre en otro puerto,
-pueda consumirlo desde el navegador. **Un banco real no hace esto**: el estándar exige mTLS y las
-llamadas van de servidor a servidor. Se acota o elimina cuando la app pase a consumir el backend en
-vez del simulador.
 
 ### Los modelos se generan, no se escriben
 
@@ -105,13 +178,16 @@ spec, se regenera.
 
 | Implementado | Pendiente |
 |---|---|
-| Los 6 endpoints de la API de Cuentas | Flujo PAR y emisión de tokens |
-| Envoltorio `data` / `links` / `meta` obligatorio | mTLS y certificados |
-| Paginación `page` / `pageSize` | Firma JWS (`x-jws-signature`) |
+| Los 6 endpoints de la API de Cuentas | mTLS y certificados |
+| Envoltorio `data` / `links` / `meta` obligatorio | Firma JWS (`x-jws-signature`) |
+| Paginación `page` / `pageSize` | `private_key_jwt` en vez de client_secret |
 | Filtros `fromDate` / `toDate` | |
 | Error 404 en cuenta inexistente | |
 | Generador de 12 meses de historial | |
 | Ciclo de pendiente a confirmada | |
+| Varios clientes, cada uno con lo suyo | |
+| Login y consentimiento en el sitio del banco (PAR + PKCE) | |
+| Refresh token y revocación | |
 
 **El orden es deliberado:** primero que el banco entregue datos, después la seguridad encima. Partir
 por mTLS significa pelear con certificados durante días antes de tener una sola línea de JSON.

@@ -27,11 +27,26 @@ export type ResumenMes = {
 };
 
 /**
- * Sueldo detectado: el abono más reciente categorizado como sueldo.
- * Cuando exista la configuración del usuario (RF-36), esta función la combina.
+ * Sueldo detectado.
+ *
+ * Preferimos el abono ya categorizado como "Sueldo" (cuando exista el
+ * clasificador). Mientras tanto, como el backend aún no categoriza, se detecta
+ * por heurística: el ingreso recurrente más reciente que NO sea una
+ * transferencia entre cuentas propias. Así el disponible sale bien aunque la
+ * categoría todavía no exista.
  */
 export function sueldoDetectado(movimientos: Movimiento[]): Movimiento | null {
-  return movimientos.find((m) => m.monto > 0 && m.categoria === "Sueldo") ?? null;
+  const porCategoria = movimientos.find((m) => m.monto > 0 && m.categoria === "Sueldo");
+  if (porCategoria) return porCategoria;
+
+  const esTransferencia = (m: Movimiento) =>
+    /transferencia/i.test(`${m.glosaOriginal ?? ""} ${m.comercio ?? ""}`);
+
+  const abonos = movimientos
+    .filter((m) => m.monto > 0 && !m.excluido && !esTransferencia(m))
+    .sort((a, b) => (a.fecha < b.fecha ? 1 : -1)); // más reciente primero
+
+  return abonos[0] ?? null;
 }
 
 export function resumenDelMes(movimientos: Movimiento[], mes: string): ResumenMes {
@@ -55,6 +70,66 @@ export function conexionesConProblema(conexiones: Conexion[]): Conexion[] {
   return conexiones.filter((c) => c.estado !== "al_dia");
 }
 
+// ───────────────────── gasto de los últimos meses ─────────────────────
+
+export type GastoDelMes = {
+  /** Clave "AAAA-MM". */
+  mes: string;
+  total: number;
+  cantidad: number;
+  /** El mes en curso va a medias: no se puede comparar de igual a igual. */
+  parcial: boolean;
+};
+
+/**
+ * Gasto total de los últimos `cuantos` meses, del más antiguo al más reciente.
+ *
+ * Se devuelven también los meses sin gastos, con total cero: un hueco en la
+ * serie dice algo, y saltárselo haría que el gráfico mienta sobre el tiempo
+ * transcurrido entre barras.
+ *
+ * El mes en curso se marca `parcial` porque va a medias. Compararlo de igual a
+ * igual con meses completos siempre lo haría parecer una caída del gasto.
+ */
+export function gastoUltimosMeses(
+  movimientos: Movimiento[],
+  cuantos = 6,
+  hoy: Date = new Date(),
+): GastoDelMes[] {
+  const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+
+  // Se parte del mes en curso y se retrocede, para que la serie termine hoy
+  // aunque el último mes todavía no tenga movimientos.
+  const meses: string[] = [];
+  let cursor = mesActual;
+  for (let i = 0; i < cuantos; i++) {
+    meses.unshift(cursor);
+    cursor = mesAnterior(cursor);
+  }
+
+  return meses.map((mes) => {
+    const cargos = movimientos.filter(
+      (m) => m.monto < 0 && !m.excluido && claveMes(m.fecha) === mes,
+    );
+    return {
+      mes,
+      total: cargos.reduce((suma, m) => suma + Math.abs(m.monto), 0),
+      cantidad: cargos.length,
+      parcial: mes === mesActual,
+    };
+  });
+}
+
+/**
+ * Promedio mensual de gasto, **excluyendo el mes en curso** por estar a medias.
+ * Es la línea de referencia contra la que se lee cada barra.
+ */
+export function promedioMensual(serie: GastoDelMes[]): number {
+  const completos = serie.filter((g) => !g.parcial && g.total > 0);
+  if (completos.length === 0) return 0;
+  return completos.reduce((s, g) => s + g.total, 0) / completos.length;
+}
+
 // ───────────────────── en qué se va la plata ─────────────────────
 
 export type PorcionCategoria = {
@@ -66,11 +141,20 @@ export type PorcionCategoria = {
 
 const SIN_CATEGORIA = "Sin categorizar";
 
-/** Suma los cargos del mes por categoría, de mayor a menor. */
-function totalesPorCategoria(movimientos: Movimiento[], mes: string): Map<string, number> {
+/**
+ * Suma los cargos por categoría dentro de uno o varios meses.
+ *
+ * `meses` acepta una clave sola o un conjunto. Pasar varias permite el reparto
+ * de un período completo sin recorrer los movimientos una vez por mes.
+ */
+function totalesPorCategoria(
+  movimientos: Movimiento[],
+  meses: string | Set<string>,
+): Map<string, number> {
+  const incluye = typeof meses === "string" ? (m: string) => m === meses : (m: string) => meses.has(m);
   const totales = new Map<string, number>();
   for (const m of movimientos) {
-    if (m.monto >= 0 || m.excluido || claveMes(m.fecha) !== mes) continue;
+    if (m.monto >= 0 || m.excluido || !incluye(claveMes(m.fecha))) continue;
     const clave = m.categoria ?? SIN_CATEGORIA;
     totales.set(clave, (totales.get(clave) ?? 0) + Math.abs(m.monto));
   }
@@ -78,14 +162,14 @@ function totalesPorCategoria(movimientos: Movimiento[], mes: string): Map<string
 }
 
 /**
- * Reparto del gasto del mes por categoría.
+ * Reparto del gasto por categoría, de un mes o de un período.
  *
  * Se muestran las `maximo` más grandes y el resto se agrupa en "Otros": un
  * gráfico con quince porciones no comunica nada.
  */
 export function repartoPorCategoria(
   movimientos: Movimiento[],
-  mes: string,
+  mes: string | Set<string>,
   maximo = 5,
 ): { porciones: PorcionCategoria[]; total: number } {
   const totales = [...totalesPorCategoria(movimientos, mes).entries()].sort((a, b) => b[1] - a[1]);
