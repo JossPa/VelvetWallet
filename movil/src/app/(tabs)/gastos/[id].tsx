@@ -39,6 +39,33 @@ function tipoCuenta(m: Movimiento): string | undefined {
   }
 }
 
+/**
+ * Cómo se decidió la categoría, en lenguaje natural.
+ *
+ * Es trazabilidad de la decisión, no una métrica: responde "¿por qué esto
+ * quedó en Supermercado?". Y cuando el sistema no alcanzó la confianza
+ * mínima, lo dice en vez de callarlo: la abstención es una decisión, no un
+ * vacío (RNF-33).
+ */
+function describirClasificacion(m: Movimiento): string {
+  if (m.estadoCategoria === "corregida") return "Lo corregiste tú";
+  if (m.categoria === null) return "El sistema no alcanzó la confianza mínima";
+
+  switch (m.origenClasificacion) {
+    case "modelo":
+      return m.confianza !== null
+        ? `El modelo, con ${Math.round(m.confianza * 100)}% de confianza`
+        : "El modelo";
+    case "regla":
+      return "Una regla: comercio conocido";
+    case "banco":
+      return "La categoría que mandó la institución";
+    default:
+      // Mientras el clasificador no esté conectado.
+      return "Pendiente: el clasificador aún no está conectado";
+  }
+}
+
 function resumenCorrecciones(lista: Correccion[]): string {
   if (lista.length === 0) return "Ninguna";
   if (lista.length === 1) return TIPO_CORRECCION[lista[0].tipo];
@@ -62,6 +89,7 @@ export default function DetalleMovimiento() {
   const esCargo = m.monto < 0;
   const subtitulo = [m.institucion, tipoCuenta(m), fechaHora(m.fecha)].filter(Boolean).join(" · ");
   const sinIdentificar = m.comercio === null;
+  const decision = describirClasificacion(m);
 
   return (
     <Pantalla titulo="Movimiento" etiqueta={fechaCorta(m.fecha)} onAtras={() => router.back()}>
@@ -79,6 +107,7 @@ export default function DetalleMovimiento() {
           { etiqueta: "Glosa original", valor: m.glosaOriginal, mono: true },
           { etiqueta: "Comercio", valor: m.comercio ?? "No identificado", destacar: sinIdentificar },
           { etiqueta: "Categoría", valor: m.categoria ?? "Sin categorizar", destacar: m.categoria === null },
+          { etiqueta: "Clasificó", valor: decision, destacar: m.categoria === null },
           ...(m.categoriaBanco ? [{ etiqueta: "Categoría del banco", valor: m.categoriaBanco }] : []),
           { etiqueta: "Estado", valor: m.excluido ? "Excluido" : "Confirmado" },
           { etiqueta: "Origen", valor: ORIGEN[m.origen] },

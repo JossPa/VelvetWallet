@@ -81,6 +81,17 @@ export type OrigenMovimiento = "sfa" | "cartola" | "manual";
 /** Cómo quedó la categoría: la puso el clasificador, la corrigió el usuario, o no hay. */
 export type EstadoCategoria = "automatica" | "corregida" | "sin_categoria";
 
+/**
+ * Quién decidió la categoría. Es trazabilidad de la decisión, no una métrica:
+ * permite responder "¿por qué esto quedó en Supermercado?".
+ *
+ *   regla    → una regla reconoció el comercio. Sin modelo, alta precisión.
+ *   modelo   → lo clasificó el modelo entrenado, con su confianza.
+ *   banco    → la institución ya lo mandó categorizado.
+ *   usuario  → lo corrigió la persona.
+ */
+export type OrigenClasificacion = "regla" | "modelo" | "banco" | "usuario";
+
 /** Corrección hecha por el usuario. Se guarda aparte; el dato original no se modifica. */
 export type Correccion = {
   tipo: "recategorizar" | "marcar_duplicado" | "excluir" | "dividir";
@@ -112,6 +123,14 @@ export type Movimiento = {
   /** Categoría que mandó la institución, si la mandó. Sin taxonomía común entre bancos. */
   categoriaBanco: string | null;
   estadoCategoria: EstadoCategoria;
+  /** Quién decidió la categoría. null mientras no haya clasificador. */
+  origenClasificacion: OrigenClasificacion | null;
+  /**
+   * Qué tan seguro estaba el modelo, entre 0 y 1. Solo cuando
+   * `origenClasificacion` es "modelo"; las reglas y el usuario no tienen
+   * confianza parcial. Bajo el umbral, el sistema se abstiene y no clasifica.
+   */
+  confianza: number | null;
   /** Detectado como cargo recurrente (suscripción, arriendo, cuenta del hogar). */
   esRecurrente: boolean;
   /** No es gasto: transferencia entre cuentas propias, por ejemplo. */

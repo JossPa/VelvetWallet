@@ -58,6 +58,19 @@ def _movimiento(r: dict) -> dict:
     categoria = r["categoria"] or _CATEGORIA_PROPIA.get(categoria_banco or "")
     tiene_categoria = categoria is not None
 
+    # Quién decidió la categoría. Es trazabilidad de la decisión: permite
+    # responder "¿por qué esto quedó en Supermercado?".
+    #
+    # La confianza solo tiene sentido para el modelo: una regla o una
+    # corrección del usuario no son parciales, aciertan o no.
+    confianza = float(r["confianza"]) if r.get("confianza") is not None else None
+    if r["categoria"] is not None:
+        origen_clasificacion = "modelo" if confianza is not None else "regla"
+    elif tiene_categoria:
+        origen_clasificacion = "banco"
+    else:
+        origen_clasificacion = None
+
     return {
         "id": str(r["id"]),
         "cuentaId": r["cuenta_externa"],
@@ -70,6 +83,8 @@ def _movimiento(r: dict) -> dict:
         "categoria": categoria,
         "categoriaBanco": categoria_banco,
         "estadoCategoria": "automatica" if tiene_categoria else "sin_categoria",
+        "origenClasificacion": origen_clasificacion,
+        "confianza": confianza,
         "esRecurrente": r["es_recurrente"],
         "excluido": r["estado"] == "excluido",
         "origen": "sfa" if r["participante_sfa"] else "manual",
@@ -91,6 +106,7 @@ def listar_movimientos(
             SELECT t.id, t.monto, t.moneda, t.fecha, t.glosa_original,
                    t.glosa_normalizada, t.estado, t.es_recurrente,
                    t.payload_crudo_ref, t.created_at, t.categoria_origen,
+                   t.confianza_clasificacion AS confianza,
                    c.id_externo        AS cuenta_externa,
                    cat.nombre          AS categoria,
                    inst.nombre         AS institucion,

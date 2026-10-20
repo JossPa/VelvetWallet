@@ -18,6 +18,16 @@ import datos from "./movimientos.json";
 
 const ahora = new Date().toISOString();
 
-export const MOVIMIENTOS_INICIALES: Movimiento[] = (datos as Movimiento[]).filter(
-  (m) => m.fecha <= ahora,
-);
+// El JSON se generó antes de que el contrato llevara el origen de la
+// clasificación, así que acá se completa: lo que trae categoría la trae del
+// banco, y lo que no, no la clasificó nadie.
+export const MOVIMIENTOS_INICIALES: Movimiento[] = (datos as Omit<
+  Movimiento,
+  "origenClasificacion" | "confianza"
+>[])
+  .filter((m) => m.fecha <= ahora)
+  .map((m) => ({
+    ...m,
+    origenClasificacion: m.categoria ? ("banco" as const) : null,
+    confianza: null,
+  }));
