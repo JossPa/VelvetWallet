@@ -1,0 +1,115 @@
+{
+  "n_train": 4560,
+  "n_test_oculto": 1520,
+  "categorias": [
+    "Delivery",
+    "Educación",
+    "Entretención",
+    "Gimnasio",
+    "Hogar",
+    "Restaurantes",
+    "Salud",
+    "Servicios",
+    "Supermercado",
+    "Suscripciones",
+    "Transporte",
+    "Vestuario",
+    "Vivienda"
+  ],
+  "simulador_glosas_limpias": {
+    "n": 239,
+    "solo_reglas": {
+      "cobertura": 1.0,
+      "precision": 1.0
+    },
+    "solo_modelo": {
+      "cobertura": 1.0,
+      "precision": 1.0
+    }
+  },
+  "exactitud_sin_abstencion": 0.9612,
+  "f1_macro_sin_abstencion": 0.9401,
+  "umbral_elegido": 0.55,
+  "cascada_en_produccion": "reglas_primero",
+  "comparacion": {
+    "solo_reglas": {
+      "cobertura": 0.5204,
+      "precision": 1.0
+    },
+    "solo_modelo": {
+      "cobertura": 0.8855,
+      "precision": 0.9844
+    },
+    "cascada_reglas_primero": {
+      "cobertura": 0.8954,
+      "precision": 1.0
+    },
+    "cascada_modelo_primero": {
+      "cobertura": 0.8954,
+      "precision": 0.9846
+    }
+  },
+  "glosas_sin_comercio": {
+    "n": 12,
+    "abstencion_modelo": 1.0,
+    "abstencion_cascada": 1.0
+  },
+  "comercios_nunca_vistos": {
+    "n": 60,
+    "solo_modelo": {
+      "cobertura": 0.1333,
+      "precision": 0.375
+    },
+    "cascada": {
+      "cobertura": 1.0,
+      "precision": 1.0
+    }
+  },
+  "curva_precision_cobertura": [
+    {
+      "umbral": 0.0,
+      "cobertura": 1.0,
+      "precision": 0.9612
+    },
+    {
+      "umbral": 0.3,
+      "cobertura": 0.9763,
+      "precision": 0.9771
+    },
+    {
+      "umbral": 0.4,
+      "cobertura": 0.9382,
+      "precision": 0.9839
+    },
+    {
+      "umbral": 0.5,
+      "cobertura": 0.9033,
+      "precision": 0.984
+    },
+    {
+      "umbral": 0.55,
+      "cobertura": 0.8855,
+      "precision": 0.9844
+    },
+    {
+      "umbral": 0.6,
+      "cobertura": 0.8651,
+      "precision": 0.984
+    },
+    {
+      "umbral": 0.7,
+      "cobertura": 0.8072,
+      "precision": 0.9845
+    },
+    {
+      "umbral": 0.8,
+      "cobertura": 0.7289,
+      "precision": 0.9901
+    },
+    {
+      "umbral": 0.9,
+      "cobertura": 0.6,
+      "precision": 0.9934
+    }
+  ]
+}

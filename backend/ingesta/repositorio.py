@@ -27,7 +27,13 @@ from . import config
 
 # Columnas de transaccion que escribe la ingesta, en orden fijo.
 _COLS_TX = ["cuenta_id", "id_externo", "payload_crudo_ref", "monto", "moneda",
-           "fecha", "glosa_original", "categoria_origen", "hash_dedup", "estado"]
+           "fecha", "glosa_original", "categoria_origen", "categoria_id",
+           "confianza_clasificacion", "hash_dedup", "estado"]
+
+# Un movimiento que el usuario recategorizó: su categoría es la de él, y ni una
+# re-sincronización ni un modelo nuevo la pisan.
+_CORREGIDO = ("EXISTS (SELECT 1 FROM correccion co WHERE co.transaccion_id = transaccion.id"
+              " AND co.tipo = 'recategorizar')")
 
 # Bases creadas antes de la columna categoria_origen (el DDL de init solo corre
 # con la base vacía): se agrega una vez por proceso, sin tocar lo que ya hay.
@@ -47,6 +53,7 @@ class Repositorio:
     def __init__(self):
         self.conn = psycopg.connect(config.DATABASE_URL)
         _asegurar_esquema(self.conn)
+        self._categorias: dict[str, str] = {}   # nombre → categoria_id (cache)
         self._mongo = MongoClient(config.MONGO_URL)
         self.db = self._mongo[config.MONGO_DB]
 
@@ -155,6 +162,26 @@ class Repositorio:
         return fila[0]
 
     # ── PostgreSQL: upsert de transacciones (en lote) ───────────────────────
+    # ── PostgreSQL: categorías ──────────────────────────────────────────────
+    def categoria_id(self, nombre: str | None) -> str | None:
+        """
+        id de la categoría de gasto con ese nombre; la crea si no existe (así
+        funciona sobre una base sin el catálogo cargado). None si no hay nombre:
+        el clasificador se abstuvo y categoria_id queda NULL.
+        """
+        if not nombre:
+            return None
+        if nombre not in self._categorias:
+            fila = self.conn.execute(
+                "SELECT id FROM categoria WHERE nombre = %s AND tipo = 'gasto' "
+                "ORDER BY id LIMIT 1", (nombre,)).fetchone()
+            if fila is None:
+                fila = self.conn.execute(
+                    "INSERT INTO categoria (nombre, tipo) VALUES (%s, 'gasto') RETURNING id",
+                    (nombre,)).fetchone()
+            self._categorias[nombre] = fila[0]
+        return self._categorias[nombre]
+
     def upsert_transacciones_bulk(self, cuenta_id: str, refs: list[str],
                                   datos_list: list[dict]) -> dict:
         """
@@ -170,6 +197,9 @@ class Repositorio:
         dispara en cada sincronización para TODOS los existentes y el conteo
         diría que se actualizaron cientos cuando cambiaron tres. IS DISTINCT FROM
         (en vez de <>) compara bien contra NULL.
+
+        La categoría que propone el clasificador se guarda al insertar. Al
+        actualizar se recalcula, salvo que el usuario la haya corregido.
         """
         if not datos_list:
             return {"insertadas": 0, "actualizadas": 0, "sin_cambio": 0}
@@ -181,7 +211,8 @@ class Repositorio:
             params.extend([
                 cuenta_id, d["id_externo"], ref, d["monto"], d["moneda"],
                 d["fecha"], d["glosa_original"], d["categoria_origen"],
-                d["hash_dedup"], d["estado"],
+                self.categoria_id(d.get("categoria_nombre")),
+                d.get("confianza_clasificacion"), d["hash_dedup"], d["estado"],
             ])
 
         sql = (
@@ -192,17 +223,50 @@ class Repositorio:
             + "               hash_dedup = EXCLUDED.hash_dedup,"
             + "               payload_crudo_ref = EXCLUDED.payload_crudo_ref,"
             + "               glosa_original = EXCLUDED.glosa_original,"
-            + "               categoria_origen = EXCLUDED.categoria_origen"
+            + "               categoria_origen = EXCLUDED.categoria_origen,"
+            + "               categoria_id = CASE WHEN " + _CORREGIDO
+            + "                   THEN transaccion.categoria_id ELSE EXCLUDED.categoria_id END,"
+            + "               confianza_clasificacion = CASE WHEN " + _CORREGIDO
+            + "                   THEN transaccion.confianza_clasificacion"
+            + "                   ELSE EXCLUDED.confianza_clasificacion END"
             + " WHERE transaccion.monto            IS DISTINCT FROM EXCLUDED.monto"
             + "    OR transaccion.glosa_original   IS DISTINCT FROM EXCLUDED.glosa_original"
             + "    OR transaccion.categoria_origen IS DISTINCT FROM EXCLUDED.categoria_origen"
-            + "    OR transaccion.hash_dedup       IS DISTINCT FROM EXCLUDED.hash_dedup"
             + " RETURNING (xmax = 0) AS insertado"
         )
         filas = self.conn.execute(sql, params).fetchall()
         insertadas = sum(1 for f in filas if f[0])
         return {"insertadas": insertadas, "actualizadas": len(filas) - insertadas,
                 "sin_cambio": len(datos_list) - len(filas)}
+
+    def clasificar_sin_categoria(self, conexion_id: str, clasificar) -> int:
+        """
+        Pasa por el clasificador los gastos de la conexión que siguen sin
+        categoría (llegaron antes de que existiera, o el modelo mejoró desde
+        entonces). No toca los que corrigió el usuario. Devuelve cuántos
+        quedaron clasificados.
+
+        `clasificar(glosa, monto) -> (categoria, confianza)`.
+        """
+        filas = self.conn.execute(
+            """
+            SELECT t.id, t.glosa_original, t.monto
+            FROM transaccion t JOIN cuenta c ON c.id = t.cuenta_id
+            WHERE c.conexion_id = %s AND t.categoria_id IS NULL AND t.monto < 0
+              AND NOT EXISTS (SELECT 1 FROM correccion co
+                              WHERE co.transaccion_id = t.id AND co.tipo = 'recategorizar')
+            """, (conexion_id,)).fetchall()
+        cambios = []
+        for tid, glosa, monto in filas:
+            categoria, confianza = clasificar(glosa, monto)
+            if categoria:
+                cambios.append((self.categoria_id(categoria), confianza, tid))
+        if cambios:
+            with self.conn.cursor() as cur:
+                cur.executemany(
+                    "UPDATE transaccion SET categoria_id = %s, confianza_clasificacion = %s "
+                    "WHERE id = %s", cambios)
+        return len(cambios)
 
     def marcar_recurrentes(self, usuario_id: str, glosas_recurrentes: list[str]):
         """
