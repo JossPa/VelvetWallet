@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 
 import psycopg
 
-from . import config
+from . import config, db
 from .sesion_actual import usuario_actual
 from motor.proyeccion import Proyeccion, excedentes_observados, proyectar
 
@@ -46,7 +46,7 @@ class MetaCambio(BaseModel):
 
 
 def _conectar():
-    return psycopg.connect(config.DATABASE_URL, row_factory=dict_row)
+    return db.conectar(diccionarios=True)
 
 
 # ───────────────────────── historial de excedentes ─────────────────────────

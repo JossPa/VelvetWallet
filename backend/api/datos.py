@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api", tags=["Datos del usuario"])
 
 def _conectar_dict():
     """Conexión que devuelve filas como diccionarios (más cómodo para armar JSON)."""
-    return psycopg.connect(config.DATABASE_URL, row_factory=dict_row)
+    return db.conectar(diccionarios=True)
 
 
 # Equivalencia entre la taxonomía del banco y la nuestra. Es la **primera capa

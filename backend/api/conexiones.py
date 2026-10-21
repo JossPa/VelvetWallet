@@ -32,7 +32,7 @@ from pydantic import BaseModel
 from psycopg.rows import dict_row
 import psycopg
 
-from . import config
+from . import config, db
 from .sesion_actual import usuario_actual
 
 # La ingesta vive en backend/ingesta; se corre desde backend/, así que es importable.
@@ -204,7 +204,7 @@ def conectar_banco(
 
 @router.get("/conexiones", summary="Bancos conectados del usuario")
 def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
-    with psycopg.connect(config.DATABASE_URL, row_factory=dict_row) as conn:
+    with db.conectar(diccionarios=True) as conn:
         filas = conn.execute(
             """
             SELECT cx.id, cx.estado, cx.ultima_sincronizacion,

@@ -152,3 +152,27 @@ Prueba de punta a punta (base LOCAL, borra datos; EFS en :8001):
 ```bash
 python prueba_clasificador_e2e.py
 ```
+
+## Rendimiento
+
+Las bases están en la nube (Neon y Atlas), así que lo caro son las idas y
+vueltas por la red, no el cómputo. Por eso:
+
+- **Conexiones reutilizadas** (`ingesta/conexiones_bd.py`): un pool de Postgres
+  y un solo cliente de Mongo por proceso, en vez de abrir una conexión nueva en
+  cada petición.
+- **La sincronización escribe solo lo que cambió**: compara con lo guardado y
+  manda a Mongo y Postgres únicamente lo nuevo o modificado. Re-sincronizar
+  sin novedades no escribe nada.
+- **El clasificador predice en lote** y el modelo se carga (o entrena) al
+  arrancar el servidor, en segundo plano.
+
+Con latencia simulada de nube (0,4 s por conexión, 0,1 s por ida y vuelta):
+
+| | Antes | Ahora |
+|---|---|---|
+| Botón Sincronizar (sincronizar + traer la lista) | 4,0 s | 1,3 s |
+| Re-sincronizar sin cambios | 3,5 s | 1,1 s |
+| Re-sincronizar con 1 compra nueva | 3,5 s | 1,5 s |
+| Primera sincronización | 4,6 s | 2,8 s |
+| Traer los movimientos | 0,54 s | 0,23 s |
