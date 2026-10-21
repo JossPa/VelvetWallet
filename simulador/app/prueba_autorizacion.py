@@ -150,6 +150,18 @@ def main():
              "Con ese token se ven SOLO las cuentas de Camila")
     chequear(canjear(code, verifier).status_code == 400, "Reusar el código → 400 (un solo uso)")
 
+    print("\n4b) Reenviar la decisión (doble clic, botón Atrás) no da error ni otro código")
+    verifier, challenge = pkce()
+    ru = par(challenge).json()["request_uri"]
+    ses = sesion_de(login(ru, camila, "2468").text)
+    primera = web.post("/autorizar/decision", data={"request_uri": ru, "sesion": ses, "decision": "autorizar"})
+    segunda = web.post("/autorizar/decision", data={"request_uri": ru, "sesion": ses, "decision": "autorizar"})
+    chequear(primera.status_code == 303 and segunda.status_code == 200 and "Ya autorizaste" in segunda.text
+             and "location" not in segunda.headers,
+             "La segunda vez muestra 'Ya autorizaste' y no emite otro código")
+    chequear("disabled = true" in login(par(pkce()[1]).json()["request_uri"], camila, "2468").text,
+             "Los botones se desactivan al enviar (evita el doble clic)")
+
     print("\n5) Si el usuario rechaza, no hay código")
     r, _ = autorizar_completo(diego, "1357", decision="rechazar")
     q = parametros(r)

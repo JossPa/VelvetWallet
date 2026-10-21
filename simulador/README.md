@@ -113,6 +113,13 @@ cuentas del cliente en el consentimiento, CSRF, código robado o reusado, rechaz
 `POST /accounts/v1/consents/{id}/authorise` con `{rut, clave}` se mantiene para las pruebas y la demo
 por línea de comandos; la app ya no lo usa.
 
+### Panel para la demo
+
+Con la EFS corriendo, abre **http://localhost:8001/panel**: eliges el cliente, haces una compra
+(comercio y monto, o al azar), la marcas como **pendiente** o con **glosa sucia**, y confirmas las
+pendientes con un botón. Muestra los saldos y los últimos movimientos de ese cliente. Después de
+cada acción, toca **Sincronizar** en la app. Usa los mismos endpoints `/simulador/*` de abajo.
+
 ### Simular un cliente específico
 
 ```bash
