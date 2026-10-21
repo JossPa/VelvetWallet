@@ -81,6 +81,20 @@ class ClasificadorGastos:
             return None, confianza
         return str(categoria), confianza
 
+    def predecir_lote(self, glosas: list[str]) -> list[tuple[str | None, float]]:
+        """Como predecir(), pero para muchas glosas de una vez (mucho más rápido)."""
+        if self.pipeline is None:
+            raise RuntimeError("El modelo no está entrenado ni cargado.")
+        if not glosas:
+            return []
+        salida = []
+        for fila in self.pipeline.predict_proba(glosas):
+            i = int(fila.argmax())
+            confianza = float(fila[i])
+            categoria = str(self.pipeline.classes_[i])
+            salida.append((None, confianza) if confianza < self.umbral else (categoria, confianza))
+        return salida
+
     def predecir_top(self, glosa: str, k: int = 3) -> list[tuple[str, float]]:
         """Las k categorías más probables, para sugerir en 'Por revisar'."""
         if self.pipeline is None:

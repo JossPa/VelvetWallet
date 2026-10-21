@@ -19,11 +19,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import psycopg
 from psycopg.types.json import Json
-from pymongo import MongoClient
 
 from . import config
+from .conexiones_bd import mongo, pool
 
 # Columnas de transaccion que escribe la ingesta, en orden fijo.
 _COLS_TX = ["cuenta_id", "id_externo", "payload_crudo_ref", "monto", "moneda",
@@ -51,11 +50,12 @@ def _asegurar_esquema(conn) -> None:
 
 class Repositorio:
     def __init__(self):
-        self.conn = psycopg.connect(config.DATABASE_URL)
+        # Conexión prestada del pool (no se abre una nueva por sincronización)
+        # y el cliente de Mongo compartido del proceso. Ver conexiones_bd.py.
+        self.conn = pool().getconn()
         _asegurar_esquema(self.conn)
-        self._categorias: dict[str, str] = {}   # nombre → categoria_id (cache)
-        self._mongo = MongoClient(config.MONGO_URL)
-        self.db = self._mongo[config.MONGO_DB]
+        self._categorias: dict[str, str] | None = None   # nombre → categoria_id
+        self.db = mongo()[config.MONGO_DB]
 
     # ── MongoDB: crudo intacto ──────────────────────────────────────────────
     def guardar_crudo(self, conexion_id: str, endpoint: str, payload: dict) -> str:
@@ -99,16 +99,13 @@ class Repositorio:
         Si ya hay uno vigente, lo refresca; si no, lo crea.
         """
         fila = self.conn.execute(
-            "SELECT id FROM consentimiento WHERE conexion_id = %s AND estado = 'vigente'",
-            (conexion_id,),
+            """UPDATE consentimiento
+               SET alcance_rar = %s, fecha_expiracion = %s
+               WHERE conexion_id = %s AND estado = 'vigente'
+               RETURNING id""",
+            (Json(alcance_rar), fecha_expiracion, conexion_id),
         ).fetchone()
         if fila:
-            self.conn.execute(
-                """UPDATE consentimiento
-                   SET alcance_rar = %s, fecha_expiracion = %s
-                   WHERE id = %s""",
-                (Json(alcance_rar), fecha_expiracion, fila[0]),
-            )
             return fila[0]
 
         fila = self.conn.execute(
@@ -171,16 +168,32 @@ class Repositorio:
         """
         if not nombre:
             return None
+        if self._categorias is None:
+            # Todo el catálogo de una vez (una ida y vuelta, no una por categoría).
+            self._categorias = {}
+            for n, cid in self.conn.execute(
+                    "SELECT nombre, id FROM categoria WHERE tipo = 'gasto' ORDER BY id DESC"):
+                self._categorias[n] = cid
         if nombre not in self._categorias:
             fila = self.conn.execute(
-                "SELECT id FROM categoria WHERE nombre = %s AND tipo = 'gasto' "
-                "ORDER BY id LIMIT 1", (nombre,)).fetchone()
-            if fila is None:
-                fila = self.conn.execute(
-                    "INSERT INTO categoria (nombre, tipo) VALUES (%s, 'gasto') RETURNING id",
-                    (nombre,)).fetchone()
+                "INSERT INTO categoria (nombre, tipo) VALUES (%s, 'gasto') RETURNING id",
+                (nombre,)).fetchone()
             self._categorias[nombre] = fila[0]
         return self._categorias[nombre]
+
+    def estado_actual(self, cuenta_id: str) -> dict[str, tuple]:
+        """
+        Lo que ya está guardado de la cuenta: id_externo → (monto, glosa,
+        categoría del banco). Con esto la sincronización escribe SOLO lo nuevo o
+        lo que cambió, en vez de reescribir el historial completo cada vez.
+        """
+        return {
+            ext: (monto, glosa, cat)
+            for ext, monto, glosa, cat in self.conn.execute(
+                """SELECT id_externo, monto, glosa_original, categoria_origen
+                   FROM transaccion WHERE cuenta_id = %s AND id_externo IS NOT NULL""",
+                (cuenta_id,))
+        }
 
     def upsert_transacciones_bulk(self, cuenta_id: str, refs: list[str],
                                   datos_list: list[dict]) -> dict:
@@ -295,5 +308,9 @@ class Repositorio:
         self.conn.commit()
 
     def close(self):
-        self.conn.close()
-        self._mongo.close()
+        # Lo que no se confirmó se descarta (no queda nada a medias) y la
+        # conexión vuelve al pool. El cliente de Mongo es compartido: no se cierra.
+        try:
+            self.conn.rollback()
+        finally:
+            pool().putconn(self.conn)

@@ -35,7 +35,8 @@ from datetime import datetime, timezone, timedelta
 from . import config
 from .bootstrap import asegurar_identidad, conexion_de_usuario
 from .cliente_sfa import ClienteSFA, ReautorizacionRequerida
-from .normalizador import categoria_propuesta, cuenta_canonica, transaccion_canonica
+from .normalizador import (categoria_propuesta, cuenta_canonica, monto_con_signo,
+                           transacciones_canonicas, _categoria_origen, _glosa)
 from .repositorio import Repositorio
 
 # Qué datos se piden al banco (RAR — Rich Authorization Request). Es el alcance
@@ -111,6 +112,17 @@ def _obtener_acceso(repo: Repositorio, banco: ClienteSFA, conexion_id: str,
     return consent_id, info, alcance
 
 
+def _huella(mov: dict) -> tuple:
+    """Lo que se compara con lo guardado para saber si el movimiento cambió."""
+    return (monto_con_signo(mov["amount"], mov.get("transactionsType")),
+            _glosa(mov), _categoria_origen(mov))
+
+
+def _fecha_de(mov: dict):
+    from .normalizador import _fecha
+    return _fecha(mov)
+
+
 def _mismo_rut(a: str, b: str) -> bool:
     limpio = lambda r: r.replace(".", "").replace(" ", "").upper()  # noqa: E731
     return limpio(a) == limpio(b)
@@ -155,25 +167,31 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
             )
             cuentas_vistas += 1
 
-            # 3. Los movimientos, EN LOTE: crudo a Mongo (insert_many) y
-            #    normalizado a Postgres (un solo upsert). Pocas idas y vueltas
-            #    a la nube en vez de una por movimiento.
+            # 3. Los movimientos. Se compara con lo ya guardado y se escribe
+            #    SOLO lo nuevo o lo que cambió: crudo a Mongo (insert_many) y
+            #    normalizado a Postgres (un solo upsert). Re-sincronizar sin
+            #    novedades no escribe nada.
             endpoint = "/accounts/%s/transactions" % account_id
             movs = banco.obtener_movimientos(account_id, desde=desde)
             if movs:
-                refs = repo.guardar_crudo_bulk(conexion_id, endpoint, movs)
-                datos = [transaccion_canonica(usuario_id, account_id, m) for m in movs]
-                res = repo.upsert_transacciones_bulk(cuenta_id, refs, datos)
-                insertadas += res["insertadas"]
-                actualizadas += res["actualizadas"]
-                sin_cambio += res["sin_cambio"]
+                guardado = repo.estado_actual(cuenta_id)
+                cambios = [m for m in movs if guardado.get(m["transactionID"]) != _huella(m)]
+                sin_cambio += len(movs) - len(cambios)
+                if cambios:
+                    refs = repo.guardar_crudo_bulk(conexion_id, endpoint, cambios)
+                    datos = transacciones_canonicas(usuario_id, account_id, cambios)
+                    res = repo.upsert_transacciones_bulk(cuenta_id, refs, datos)
+                    insertadas += res["insertadas"]
+                    actualizadas += res["actualizadas"]
+                    sin_cambio += res["sin_cambio"]
 
                 # Acumular frecuencia por comercio (solo cargos, con glosa).
-                for d in datos:
-                    if d["monto"] < 0 and d["glosa_original"]:
-                        g = d["glosa_original"]
+                for m in movs:
+                    g = _glosa(m)
+                    if (m.get("transactionsType") or "").lower() == "cargo" and g:
+                        fecha = _fecha_de(m)
                         frecuencia[g]["n"] += 1
-                        frecuencia[g]["meses"].add((d["fecha"].year, d["fecha"].month))
+                        frecuencia[g]["meses"].add((fecha.year, fecha.month))
 
     # 4. Detectar recurrentes: aparece ~una vez al mes en 4 meses o más. Eso
     #    separa membresías/servicios/arriendo del gasto variable (supermercado,
@@ -182,7 +200,8 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
         g for g, s in frecuencia.items()
         if len(s["meses"]) >= 4 and s["n"] <= len(s["meses"]) * 1.3
     ]
-    repo.marcar_recurrentes(usuario_id, recurrentes)
+    if insertadas or actualizadas:   # sin movimientos nuevos, no cambia nada
+        repo.marcar_recurrentes(usuario_id, recurrentes)
 
     # 4b. Gastos que siguen sin categoría (de antes del clasificador, o que un
     #     modelo reentrenado ahora sí reconoce).

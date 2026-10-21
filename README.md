@@ -28,6 +28,22 @@ El usuario debe poder responder tres preguntas en segundos:
 
 ---
 
+## Levantar todo
+
+Desde la carpeta del proyecto, en Windows:
+
+```powershell
+.\iniciar.cmd            # simulador (8001), backend (8000) y app (8081)
+.\iniciar.cmd -SinApp    # solo simulador y backend
+.\iniciar.cmd -Detener   # cierra todo
+```
+
+Cierra lo que haya quedado corriendo en esos puertos, prepara `.venv` y las
+dependencias solo cuando cambian, abre una ventana por servicio y espera a que
+respondan. Necesita `backend\.env` (credenciales de Neon y Atlas, no está en git).
+
+---
+
 ## Estructura del repositorio
 
 | Carpeta | Qué contiene | Estado |

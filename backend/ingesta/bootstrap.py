@@ -56,6 +56,15 @@ def conexion_de_usuario(conn: psycopg.Connection, usuario_id: str,
     institución y la conexión, y devuelve conexion_id. Es lo que usa la API
     cuando el usuario vincula un banco.
     """
+    # Lo normal (re-sincronizar) es que ya exista: una sola consulta.
+    fila = conn.execute(
+        """SELECT cx.id FROM conexion cx
+           JOIN institucion i ON i.id = cx.institucion_id
+           WHERE cx.usuario_id = %s AND i.nombre = %s""",
+        (usuario_id, institucion_nombre),
+    ).fetchone()
+    if fila:
+        return fila[0]
     institucion_id = asegurar_institucion(conn, institucion_nombre)
     return asegurar_conexion(conn, usuario_id, institucion_id)
 

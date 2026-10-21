@@ -64,6 +64,42 @@ class Resultado:
     confianza: float | None     # probabilidad del modelo; None para reglas
 
 
+def clasificar_lote(glosas: list[str]) -> list[Resultado]:
+    """
+    La misma cascada para muchas glosas de una vez. Es lo que usa la ingesta:
+    el modelo predice todas juntas en una sola pasada (unas 30 veces más
+    rápido que una por una).
+    """
+    resultados: list[Resultado | None] = [None] * len(glosas)
+    al_modelo: list[int] = []
+    for i, glosa in enumerate(glosas):
+        glosa = (glosa or "").strip()
+        if not glosa:
+            resultados[i] = Resultado(None, "abstencion", None)
+            continue
+        por_regla = clasificar_por_reglas(glosa)
+        if por_regla is not None:
+            resultados[i] = Resultado(por_regla, "regla", None)
+        else:
+            al_modelo.append(i)
+
+    modelo = _cargar_modelo() if al_modelo else None
+    if al_modelo and modelo is None:
+        for i in al_modelo:
+            resultados[i] = Resultado(None, "abstencion", None)
+    elif al_modelo:
+        predichos = modelo.predecir_lote([glosas[i].strip() for i in al_modelo])
+        for i, (categoria, confianza) in zip(al_modelo, predichos):
+            resultados[i] = (Resultado(categoria, "modelo", confianza) if categoria is not None
+                             else Resultado(None, "abstencion", confianza))
+    return resultados  # type: ignore[return-value]
+
+
+def precalentar() -> None:
+    """Carga (o entrena) el modelo ahora, para que la primera sincronización no espere."""
+    _cargar_modelo()
+
+
 def clasificar(glosa: str) -> Resultado:
     """
     Aplica la cascada a una glosa y devuelve la categoría o la abstención.

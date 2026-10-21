@@ -13,7 +13,7 @@ import hashlib
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from clasificador import clasificar
+from clasificador import clasificar, clasificar_lote
 
 # accountType del banco → tipo canónico (CHECK de la tabla cuenta).
 _TIPOS_CUENTA = {
@@ -135,11 +135,28 @@ def categoria_propuesta(glosa: str | None, monto) -> tuple[str | None, float | N
     return r.categoria, (round(r.confianza, 4) if r.confianza is not None else None)
 
 
-def transaccion_canonica(usuario_id: str, account_id: str, mov: dict) -> dict:
+def transacciones_canonicas(usuario_id: str, account_id: str, movs: list[dict]) -> list[dict]:
+    """
+    Varios movimientos → filas de `transaccion`, clasificando los gastos todos
+    juntos (una sola pasada del modelo en vez de una por movimiento).
+    """
+    filas = [transaccion_canonica(usuario_id, account_id, m, clasificar_ahora=False) for m in movs]
+    gastos = [i for i, f in enumerate(filas) if f["monto"] < 0 and f["glosa_original"]]
+    for i, r in zip(gastos, clasificar_lote([filas[i]["glosa_original"] for i in gastos])):
+        if r.categoria is not None:
+            filas[i]["categoria_nombre"] = r.categoria
+            filas[i]["confianza_clasificacion"] = (round(r.confianza, 4)
+                                                   if r.confianza is not None else None)
+    return filas
+
+
+def transaccion_canonica(usuario_id: str, account_id: str, mov: dict,
+                         clasificar_ahora: bool = True) -> dict:
     """Movimiento del banco → columnas de la tabla `transaccion`."""
     monto = monto_con_signo(mov["amount"], mov.get("transactionsType"))
     glosa = _glosa(mov)
-    categoria, confianza = categoria_propuesta(glosa, monto)
+    categoria, confianza = (categoria_propuesta(glosa, monto) if clasificar_ahora
+                            else (None, None))
     return {
         "id_externo": mov["transactionID"],
         "monto": monto,

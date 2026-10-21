@@ -45,3 +45,4 @@ desktop.ini
 # ─── Ofimática ───
 # Archivos temporales que crea Word/Excel al abrir un documento
 ~$*
+.venv-requirements.txt

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Conexión a PostgreSQL (una por petición; simple y suficiente para el proyecto)."""
-import psycopg
+"""
+Conexión a PostgreSQL para el API.
 
-from . import config
+Sale del pool compartido (ingesta/conexiones_bd.py): las conexiones se
+reutilizan entre peticiones en vez de abrir una nueva a la nube cada vez.
+Se usa igual que antes: `with conectar() as conn:` (commit al salir).
+"""
+from ingesta.conexiones_bd import conexion
 
 
-def conectar() -> psycopg.Connection:
-    return psycopg.connect(config.DATABASE_URL)
+def conectar(diccionarios: bool = False):
+    return conexion(diccionarios=diccionarios)
