@@ -6,7 +6,7 @@
  * Los meses y las categorías disponibles salen de los datos, no están fijos.
  */
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Aviso } from "@/components/Aviso";
@@ -40,14 +40,17 @@ export default function Gastos() {
     [movimientos],
   );
 
-  const [mes, setMes] = useState(meses[0]);
+  // El mes mostrado se deriva, no se guarda: al entrar directo a esta pantalla
+  // los movimientos todavía no han llegado, así que `meses` viene vacío y un
+  // estado inicializado con `meses[0]` se quedaría en undefined durante el
+  // render siguiente, cuando ya hay datos pero el estado aún no se actualizó.
+  // Derivarlo también resuelve que una sincronización traiga un mes nuevo o se
+  // lleve el elegido: siempre cae al más reciente que exista.
+  const [mesElegido, setMesElegido] = useState<string | null>(null);
+  const mes = mesElegido && meses.includes(mesElegido) ? mesElegido : meses[0];
+
   const [tipo, setTipo] = useState<Tipo>("todos");
   const [categoria, setCategoria] = useState<string>(TODAS);
-
-  // Si una sincronización trae un mes que no existía, se salta a él.
-  useEffect(() => {
-    if (meses.length > 0 && !meses.includes(mes)) setMes(meses[0]);
-  }, [meses, mes]);
 
   // Al salir de la pantalla, las novedades dejan de estar destacadas: ya se
   // vieron. Se hace al salir y no al entrar para que se alcancen a ver.
@@ -82,7 +85,7 @@ export default function Gastos() {
 
   // Al cambiar de mes, la categoría elegida puede no existir: se vuelve a "Todas".
   function cambiarMes(nuevo: string) {
-    setMes(nuevo);
+    setMesElegido(nuevo);
     setCategoria(TODAS);
   }
 
