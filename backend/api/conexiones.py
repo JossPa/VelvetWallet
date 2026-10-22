@@ -26,13 +26,13 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from psycopg.rows import dict_row
 import psycopg
 
-from . import config, db
+from . import bitacora, config, db
 from .sesion_actual import usuario_actual
 
 # La ingesta vive en backend/ingesta; se corre desde backend/, así que es importable.
@@ -159,6 +159,10 @@ def retorno_del_banco(state: str | None = None, code: str | None = None,
                 config_ingesta.SFA_CLIENT_ID, config_ingesta.SFA_CLIENT_SECRET, code,
                 config_ingesta.SFA_REDIRECT_URI, pendiente["code_verifier"])
         vincular_conexion(pendiente["usuario_id"], otorgado, pendiente["institucion"])
+        with db.conectar() as conn:
+            bitacora.registrar(conn, pendiente["usuario_id"], "banco.vincular",
+                               pendiente["institucion"])
+            conn.commit()
     except AutorizacionFallida:
         return _volver_a_la_app(retorno, banco="error", motivo="expirado")
     except ConexionDeOtroCliente:
@@ -240,7 +244,8 @@ def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
 
 
 @router.delete("/conexiones/{conexion_id}", summary="Desvincular un banco")
-def desvincular_banco(conexion_id: str, usuario_id: str = Depends(usuario_actual)):
+def desvincular_banco(conexion_id: str, peticion: Request,
+                      usuario_id: str = Depends(usuario_actual)):
     """
     Retira el permiso: lo revoca en el banco (si se puede) y borra la conexión
     con sus cuentas, movimientos y payloads crudos. Solo el dueño puede hacerlo.
@@ -265,6 +270,8 @@ def desvincular_banco(conexion_id: str, usuario_id: str = Depends(usuario_actual
             except Exception:  # noqa: BLE001
                 pass
 
+        bitacora.registrar(repo.conn, usuario_id, "banco.desvincular",
+                           f"conexión {conexion_id}", bitacora.ip_de(peticion))
         repo.eliminar_conexion(conexion_id)
         repo.commit()
     finally:

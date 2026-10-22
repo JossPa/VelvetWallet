@@ -17,10 +17,11 @@ Tres reglas que el código hace cumplir, no solo declara:
 """
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from . import db
+from . import bitacora, db
 from .sesion_actual import usuario_actual
 
 router = APIRouter(prefix="/api/privacidad", tags=["Privacidad"])
@@ -110,7 +111,8 @@ def listar_finalidades(usuario_id: str = Depends(usuario_actual)):
 
 
 @router.post("/finalidades/{finalidad}", summary="Otorgar o revocar una finalidad")
-def decidir(finalidad: str, decision: Decision, usuario_id: str = Depends(usuario_actual)):
+def decidir(finalidad: str, decision: Decision, peticion: Request,
+            usuario_id: str = Depends(usuario_actual)):
     if finalidad not in FINALIDADES:
         raise HTTPException(status_code=404, detail="Finalidad desconocida.")
 
@@ -136,9 +138,235 @@ def decidir(finalidad: str, decision: Decision, usuario_id: str = Depends(usuari
                     datetime.now(timezone.utc) + timedelta(days=DIAS_VIGENCIA),
                 ),
             )
+        bitacora.registrar(
+            conn, usuario_id,
+            "consentimiento.otorgar" if decision.acepta else "consentimiento.revocar",
+            FINALIDADES[finalidad]["titulo"], bitacora.ip_de(peticion),
+        )
         conn.commit()
 
     return {"finalidad": finalidad, "consentido": decision.acepta}
+
+
+# Los códigos de permiso del estándar, dichos como los entiende una persona.
+# "ReadTransactionsDetail" no le dice nada a nadie fuera de la industria, y un
+# consentimiento que no se entiende no es un consentimiento informado.
+_PERMISOS = {
+    "ReadAccountsBasic": "Ver qué cuentas tienes",
+    "ReadAccountsDetail": "Ver el detalle de tus cuentas",
+    "ReadBalances": "Ver tus saldos",
+    "ReadTransactionsBasic": "Ver tus movimientos",
+    "ReadTransactionsDetail": "Ver tus movimientos con su detalle",
+}
+
+
+# ══════════════════ Derechos del titular (Ley 21.719) ══════════════════
+#
+# Las cuatro operaciones siguientes son derechos que la ley reconoce al titular
+# de los datos, no funcionalidades opcionales del producto: saber qué autorizó,
+# obtener una copia de sus datos, conocer qué se hizo con ellos y pedir que se
+# eliminen.
+
+
+@router.get("/consentimientos", summary="Qué autorizó la persona y hasta cuándo")
+def consentimientos(usuario_id: str = Depends(usuario_actual)):
+    """
+    Todo lo que la persona autorizó, en un solo lugar.
+
+    Son dos cosas distintas que la ley trata por separado y que acá se muestran
+    juntas porque desde fuera se viven como una sola pregunta: qué permisos di.
+
+      · Acceso bancario: que una institución nos entregue sus movimientos.
+      · Finalidad de tratamiento: que usemos esos datos para algo más.
+    """
+    with db.conectar(diccionarios=True) as conn:
+        bancarios = conn.execute(
+            """
+            SELECT c.id, c.estado, c.fecha_inicio, c.fecha_expiracion, c.alcance_rar,
+                   inst.nombre AS institucion, cx.id AS conexion_id
+            FROM consentimiento c
+            JOIN conexion cx      ON cx.id = c.conexion_id
+            JOIN institucion inst ON inst.id = cx.institucion_id
+            WHERE cx.usuario_id = %s
+            ORDER BY c.fecha_inicio DESC
+            """,
+            (usuario_id,),
+        ).fetchall()
+
+        tratamiento = conn.execute(
+            """SELECT finalidad, estado, version_texto, fecha_inicio,
+                      fecha_expiracion, revocado_at
+               FROM consentimiento_tratamiento
+               WHERE usuario_id = %s
+               ORDER BY fecha_inicio DESC""",
+            (usuario_id,),
+        ).fetchall()
+
+    def iso(v):
+        return v.isoformat() if v else None
+
+    return {
+        "bancarios": [{
+            "id": str(r["id"]),
+            "institucion": r["institucion"],
+            "estado": r["estado"],
+            "desde": iso(r["fecha_inicio"]),
+            "vence": iso(r["fecha_expiracion"]),
+            # Del alcance RAR se muestra a qué da acceso, nunca el refresh token.
+            "permisos": [_PERMISOS.get(p, p) for p in (r["alcance_rar"] or {}).get("permisos", [])],
+        } for r in bancarios],
+        "tratamiento": [{
+            "finalidad": r["finalidad"],
+            "titulo": FINALIDADES.get(r["finalidad"], {}).get("titulo", r["finalidad"]),
+            "estado": r["estado"],
+            "desde": iso(r["fecha_inicio"]),
+            "vence": iso(r["fecha_expiracion"]),
+            "revocado": iso(r["revocado_at"]),
+            "versionTexto": r["version_texto"],
+        } for r in tratamiento],
+    }
+
+
+@router.get("/bitacora", summary="Registro de lo que se hizo con tus datos")
+def ver_bitacora(usuario_id: str = Depends(usuario_actual), limite: int = 100):
+    with db.conectar(diccionarios=True) as conn:
+        filas = conn.execute(
+            """SELECT accion, recurso, ip_origen, ocurrido_at
+               FROM bitacora_auditoria
+               WHERE usuario_id = %s
+               ORDER BY ocurrido_at DESC
+               LIMIT %s""",
+            (usuario_id, min(limite, 500)),
+        ).fetchall()
+
+    return {"eventos": [{
+        "accion": r["accion"],
+        "descripcion": bitacora.ACCIONES.get(r["accion"], r["accion"]),
+        "recurso": r["recurso"],
+        "ip": str(r["ip_origen"]) if r["ip_origen"] else None,
+        "cuando": r["ocurrido_at"].isoformat(),
+    } for r in filas]}
+
+
+@router.get("/exportar", summary="Copia completa de los datos del titular")
+def exportar(peticion: Request, usuario_id: str = Depends(usuario_actual)):
+    """
+    Portabilidad: todos los datos de la persona en formato estructurado.
+
+    Se entrega como descarga JSON porque la ley pide un formato que la persona
+    pueda llevarse a otro servicio, no una pantalla para mirar. Incluye lo que
+    el banco envió tal cual y lo que el sistema dedujo, por separado: si la
+    persona se lleva sus datos, tiene derecho a distinguir el dato original de
+    nuestra interpretación de él.
+    """
+    with db.conectar(diccionarios=True) as conn:
+        usuario = conn.execute(
+            "SELECT nombre, email, sueldo_declarado, created_at FROM usuario WHERE id = %s",
+            (usuario_id,),
+        ).fetchone()
+
+        cuentas = conn.execute(
+            """SELECT c.id_externo, c.tipo, c.numero_enmascarado, c.moneda, c.saldo,
+                      inst.nombre AS institucion
+               FROM cuenta c
+               JOIN conexion cx      ON cx.id = c.conexion_id
+               JOIN institucion inst ON inst.id = cx.institucion_id
+               WHERE c.usuario_id = %s""",
+            (usuario_id,),
+        ).fetchall()
+
+        movimientos = conn.execute(
+            """SELECT t.fecha, t.monto, t.moneda, t.glosa_original, t.glosa_normalizada,
+                      t.categoria_origen, cat.nombre AS categoria,
+                      t.confianza_clasificacion, t.es_recurrente, t.created_at
+               FROM transaccion t
+               JOIN cuenta c ON c.id = t.cuenta_id
+               LEFT JOIN categoria cat ON cat.id = t.categoria_id
+               WHERE c.usuario_id = %s
+               ORDER BY t.fecha""",
+            (usuario_id,),
+        ).fetchall()
+
+        metas = conn.execute(
+            """SELECT nombre, monto_objetivo, monto_ahorrado, fecha_objetivo, creada_en
+               FROM meta WHERE usuario_id = %s ORDER BY creada_en""",
+            (usuario_id,),
+        ).fetchall()
+
+        correcciones = conn.execute(
+            "SELECT tipo, valor, created_at FROM correccion WHERE usuario_id = %s ORDER BY created_at",
+            (usuario_id,),
+        ).fetchall()
+
+        bitacora.registrar(conn, usuario_id, "datos.exportar",
+                           f"{len(movimientos)} movimientos", bitacora.ip_de(peticion))
+        conn.commit()
+
+    def limpiar(filas):
+        salida = []
+        for r in filas:
+            fila = {}
+            for k, v in r.items():
+                fila[k] = v.isoformat() if hasattr(v, "isoformat") else (
+                    float(v) if hasattr(v, "quantize") else v)
+            salida.append(fila)
+        return salida
+
+    cuerpo = {
+        "exportadoEn": datetime.now(timezone.utc).isoformat(),
+        "titular": limpiar([usuario])[0] if usuario else None,
+        "cuentas": limpiar(cuentas),
+        "movimientos": limpiar(movimientos),
+        "metas": limpiar(metas),
+        "correcciones": limpiar(correcciones),
+        "consentimientos": consentimientos(usuario_id),
+        "nota": ("Copia de los datos personales asociados a esta cuenta, entregada en "
+                 "ejercicio del derecho de portabilidad de la Ley 21.719. No incluye "
+                 "credenciales ni tokens de acceso a instituciones financieras."),
+    }
+    nombre = f"velvet-wallet-datos-{datetime.now().strftime('%Y-%m-%d')}.json"
+    return JSONResponse(
+        cuerpo,
+        headers={"Content-Disposition": f'attachment; filename="{nombre}"'},
+    )
+
+
+class Supresion(BaseModel):
+    """Se pide el correo escrito a mano: borrar no puede ser un toque suelto."""
+    confirmacion: str
+
+
+@router.delete("/cuenta", summary="Eliminar la cuenta y todos los datos")
+def suprimir(datos: Supresion, peticion: Request, usuario_id: str = Depends(usuario_actual)):
+    """
+    Derecho de supresión.
+
+    Borra de verdad: el resto de las tablas cuelgan de `usuario` con ON DELETE
+    CASCADE, así que se van cuentas, movimientos, metas, correcciones y
+    consentimientos. Lo único que sobrevive es la bitácora, que pierde el
+    `usuario_id` y queda anonimizada: la ley pide poder demostrar qué pasó con
+    los datos, y ese registro no puede desaparecer junto con ellos.
+
+    No es reversible y no hay papelera. Por eso se exige escribir el correo.
+    """
+    with db.conectar(diccionarios=True) as conn:
+        fila = conn.execute("SELECT email FROM usuario WHERE id = %s", (usuario_id,)).fetchone()
+        if fila is None:
+            raise HTTPException(status_code=404, detail="La cuenta ya no existe.")
+
+        if datos.confirmacion.strip().lower() != fila["email"].strip().lower():
+            raise HTTPException(
+                status_code=400,
+                detail="Escribe tu correo exactamente como lo registraste para confirmar.",
+            )
+
+        # Se anota ANTES de borrar: después el usuario_id ya no existiría.
+        bitacora.registrar(conn, usuario_id, "cuenta.suprimir", fila["email"],
+                           bitacora.ip_de(peticion))
+        conn.execute("DELETE FROM usuario WHERE id = %s", (usuario_id,))
+        conn.commit()
+
+    return {"eliminada": True}
 
 
 def usuarios_que_consienten(conn, finalidad: str) -> list[str]:

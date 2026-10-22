@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AvisoClasificacion } from "@/components/AvisoClasificacion";
 import { BarraCategorias } from "@/components/BarraCategorias";
 import { Boton } from "@/components/Boton";
 import { Comparacion } from "@/components/Comparacion";
@@ -18,6 +19,8 @@ import { GraficoMeses } from "@/components/GraficoMeses";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos, type VueltaDelBanco } from "@/datos/MovimientosContexto";
+import { marcarVisto, yaSeVio } from "@/datos/primeraVez";
+import { useSesion } from "@/sesion/SesionContexto";
 import { ErrorSincronizacion } from "@/servicios/sincronizacion";
 import { claveMes, nombreMes, pesos } from "@/utils/formato";
 import {
@@ -115,6 +118,31 @@ export default function Inicio() {
   // una barra del gráfico de meses.
   const [mesElegido, setMesElegido] = useState<string | null>(null);
 
+  // Aviso de primera vez: explica la clasificación automática y que usar los
+  // datos para mejorarla es opcional y viene apagado. Se consulta una sola vez
+  // al entrar, por usuario.
+  const { usuario } = useSesion();
+  const [mostrarAviso, setMostrarAviso] = useState(false);
+
+  useEffect(() => {
+    const id = usuario?.id;
+    if (!id) return;
+    let vivo = true;
+    yaSeVio("clasificacion", id).then((visto) => {
+      if (vivo && !visto) setMostrarAviso(true);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [usuario?.id]);
+
+  /** Las dos salidas del aviso lo marcan como visto; ninguna activa nada. */
+  async function cerrarAviso(ir: boolean) {
+    setMostrarAviso(false);
+    if (usuario?.id) await marcarVisto("clasificacion", usuario.id);
+    if (ir) router.push("/cuentas/privacidad");
+  }
+
   async function alDesvincular() {
     try {
       await desvincular();
@@ -211,6 +239,12 @@ export default function Inicio() {
         )}
 
         {error ? <Text style={estilos.error}>{error}</Text> : null}
+
+        <AvisoClasificacion
+          visible={mostrarAviso}
+          onDespues={() => cerrarAviso(false)}
+          onIr={() => cerrarAviso(true)}
+        />
       </Pantalla>
     );
   }
@@ -334,6 +368,12 @@ export default function Inicio() {
           <Comparacion variaciones={comparacion.variaciones} total={comparacion.total} />
         </>
       ) : null}
+
+      <AvisoClasificacion
+        visible={mostrarAviso}
+        onDespues={() => cerrarAviso(false)}
+        onIr={() => cerrarAviso(true)}
+      />
     </Pantalla>
   );
 }

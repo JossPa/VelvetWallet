@@ -1,13 +1,18 @@
 /**
- * Consentimiento por finalidad de tratamiento.
+ * Privacidad y derechos del titular (Ley 21.719).
  *
- * Separado de la vinculación del banco a propósito: autorizar que Velvet LEA
- * tus datos no autoriza a USARLOS para otra cosa. Cada finalidad se consiente,
- * vence y se revoca por su cuenta.
+ * Consentimiento por finalidad, lo que la persona autorizó, la bitácora de lo
+ * que se hizo con sus datos, la copia descargable y la supresión de la cuenta.
+ *
+ * El consentimiento de tratamiento está separado de la vinculación del banco a
+ * propósito: autorizar que Velvet LEA tus datos no autoriza a USARLOS para
+ * otra cosa. Cada finalidad se consiente, vence y se revoca por su cuenta.
  */
 import { tokenActual } from "@/servicios/auth";
 
 const API = "http://localhost:8000";
+
+export class ErrorPrivacidad extends Error {}
 
 export type Finalidad = {
   id: string;
@@ -22,27 +27,59 @@ export type Finalidad = {
   textoDesactualizado: boolean;
 };
 
-export class ErrorPrivacidad extends Error {}
+export type ConsentimientoBancario = {
+  id: string;
+  institucion: string;
+  estado: string;
+  desde: string | null;
+  vence: string | null;
+  permisos: string[];
+};
 
-async function pedir(ruta: string, cuerpo?: unknown): Promise<any> {
+export type ConsentimientoTratamiento = {
+  finalidad: string;
+  titulo: string;
+  estado: string;
+  desde: string | null;
+  vence: string | null;
+  revocado: string | null;
+  versionTexto: string;
+};
+
+export type EventoBitacora = {
+  accion: string;
+  descripcion: string;
+  recurso: string;
+  ip: string | null;
+  cuando: string;
+};
+
+async function pedir(ruta: string, opciones: RequestInit = {}): Promise<any> {
   const token = await tokenActual();
   if (!token) throw new ErrorPrivacidad("Tu sesión expiró. Vuelve a entrar.");
 
   let r: Response;
   try {
     r = await fetch(`${API}/api/privacidad${ruta}`, {
-      method: cuerpo ? "POST" : "GET",
+      ...opciones,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        ...(opciones.headers ?? {}),
       },
-      body: cuerpo ? JSON.stringify(cuerpo) : undefined,
     });
   } catch {
     throw new ErrorPrivacidad("No se pudo conectar con el servidor.");
   }
-  if (!r.ok) throw new ErrorPrivacidad(`El servidor respondió ${r.status}.`);
-  return r.json();
+
+  const datos = await r.json().catch(() => null);
+  if (!r.ok) {
+    const detalle = (datos as { detail?: unknown })?.detail;
+    throw new ErrorPrivacidad(
+      typeof detalle === "string" ? detalle : `El servidor respondió ${r.status}.`,
+    );
+  }
+  return datos;
 }
 
 export async function obtenerFinalidades(): Promise<Finalidad[]> {
@@ -62,5 +99,36 @@ export async function obtenerFinalidades(): Promise<Finalidad[]> {
 
 /** Otorga o revoca. Revocar no borra el registro de que hubo consentimiento. */
 export async function decidirFinalidad(id: string, acepta: boolean): Promise<void> {
-  await pedir(`/finalidades/${id}`, { acepta });
+  await pedir(`/finalidades/${id}`, { method: "POST", body: JSON.stringify({ acepta }) });
+}
+
+export async function obtenerConsentimientos(): Promise<{
+  bancarios: ConsentimientoBancario[];
+  tratamiento: ConsentimientoTratamiento[];
+}> {
+  return pedir("/consentimientos");
+}
+
+export async function obtenerBitacora(): Promise<EventoBitacora[]> {
+  return (await pedir("/bitacora")).eventos;
+}
+
+/**
+ * Copia de los datos del titular (portabilidad).
+ *
+ * Devuelve el JSON ya listo para guardar. Quien llama decide qué hacer con él,
+ * porque descargar un archivo no se hace igual en el navegador que en el
+ * teléfono.
+ */
+export async function exportarDatos(): Promise<unknown> {
+  return pedir("/exportar");
+}
+
+/**
+ * Supresión de la cuenta. `confirmacion` debe ser el correo del titular: el
+ * backend lo exige, porque un borrado irreversible no puede depender de un
+ * toque suelto.
+ */
+export async function eliminarCuenta(confirmacion: string): Promise<void> {
+  await pedir("/cuenta", { method: "DELETE", body: JSON.stringify({ confirmacion }) });
 }

@@ -11,12 +11,12 @@ garantiza que cada usuario vea únicamente su propia información.
   GET /api/cuentas                      -> cuentas del usuario
   GET /api/resumen                      -> totales (ingresos, gastos, saldo)
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from psycopg.rows import dict_row
 from psycopg.types.json import Json
 from pydantic import BaseModel, Field
 
-from . import config, db
+from . import bitacora, config, db
 from .sesion_actual import usuario_actual
 
 import psycopg
@@ -135,6 +135,7 @@ _SELECT_MOVIMIENTOS = """
 
 @router.get("/movimientos", summary="Movimientos del usuario autenticado")
 def listar_movimientos(
+    peticion: Request,
     usuario_id: str = Depends(usuario_actual),
     limite: int = Query(100, ge=1, le=500),
     desplazamiento: int = Query(0, ge=0),
@@ -149,6 +150,17 @@ def listar_movimientos(
             (usuario_id, limite, desplazamiento),
         ).fetchall()
 
+        # Leer los movimientos es un tratamiento de datos personales y queda
+        # registrado (Ley 21.719). Solo la primera página —paginar hacia abajo
+        # es la misma consulta— y agrupado por media hora, porque la app
+        # recarga esta lista cada vez que se abre y una entrada por recarga
+        # haría la bitácora ilegible para la persona.
+        if desplazamiento == 0:
+            bitacora.registrar(conn, usuario_id, "datos.leer",
+                               f"{len(filas)} movimientos", bitacora.ip_de(peticion),
+                               agrupar_minutos=30)
+            conn.commit()
+
     return {"movimientos": [_movimiento(r) for r in filas], "total": len(filas)}
 
 
@@ -158,7 +170,7 @@ class NuevaCategoria(BaseModel):
 
 @router.put("/movimientos/{movimiento_id}/categoria",
             summary="Corregir (o asignar) la categoría de un movimiento")
-def corregir_categoria(movimiento_id: str, datos: NuevaCategoria,
+def corregir_categoria(movimiento_id: str, datos: NuevaCategoria, peticion: Request,
                        usuario_id: str = Depends(usuario_actual)):
     """
     El usuario decide la categoría, por ejemplo en "Por revisar". El dato del
@@ -206,6 +218,9 @@ def corregir_categoria(movimiento_id: str, datos: NuevaCategoria,
         conn.execute(
             "UPDATE transaccion SET categoria_id = %s, confianza_clasificacion = NULL "
             "WHERE id = %s", (fila["id"], actual["id"]))
+        bitacora.registrar(conn, usuario_id, "categoria.corregir",
+                           f"{actual['categoria'] or 'sin categoría'} → {nombre}",
+                           bitacora.ip_de(peticion))
         r = conn.execute(_SELECT_MOVIMIENTOS + " WHERE t.id = %s", (actual["id"],)).fetchone()
     return _movimiento(r)
 
