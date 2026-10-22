@@ -37,6 +37,7 @@ input:focus { outline:2px solid var(--turquesa); border-color:transparent; }
 .boton { width:100%; padding:13px; margin-top:18px; border:0; border-radius:8px; font-size:16px;
          font-weight:600; cursor:pointer; background:var(--marino); color:#fff; }
 .boton:hover { background:var(--marino2); }
+.boton:disabled { opacity:.6; cursor:default; }
 .secundario { background:#fff; color:var(--marino); border:1px solid var(--linea); margin-top:10px; }
 .secundario:hover { background:var(--fondo); }
 .error { background:#FEE4E2; color:var(--error); padding:10px 12px; border-radius:8px; font-size:14px; margin-top:12px; }
@@ -46,6 +47,12 @@ li { margin:4px 0; }
 .cuenta { font-family: Consolas, monospace; font-size:13px; color:var(--suave); }
 footer { text-align:center; font-size:12px; color:var(--suave); margin:18px auto 30px; padding:0 16px; max-width:440px; }
 """
+
+
+# Desactiva los botones al enviar, para que un doble clic no mande la decisión
+# dos veces. Va en un setTimeout: así el botón presionado alcanza a viajar con
+# el formulario (un botón desactivado no se envía).
+_UNA_VEZ = "setTimeout(() => this.querySelectorAll('button').forEach(b => b.disabled = true), 0)"
 
 
 def _pagina(titulo: str, cuerpo: str) -> str:
@@ -70,7 +77,7 @@ def pagina_login(request_uri: str, participante: str, error: str | None = None, 
   <h1>Inicia sesión en tu banco</h1>
   <p class="suave"><b>{escape(participante)}</b> te está pidiendo acceso a tus datos.
   Primero confirma que eres tú: ingresa con tu RUT y tu clave del banco.</p>
-  <form method="post" action="/autorizar/login" autocomplete="off">
+  <form method="post" action="/autorizar/login" autocomplete="off" onsubmit="{_UNA_VEZ}">
     <input type="hidden" name="request_uri" value="{escape(request_uri)}">
     <label for="rut">RUT</label>
     <input id="rut" name="rut" placeholder="12.345.678-9" value="{escape(rut)}" required autofocus>
@@ -99,12 +106,23 @@ def pagina_consentimiento(request_uri: str, sesion: str, participante: str, nomb
   <ul>{lista_cuentas}</ul>
   <p class="suave">El permiso vence el <b>{escape(vence)}</b> (90 días). Es solo de lectura:
   {escape(participante)} no puede mover tu dinero. Puedes revocarlo cuando quieras.</p>
-  <form method="post" action="/autorizar/decision">
+  <form method="post" action="/autorizar/decision" onsubmit="{_UNA_VEZ}">
     <input type="hidden" name="request_uri" value="{escape(request_uri)}">
     <input type="hidden" name="sesion" value="{escape(sesion)}">
     <button class="boton" type="submit" name="decision" value="autorizar">Autorizar</button>
     <button class="boton secundario" type="submit" name="decision" value="rechazar">Rechazar</button>
   </form>
+</div>""")
+
+
+def pagina_lista(autorizo: bool) -> str:
+    texto = ("Ya autorizaste esta solicitud. Puedes cerrar esta pestaña y volver a la aplicación."
+             if autorizo else
+             "Ya rechazaste esta solicitud. No se compartió nada. Puedes cerrar esta pestaña.")
+    return _pagina("Solicitud respondida", f"""
+<div class="tarjeta">
+  <h1>Listo</h1>
+  <p>{escape(texto)}</p>
 </div>""")
 
 

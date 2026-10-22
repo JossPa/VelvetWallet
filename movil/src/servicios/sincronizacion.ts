@@ -77,6 +77,35 @@ export async function obtenerMovimientos(): Promise<Movimiento[]> {
   return cuerpo.movimientos;
 }
 
+/**
+ * Guarda en el backend la categoría que eligió el usuario para un movimiento.
+ * Queda registrada como corrección (el dato del banco no se toca), manda sobre
+ * lo que proponga el clasificador y, si la persona consintió, sirve para
+ * reentrenarlo. Devuelve el movimiento como quedó.
+ */
+export async function guardarCategoria(id: string, categoria: string): Promise<Movimiento> {
+  const token = await tokenActual();
+  if (!token) {
+    throw new ErrorSincronizacion("Tu sesión no está activa. Inicia sesión de nuevo.");
+  }
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API}/api/movimientos/${encodeURIComponent(id)}/categoria`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ categoria }),
+    });
+  } catch {
+    throw new ErrorSincronizacion(
+      "No se pudo conectar con el servidor. Revisa que el backend esté corriendo.",
+    );
+  }
+  if (!respuesta.ok) {
+    throw await errorDeRespuesta(respuesta, "No se pudo guardar la categoría.");
+  }
+  return (await respuesta.json()) as Movimiento;
+}
+
 export type ResultadoConexion = {
   institucion: string;
   /** El cliente del banco con el que quedó vinculada la conexión. */

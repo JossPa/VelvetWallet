@@ -100,7 +100,8 @@ Todo va filtrado por el usuario del token (JWT): cada usuario ve solo lo suyo.
 | Endpoint | Qué hace |
 |---|---|
 | `POST /api/auth/registro`, `POST /api/auth/sesion` | Cuenta de Velvet |
-| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario |
+| `GET /api/movimientos`, `/api/cuentas`, `/api/resumen` | Datos del usuario (cada gasto ya clasificado) |
+| `PUT /api/movimientos/{id}/categoria` | El usuario corrige la categoría; queda en `correccion` |
 | `POST /api/conexiones/iniciar` | Deja la solicitud en el banco (PAR + PKCE) y devuelve la URL de la página del banco |
 | `GET /api/conexiones/retorno` | El banco vuelve aquí con el código; se canjea y se redirige a la app con `?banco=vinculado` |
 | `POST /api/conexiones` | Trae (o re-trae) los datos con el permiso guardado |
@@ -135,3 +136,43 @@ cuando hay menos de tres meses de historial en vez de inventar un plazo.
 
 El generador va sembrado (`numpy.random.default_rng(42)`): la misma entrada da siempre
 la misma salida, que es lo que hace verificable una simulación aleatoria.
+
+## Clasificador de gastos
+
+La ingesta clasifica cada gasto al guardarlo (reglas → modelo → abstención). Lo
+que no reconoce queda sin categoría y aparece en "Por revisar". Detalle,
+resultados y reentrenamiento en [`clasificador/README.md`](clasificador/README.md).
+
+```bash
+python -m clasificador.reentrenar     # reentrena con las correcciones consentidas
+```
+
+Prueba de punta a punta (base LOCAL, borra datos; EFS en :8001):
+
+```bash
+python prueba_clasificador_e2e.py
+```
+
+## Rendimiento
+
+Las bases están en la nube (Neon y Atlas), así que lo caro son las idas y
+vueltas por la red, no el cómputo. Por eso:
+
+- **Conexiones reutilizadas** (`ingesta/conexiones_bd.py`): un pool de Postgres
+  y un solo cliente de Mongo por proceso, en vez de abrir una conexión nueva en
+  cada petición.
+- **La sincronización escribe solo lo que cambió**: compara con lo guardado y
+  manda a Mongo y Postgres únicamente lo nuevo o modificado. Re-sincronizar
+  sin novedades no escribe nada.
+- **El clasificador predice en lote** y el modelo se carga (o entrena) al
+  arrancar el servidor, en segundo plano.
+
+Con latencia simulada de nube (0,4 s por conexión, 0,1 s por ida y vuelta):
+
+| | Antes | Ahora |
+|---|---|---|
+| Botón Sincronizar (sincronizar + traer la lista) | 4,0 s | 1,3 s |
+| Re-sincronizar sin cambios | 3,5 s | 1,1 s |
+| Re-sincronizar con 1 compra nueva | 3,5 s | 1,5 s |
+| Primera sincronización | 4,6 s | 2,8 s |
+| Traer los movimientos | 0,54 s | 0,23 s |

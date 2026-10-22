@@ -46,10 +46,9 @@ function reglaPara(texto: string): string | null {
  * regla reconoce el comercio; null si ninguna calza. Cuando devuelve null el
  * sistema se ABSTIENE (no inventa) y el movimiento cae en "Por revisar".
  *
- * Esto vive en la app a propósito, de forma provisional: el backend todavía no
- * clasifica (deja categoria_id en NULL). Cuando exista el clasificador del
- * bloque E en el backend, estas reglas se mueven allá y la app recibe la
- * categoría ya puesta.
+ * La clasificación de verdad la hace el backend (backend/clasificador: reglas
+ * + modelo + abstención) y la app recibe la categoría ya puesta. Esta función
+ * queda solo para las pruebas y para ordenar sugerencias en "Por revisar".
  */
 export function clasificarPorReglas(m: Movimiento): string | null {
   if (m.monto >= 0) return null; // solo cargos

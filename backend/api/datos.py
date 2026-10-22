@@ -6,12 +6,15 @@ Todos exigen sesión (dependen de `usuario_actual`) y TODAS las consultas filtra
 por el usuario del token. Ese filtro (WHERE usuario_id = <token>) es lo que
 garantiza que cada usuario vea únicamente su propia información.
 
-  GET /api/movimientos  -> lista de movimientos del usuario
-  GET /api/cuentas       -> cuentas del usuario
-  GET /api/resumen       -> totales (ingresos, gastos, saldo)
+  GET /api/movimientos                  -> lista de movimientos del usuario
+  PUT /api/movimientos/{id}/categoria   -> el usuario corrige la categoría
+  GET /api/cuentas                      -> cuentas del usuario
+  GET /api/resumen                      -> totales (ingresos, gastos, saldo)
 """
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from psycopg.rows import dict_row
+from psycopg.types.json import Json
+from pydantic import BaseModel, Field
 
 from . import config, db
 from .sesion_actual import usuario_actual
@@ -23,7 +26,7 @@ router = APIRouter(prefix="/api", tags=["Datos del usuario"])
 
 def _conectar_dict():
     """Conexión que devuelve filas como diccionarios (más cómodo para armar JSON)."""
-    return psycopg.connect(config.DATABASE_URL, row_factory=dict_row)
+    return db.conectar(diccionarios=True)
 
 
 # Equivalencia entre la taxonomía del banco y la nuestra. Es la **primera capa
@@ -31,8 +34,9 @@ def _conectar_dict():
 # resuelve sin modelo. Cada proveedor usa su propia taxonomía y no hay
 # equivalencia común, así que esta tabla es parte del trabajo de normalizar.
 #
-# PENDIENTE: cuando exista el clasificador entrenado, él llena `categoria_id` y
-# esta tabla solo cubre lo que llega ya categorizado por el banco.
+# El clasificador (backend/clasificador) llena `categoria_id` al ingerir; esta
+# tabla solo cubre lo que el clasificador dejó sin categoría pero el banco sí
+# mandó categorizado.
 _CATEGORIA_PROPIA = {
     "Alimentos": "Supermercado",
     "Restaurantes": "Delivery",
@@ -64,7 +68,11 @@ def _movimiento(r: dict) -> dict:
     # La confianza solo tiene sentido para el modelo: una regla o una
     # corrección del usuario no son parciales, aciertan o no.
     confianza = float(r["confianza"]) if r.get("confianza") is not None else None
-    if r["categoria"] is not None:
+    corregida = bool(r.get("corregida"))
+    if corregida and r["categoria"] is not None:
+        origen_clasificacion = "usuario"
+        confianza = None
+    elif r["categoria"] is not None:
         origen_clasificacion = "modelo" if confianza is not None else "regla"
     elif tiene_categoria:
         origen_clasificacion = "banco"
@@ -82,7 +90,8 @@ def _movimiento(r: dict) -> dict:
         "glosaOriginal": r["glosa_original"],
         "categoria": categoria,
         "categoriaBanco": categoria_banco,
-        "estadoCategoria": "automatica" if tiene_categoria else "sin_categoria",
+        "estadoCategoria": ("corregida" if corregida and r["categoria"] is not None
+                            else "automatica" if tiene_categoria else "sin_categoria"),
         "origenClasificacion": origen_clasificacion,
         "confianza": confianza,
         "esRecurrente": r["es_recurrente"],
@@ -90,8 +99,38 @@ def _movimiento(r: dict) -> dict:
         "origen": "sfa" if r["participante_sfa"] else "manual",
         "recibidoEn": r["created_at"].isoformat() if r["created_at"] else None,
         "payloadCrudoRef": r["payload_crudo_ref"],
-        "correcciones": [],
+        "correcciones": r.get("correcciones") or [],
     }
+
+
+# Lo que se lee de cada movimiento. `corr` trae las correcciones del usuario:
+# si recategorizó, la categoría es la de él (origen "usuario").
+_SELECT_MOVIMIENTOS = """
+    SELECT t.id, t.monto, t.moneda, t.fecha, t.glosa_original,
+           t.glosa_normalizada, t.estado, t.es_recurrente,
+           t.payload_crudo_ref, t.created_at, t.categoria_origen,
+           t.confianza_clasificacion AS confianza,
+           c.id_externo        AS cuenta_externa,
+           cat.nombre          AS categoria,
+           inst.nombre         AS institucion,
+           inst.participante_sfa,
+           corr.corregida, corr.correcciones
+    FROM transaccion t
+    JOIN cuenta c         ON c.id  = t.cuenta_id
+    JOIN conexion cx      ON cx.id = c.conexion_id
+    JOIN institucion inst ON inst.id = cx.institucion_id
+    LEFT JOIN categoria cat ON cat.id = t.categoria_id
+    LEFT JOIN LATERAL (
+        SELECT bool_or(co.tipo = 'recategorizar') AS corregida,
+               json_agg(json_build_object(
+                   'tipo', co.tipo,
+                   'fecha', to_char(co.created_at AT TIME ZONE 'UTC',
+                                    'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                   'detalle', co.valor->>'categoria')
+                   ORDER BY co.created_at) AS correcciones
+        FROM correccion co WHERE co.transaccion_id = t.id
+    ) corr ON true
+"""
 
 
 @router.get("/movimientos", summary="Movimientos del usuario autenticado")
@@ -102,20 +141,7 @@ def listar_movimientos(
 ):
     with _conectar_dict() as conn:
         filas = conn.execute(
-            """
-            SELECT t.id, t.monto, t.moneda, t.fecha, t.glosa_original,
-                   t.glosa_normalizada, t.estado, t.es_recurrente,
-                   t.payload_crudo_ref, t.created_at, t.categoria_origen,
-                   t.confianza_clasificacion AS confianza,
-                   c.id_externo        AS cuenta_externa,
-                   cat.nombre          AS categoria,
-                   inst.nombre         AS institucion,
-                   inst.participante_sfa
-            FROM transaccion t
-            JOIN cuenta c         ON c.id  = t.cuenta_id
-            JOIN conexion cx      ON cx.id = c.conexion_id
-            JOIN institucion inst ON inst.id = cx.institucion_id
-            LEFT JOIN categoria cat ON cat.id = t.categoria_id
+            _SELECT_MOVIMIENTOS + """
             WHERE c.usuario_id = %s
             ORDER BY t.fecha DESC, t.created_at DESC
             LIMIT %s OFFSET %s
@@ -124,6 +150,64 @@ def listar_movimientos(
         ).fetchall()
 
     return {"movimientos": [_movimiento(r) for r in filas], "total": len(filas)}
+
+
+class NuevaCategoria(BaseModel):
+    categoria: str = Field(min_length=1, max_length=80)
+
+
+@router.put("/movimientos/{movimiento_id}/categoria",
+            summary="Corregir (o asignar) la categoría de un movimiento")
+def corregir_categoria(movimiento_id: str, datos: NuevaCategoria,
+                       usuario_id: str = Depends(usuario_actual)):
+    """
+    El usuario decide la categoría, por ejemplo en "Por revisar". El dato del
+    banco no se toca: la decisión queda en `correccion` (quién, cuándo, de qué
+    a qué) y la categoría del movimiento pasa a ser la de él. Ni una
+    re-sincronización ni un modelo nuevo la vuelven a cambiar.
+
+    Esas correcciones son los ejemplos con que se reentrena el clasificador,
+    solo de quienes consintieron esa finalidad (ver /api/privacidad).
+    """
+    nombre = datos.categoria.strip()
+    if not nombre:
+        raise HTTPException(status_code=422, detail="La categoría no puede quedar vacía.")
+    with _conectar_dict() as conn:
+        actual = conn.execute(
+            """
+            SELECT t.id, cat.nombre AS categoria, t.confianza_clasificacion
+            FROM transaccion t
+            JOIN cuenta c ON c.id = t.cuenta_id
+            LEFT JOIN categoria cat ON cat.id = t.categoria_id
+            WHERE t.id::text = %s AND c.usuario_id = %s
+            """,
+            (movimiento_id, usuario_id),
+        ).fetchone()
+        if actual is None:
+            # Ajeno o inexistente: misma respuesta, no se filtra nada.
+            raise HTTPException(status_code=404, detail="Movimiento no encontrado.")
+
+        fila = conn.execute(
+            "SELECT id FROM categoria WHERE nombre = %s AND tipo = 'gasto' ORDER BY id LIMIT 1",
+            (nombre,)).fetchone()
+        if fila is None:
+            fila = conn.execute(
+                "INSERT INTO categoria (nombre, tipo) VALUES (%s, 'gasto') RETURNING id",
+                (nombre,)).fetchone()
+        conn.execute(
+            "INSERT INTO correccion (transaccion_id, usuario_id, tipo, valor) "
+            "VALUES (%s, %s, 'recategorizar', %s)",
+            (actual["id"], usuario_id, Json({
+                "categoria": nombre,
+                "anterior": actual["categoria"],
+                "confianza_anterior": float(actual["confianza_clasificacion"])
+                if actual["confianza_clasificacion"] is not None else None,
+            })))
+        conn.execute(
+            "UPDATE transaccion SET categoria_id = %s, confianza_clasificacion = NULL "
+            "WHERE id = %s", (fila["id"], actual["id"]))
+        r = conn.execute(_SELECT_MOVIMIENTOS + " WHERE t.id = %s", (actual["id"],)).fetchone()
+    return _movimiento(r)
 
 
 @router.get("/cuentas", summary="Cuentas del usuario autenticado")

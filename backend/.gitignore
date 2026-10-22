@@ -6,3 +6,7 @@ venv/
 # Python
 __pycache__/
 *.py[cod]
+
+# Modelo del clasificador: se entrena solo la primera vez y lo reemplaza el
+# reentrenamiento con correcciones (cada maquina tiene el suyo).
+clasificador/modelo.joblib

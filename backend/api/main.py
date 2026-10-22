@@ -13,6 +13,10 @@ Correr desde la carpeta backend/ con:
 Va en el puerto 8000 (la EFS usa el 8001), así conviven los dos.
 Documentación interactiva: http://localhost:8000/docs
 """
+import logging
+import threading
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,7 +26,39 @@ from .conexiones import router as conexiones_router
 from .metas import router as metas_router
 from .privacidad import router as privacidad_router
 
+log = logging.getLogger("uvicorn.error")   # sale en la consola de uvicorn
+
+
+def _precalentar() -> None:
+    """
+    Deja listo lo que tarda en arrancar, para que la primera petición no lo
+    pague: la conexión a Postgres, el cliente de Mongo (descubrir el cluster
+    de Atlas) y el modelo del clasificador (cargarlo, o entrenarlo si no está).
+    Corre en segundo plano: el servidor atiende mientras tanto.
+    """
+    from clasificador import precalentar
+    from ingesta.conexiones_bd import mongo, pool
+
+    for nombre, paso in (("Postgres", lambda: pool().wait(timeout=30)),
+                         ("MongoDB", lambda: mongo().admin.command("ping")),
+                         ("clasificador", precalentar)):
+        try:
+            paso()
+            log.info("Listo: %s", nombre)
+        except Exception as e:  # noqa: BLE001 — si falla, se reintenta en la primera petición
+            log.warning("No se pudo precalentar %s: %s", nombre, e)
+
+
+@asynccontextmanager
+async def ciclo_de_vida(_app):
+    threading.Thread(target=_precalentar, name="precalentar", daemon=True).start()
+    yield
+    from ingesta.conexiones_bd import cerrar
+    cerrar()
+
+
 app = FastAPI(
+    lifespan=ciclo_de_vida,
     title="Velvet Wallet — API",
     version="1.2.0",
     description="Backend de Velvet Wallet. Autenticación, datos del usuario y vinculación de bancos.",
