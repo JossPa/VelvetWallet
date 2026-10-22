@@ -281,22 +281,83 @@ class Repositorio:
                     "WHERE id = %s", cambios)
         return len(cambios)
 
-    def marcar_recurrentes(self, usuario_id: str, glosas_recurrentes: list[str]):
+    # ───────────────────────── recurrencias ─────────────────────────
+    # El detector vive en motor/recurrencias.py, que no sabe de base de datos.
+    # Acá solo se le entregan los cargos y se persiste lo que devuelve.
+
+    def cobros_del_usuario(self, usuario_id: str) -> list[tuple]:
         """
-        Marca es_recurrente=true en los movimientos del usuario cuyo comercio
-        está en `glosas_recurrentes` (las membresías/servicios detectados por
-        frecuencia), y false en el resto. El detector vive en el orquestador
-        (sincronizar.py); aquí solo se persiste el resultado.
+        Todos los cargos del usuario, para alimentar al detector.
+
+        Se mira el historial completo y no solo lo recién traído: una serie de
+        cobros se reconoce por su forma a lo largo del tiempo, así que una
+        sincronización que trae un mes nuevo puede completar una periodicidad
+        que antes no se veía.
         """
+        return self.conn.execute(
+            """
+            SELECT t.id::text, t.fecha, -t.monto,
+                   COALESCE(t.glosa_normalizada, t.glosa_original)
+            FROM transaccion t
+            JOIN cuenta c ON c.id = t.cuenta_id
+            WHERE c.usuario_id = %s AND t.monto < 0 AND t.estado <> 'excluido'
+            ORDER BY t.fecha
+            """,
+            (usuario_id,),
+        ).fetchall()
+
+    def guardar_suscripciones(self, usuario_id: str, recurrencias) -> int:
+        """
+        Persiste las recurrencias detectadas y enlaza sus movimientos.
+
+        **Lo que el usuario ya decidió no se toca.** Una suscripción que él
+        confirmó o descartó conserva su estado: el detector vuelve a correr en
+        cada sincronización y, sin esta regla, cada corrida le borraría la
+        decisión y volvería a preguntarle lo mismo. Solo se actualizan los
+        datos observados (monto, periodicidad, próxima fecha).
+        """
+        vistas: list[str] = []
+        for r in recurrencias:
+            fila = self.conn.execute(
+                """
+                INSERT INTO suscripcion
+                    (usuario_id, nombre, periodicidad, monto_esperado, proxima_fecha_estimada)
+                VALUES (%(uid)s, %(nombre)s, %(per)s, %(monto)s, %(prox)s)
+                ON CONFLICT (usuario_id, nombre) DO UPDATE
+                   SET periodicidad           = EXCLUDED.periodicidad,
+                       monto_esperado         = EXCLUDED.monto_esperado,
+                       proxima_fecha_estimada = EXCLUDED.proxima_fecha_estimada
+                RETURNING id
+                """,
+                {"uid": usuario_id, "nombre": r.nombre, "per": r.periodicidad,
+                 "monto": r.monto_esperado, "prox": r.proxima_fecha_estimada},
+            ).fetchone()
+            suscripcion_id = fila[0]
+            vistas.append(str(suscripcion_id))
+
+            self.conn.execute(
+                "UPDATE transaccion SET suscripcion_id = %s, es_recurrente = true "
+                "WHERE id::text = ANY(%s)",
+                (suscripcion_id, list(r.ids)),
+            )
+
+        # Lo que dejó de ser recurrente se desmarca, salvo que el usuario lo
+        # haya confirmado a mano: su criterio manda sobre el del algoritmo.
         self.conn.execute(
             """
             UPDATE transaccion t
-            SET es_recurrente = (t.glosa_original = ANY(%(glosas)s))
+            SET es_recurrente = false, suscripcion_id = NULL
             FROM cuenta c
             WHERE t.cuenta_id = c.id AND c.usuario_id = %(uid)s
+              AND t.suscripcion_id IS NOT NULL
+              AND NOT (t.suscripcion_id::text = ANY(%(vistas)s))
+              AND t.suscripcion_id NOT IN (
+                    SELECT id FROM suscripcion
+                    WHERE usuario_id = %(uid)s AND estado = 'confirmada')
             """,
-            {"glosas": list(glosas_recurrentes), "uid": usuario_id},
+            {"uid": usuario_id, "vistas": vistas},
         )
+        return len(vistas)
 
     def marcar_sincronizacion(self, conexion_id: str):
         self.conn.execute(

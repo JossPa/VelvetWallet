@@ -29,8 +29,9 @@ El flujo de seguridad va primero, alineado con la guía ATENA de la CMF:
 """
 from __future__ import annotations
 
-from collections import defaultdict
 from datetime import datetime, timezone, timedelta
+
+from motor.recurrencias import Cobro, detectar
 
 from . import config
 from .bootstrap import asegurar_identidad, conexion_de_usuario
@@ -142,7 +143,6 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
     sin_cambio = 0
     # Para el detector de recurrencias: por comercio, cuántas veces y en cuántos
     # meses distintos aparece como cargo.
-    frecuencia: dict = defaultdict(lambda: {"n": 0, "meses": set()})
 
     with ClienteSFA(config.SFA_BASE_URL) as banco:
         # 1. Seguridad: el cliente se identifica en su banco (o se renueva el
@@ -185,23 +185,19 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
                     actualizadas += res["actualizadas"]
                     sin_cambio += res["sin_cambio"]
 
-                # Acumular frecuencia por comercio (solo cargos, con glosa).
-                for m in movs:
-                    g = _glosa(m)
-                    if (m.get("transactionsType") or "").lower() == "cargo" and g:
-                        fecha = _fecha_de(m)
-                        frecuencia[g]["n"] += 1
-                        frecuencia[g]["meses"].add((fecha.year, fecha.month))
 
-    # 4. Detectar recurrentes: aparece ~una vez al mes en 4 meses o más. Eso
-    #    separa membresías/servicios/arriendo del gasto variable (supermercado,
-    #    retail), que cae varias veces por mes.
-    recurrentes = [
-        g for g, s in frecuencia.items()
-        if len(s["meses"]) >= 4 and s["n"] <= len(s["meses"]) * 1.3
-    ]
-    if insertadas or actualizadas:   # sin movimientos nuevos, no cambia nada
-        repo.marcar_recurrentes(usuario_id, recurrentes)
+    # 4. Detectar suscripciones y gastos recurrentes sobre TODO el historial
+    #    del usuario, no solo sobre lo recién traído: una serie se reconoce por
+    #    su forma a lo largo del tiempo, y el mes que acaba de llegar puede
+    #    cerrar una periodicidad que antes no se veía. El detector es
+    #    motor/recurrencias.py, que no sabe de base de datos.
+    suscripciones = 0
+    if insertadas or actualizadas:   # sin movimientos nuevos, nada cambia
+        cobros = [
+            Cobro(id=i, fecha=f, monto=float(monto), glosa=glosa or "")
+            for i, f, monto, glosa in repo.cobros_del_usuario(usuario_id)
+        ]
+        suscripciones = repo.guardar_suscripciones(usuario_id, detectar(cobros))
 
     # 4b. Gastos que siguen sin categoría (de antes del clasificador, o que un
     #     modelo reentrenado ahora sí reconoce).
@@ -219,6 +215,7 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
         "actualizadas": actualizadas,
         "sin_cambio": sin_cambio,
         "clasificados_ahora": clasificados,
+        "suscripciones": suscripciones,
     }
 
 

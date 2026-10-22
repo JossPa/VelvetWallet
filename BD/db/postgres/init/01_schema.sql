@@ -182,6 +182,11 @@ CREATE TABLE suscripcion (
 COMMENT ON TABLE  suscripcion        IS 'Gasto recurrente detectado por el algoritmo (RF-20…RF-22).';
 COMMENT ON COLUMN suscripcion.estado IS 'detectada hasta que el usuario la confirma o descarta (RF-22).';
 
+-- Una suscripción por comercio y persona. El detector vuelve a correr en cada
+-- sincronización: sin esta restricción, cada corrida crearía duplicados de la
+-- misma suscripción y la decisión del usuario se perdería entre copias.
+CREATE UNIQUE INDEX uq_suscripcion_usuario_nombre ON suscripcion (usuario_id, nombre);
+
 -- =============================================================================
 -- 8. META  (metas de ahorro)
 -- =============================================================================

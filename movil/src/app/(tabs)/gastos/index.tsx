@@ -5,9 +5,10 @@
  * (arriendo, suscripciones, cuentas del hogar). "Variables" es todo lo demás.
  * Los meses y las categorías disponibles salen de los datos, no están fijos.
  */
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Aviso } from "@/components/Aviso";
 import { Chips } from "@/components/Chips";
@@ -15,7 +16,7 @@ import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
 import { Segmentos } from "@/components/Segmentos";
 import { SelectorMes } from "@/components/SelectorMes";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { claveMes, pesos } from "@/utils/formato";
 
@@ -120,6 +121,17 @@ export default function Gastos() {
         </Aviso>
       ) : null}
 
+      {/* Los gastos fijos no se leen bien en una lista mes a mes: lo que
+          interesa de ellos es cuánto suman y cada cuánto vuelven. */}
+      <Pressable
+        onPress={() => router.push("/gastos/suscripciones")}
+        style={({ pressed }) => [estilos.fijos, pressed && estilos.fijosPresionado]}
+      >
+        <Ionicons name="repeat" size={18} color={colores.acento} />
+        <Text style={estilos.fijosTexto}>Ver gastos fijos y suscripciones</Text>
+        <Ionicons name="chevron-forward" size={17} color={colores.texto3} />
+      </Pressable>
+
       <View style={estilos.lista}>
         {visibles.map((m) => (
           <FilaMovimiento
@@ -144,6 +156,18 @@ export default function Gastos() {
 }
 
 const estilos = StyleSheet.create({
+  fijos: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: espacio.m,
+    backgroundColor: colores.tarjeta,
+    borderRadius: radio.m,
+    paddingHorizontal: espacio.l,
+    paddingVertical: espacio.m,
+    marginTop: espacio.m,
+  },
+  fijosPresionado: { opacity: 0.7 },
+  fijosTexto: { flex: 1, color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14.5 },
   resumen: {
     flexDirection: "row",
     justifyContent: "space-between",
