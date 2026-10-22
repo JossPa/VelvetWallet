@@ -23,6 +23,8 @@ desvincular un banco y suprimir la cuenta.
 Nunca se guarda el contenido de los datos, solo qué se tocó y cuándo: la
 bitácora no puede convertirse ella misma en una copia de los datos personales.
 """
+import ipaddress
+
 from fastapi import Request
 
 # Acciones que se registran. Es una lista cerrada a propósito: si alguien
@@ -41,10 +43,21 @@ ACCIONES = {
 
 
 def ip_de(peticion: Request | None) -> str | None:
-    """IP del cliente, si el servidor la conoce. En local suele ser 127.0.0.1."""
+    """
+    IP del cliente, si el servidor la conoce y es una IP de verdad.
+
+    Se valida porque la columna es de tipo `inet`: un valor que no sea una
+    dirección hace fallar el INSERT, y un INSERT fallido aborta la transacción
+    de quien llamó. El cliente de pruebas de FastAPI, por ejemplo, se
+    identifica como "testclient". Vale más perder el dato de origen que
+    tumbar la operación que se estaba registrando.
+    """
     if peticion is None or peticion.client is None:
         return None
-    return peticion.client.host
+    try:
+        return str(ipaddress.ip_address(peticion.client.host))
+    except ValueError:
+        return None
 
 
 def registrar(conn, usuario_id: str, accion: str, recurso: str,
@@ -68,25 +81,31 @@ def registrar(conn, usuario_id: str, accion: str, recurso: str,
     registro pero la persona no pierde su acción. Es una decisión discutible y
     por eso queda escrita: ante la duda, se prioriza que el usuario pueda
     operar.
+
+    Para que eso sea cierto hace falta el SAVEPOINT. En PostgreSQL una
+    sentencia fallida aborta la transacción completa: atrapar la excepción no
+    basta, porque todo lo que venga después falla igual con "current
+    transaction is aborted". El punto de retorno acota el daño a este INSERT.
     """
     if accion not in ACCIONES:
         raise ValueError(f"Acción no declarada en la bitácora: {accion}")
     try:
-        if agrupar_minutos:
-            reciente = conn.execute(
-                """SELECT 1 FROM bitacora_auditoria
-                   WHERE usuario_id = %s AND accion = %s
-                     AND ocurrido_at > now() - make_interval(mins => %s)
-                   LIMIT 1""",
-                (usuario_id, accion, agrupar_minutos),
-            ).fetchone()
-            if reciente:
-                return
+        with conn.transaction():
+            if agrupar_minutos:
+                reciente = conn.execute(
+                    """SELECT 1 FROM bitacora_auditoria
+                       WHERE usuario_id = %s AND accion = %s
+                         AND ocurrido_at > now() - make_interval(mins => %s)
+                       LIMIT 1""",
+                    (usuario_id, accion, agrupar_minutos),
+                ).fetchone()
+                if reciente:
+                    return
 
-        conn.execute(
-            """INSERT INTO bitacora_auditoria (usuario_id, accion, recurso, ip_origen)
-               VALUES (%s, %s, %s, %s)""",
-            (usuario_id, accion, recurso[:120], ip),
-        )
+            conn.execute(
+                """INSERT INTO bitacora_auditoria (usuario_id, accion, recurso, ip_origen)
+                   VALUES (%s, %s, %s, %s)""",
+                (usuario_id, accion, recurso[:120], ip),
+            )
     except Exception:  # noqa: BLE001
         pass
