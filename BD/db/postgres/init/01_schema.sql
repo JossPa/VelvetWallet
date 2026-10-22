@@ -275,8 +275,56 @@ COMMENT ON TABLE  bitacora_auditoria            IS 'Registro de actividades de t
 COMMENT ON COLUMN bitacora_auditoria.usuario_id IS 'ON DELETE SET NULL: al suprimir la cuenta el registro se anonimiza pero sobrevive (RNF-22).';
 
 -- =============================================================================
+-- 12. INCIDENTE_SEGURIDAD  (brechas de datos personales)
+-- =============================================================================
+-- La Ley 21.719 obliga a notificar las vulneraciones de seguridad que afecten
+-- datos personales: a la autoridad y, cuando hay riesgo para los titulares,
+-- también a cada uno de ellos. El plazo corre desde que se TOMA CONOCIMIENTO,
+-- no desde que ocurre el hecho, por eso se guardan las dos fechas por separado.
+--
+-- Guardar el incidente en la base y no en un documento aparte es lo que
+-- permite demostrar el cumplimiento: cuándo se supo, a quién se avisó y
+-- cuándo. Un procedimiento escrito que no deja rastro no prueba nada.
+CREATE TABLE incidente_seguridad (
+    id                 uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
+    ocurrido_at        timestamptz,
+    detectado_at       timestamptz  NOT NULL DEFAULT now(),
+    titulo             varchar(160) NOT NULL,
+    descripcion        text         NOT NULL,
+    datos_afectados    varchar(300) NOT NULL,
+    medidas            text,
+    gravedad           varchar(20)  NOT NULL DEFAULT 'media'
+                                    CHECK (gravedad IN ('baja','media','alta')),
+    estado             varchar(20)  NOT NULL DEFAULT 'detectado'
+                                    CHECK (estado IN ('detectado','notificado','cerrado')),
+    notificado_at      timestamptz,
+    autoridad_avisada_at timestamptz
+);
+
+COMMENT ON TABLE  incidente_seguridad                   IS 'Brecha de seguridad de datos personales (Ley 21.719). El plazo de 72 horas corre desde detectado_at.';
+COMMENT ON COLUMN incidente_seguridad.ocurrido_at       IS 'Cuándo pasó, si se sabe. Puede ser anterior a cuándo se detectó.';
+COMMENT ON COLUMN incidente_seguridad.detectado_at      IS 'Cuándo se tomó conocimiento. Es la fecha que inicia el plazo legal.';
+COMMENT ON COLUMN incidente_seguridad.datos_afectados   IS 'Qué categorías de datos se vieron comprometidas, en lenguaje para el titular.';
+COMMENT ON COLUMN incidente_seguridad.autoridad_avisada_at IS 'Cuándo se notificó a la autoridad de protección de datos.';
+
+-- Quiénes quedaron afectados y si ya lo vieron. Es una tabla aparte y no una
+-- marca global porque una brecha rara vez afecta a todos: hay que poder
+-- demostrar a QUIÉN se le avisó, uno por uno.
+CREATE TABLE incidente_afectado (
+    incidente_id uuid        NOT NULL REFERENCES incidente_seguridad(id) ON DELETE CASCADE,
+    usuario_id   uuid        NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+    avisado_at   timestamptz NOT NULL DEFAULT now(),
+    visto_at     timestamptz,
+    PRIMARY KEY (incidente_id, usuario_id)
+);
+
+COMMENT ON TABLE  incidente_afectado          IS 'Titulares afectados por una brecha y constancia de que se les avisó (RF-29).';
+COMMENT ON COLUMN incidente_afectado.visto_at IS 'Cuándo el titular leyó el aviso dentro de la aplicación.';
+
+-- =============================================================================
 -- Índices  (además de los UNIQUE/PK ya creados)
 -- =============================================================================
+CREATE INDEX idx_incidente_afectado_usuario ON incidente_afectado (usuario_id);
 CREATE INDEX idx_conexion_usuario        ON conexion (usuario_id);
 CREATE INDEX idx_conexion_institucion    ON conexion (institucion_id);
 CREATE INDEX idx_cuenta_conexion         ON cuenta (conexion_id);

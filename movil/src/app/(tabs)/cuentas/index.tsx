@@ -1,9 +1,9 @@
 /**
  * Cuentas — instituciones conectadas y derechos sobre los datos.
  *
- * Los cinco enlaces de "Tus datos" corresponden a derechos de la Ley 21.719:
+ * Los enlaces de "Tus datos" corresponden a derechos de la Ley 21.719:
  * información sobre las finalidades, acceso a lo autorizado, portabilidad,
- * registro de tratamiento y supresión.
+ * registro de tratamiento, notificación de brechas y supresión.
  */
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -26,6 +26,7 @@ const DERECHOS: { texto: string; ruta: string; peligro?: boolean }[] = [
   { texto: "Qué autorizaste y por cuánto tiempo", ruta: "/cuentas/autorizaciones" },
   { texto: "Descargar todos mis datos", ruta: "/cuentas/exportar" },
   { texto: "Bitácora de accesos", ruta: "/cuentas/bitacora" },
+  { texto: "Avisos de seguridad", ruta: "/cuentas/incidentes" },
   { texto: "Eliminar mi cuenta y mis datos", ruta: "/cuentas/eliminar", peligro: true },
 ];
 

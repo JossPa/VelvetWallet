@@ -25,6 +25,7 @@ from .datos import router as datos_router
 from .conexiones import router as conexiones_router
 from .metas import router as metas_router
 from .privacidad import router as privacidad_router
+from .incidentes import router as incidentes_router
 from .suscripciones import router as suscripciones_router
 
 log = logging.getLogger("uvicorn.error")   # sale en la consola de uvicorn
@@ -80,6 +81,7 @@ app.include_router(conexiones_router)
 app.include_router(metas_router)
 app.include_router(privacidad_router)
 app.include_router(suscripciones_router)
+app.include_router(incidentes_router)
 
 
 @app.get("/health", tags=["Operación"], summary="Comprobación de vida")
