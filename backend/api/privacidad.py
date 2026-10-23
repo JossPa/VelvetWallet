@@ -153,6 +153,8 @@ def decidir(finalidad: str, decision: Decision, peticion: Request,
 # consentimiento que no se entiende no es un consentimiento informado.
 _PERMISOS = {
     "ReadAccountsBasic": "Ver qué cuentas tienes",
+    "ReadLoansBasic": "Ver tus créditos",
+    "ReadLoansDetail": "Ver el detalle de tus créditos",
     "ReadAccountsDetail": "Ver el detalle de tus cuentas",
     "ReadBalances": "Ver tus saldos",
     "ReadTransactionsBasic": "Ver tus movimientos",

@@ -203,6 +203,8 @@ def conectar_banco(
         "movimientosNuevos": resumen["insertadas"],
         "movimientosActualizados": resumen["actualizadas"],
         "movimientosSinCambio": resumen["sin_cambio"],
+        "creditos": resumen.get("creditos", 0),
+        "suscripciones": resumen.get("suscripciones", 0),
     }
 
 

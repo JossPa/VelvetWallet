@@ -109,6 +109,10 @@ PERMISOS_VALIDOS = {
     "ReadAccountsBasic", "ReadAccountsDetail",
     "ReadBalances",
     "ReadTransactionsBasic", "ReadTransactionsDetail",
+    # API de Operaciones de Crédito: alcance propio. Pedir los créditos es
+    # pedir datos nuevos, así que requiere su permiso y no viaja de polizón
+    # con el de cuentas.
+    "ReadLoansBasic", "ReadLoansDetail",
 }
 
 # Almacenes en memoria. Se reinician al reiniciar el servidor, igual que los
@@ -535,6 +539,8 @@ CODIGOS: dict[str, dict] = {}            # código de autorización -> datos (un
 RESUELTAS: dict[str, dict] = {}          # request_uri -> {"autorizo": bool, "expira": datetime}
 
 NOMBRE_PERMISO = {
+    "ReadLoansBasic": "Ver tus créditos",
+    "ReadLoansDetail": "Ver el detalle de tus créditos",
     "ReadAccountsBasic": "Ver tus cuentas",
     "ReadAccountsDetail": "Ver el detalle de tus cuentas",
     "ReadBalances": "Ver tus saldos",
@@ -837,6 +843,84 @@ def limite_sobregiro(accountID: str = Path(...),
     _, links, meta = paginar([], 1, 1,
                              "/accounts/%s/current-overdraft-limit" % accountID)
     return {"data": {"currentOverdraftLimit": []}, "links": links, "meta": meta}
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  API de Operaciones de Crédito
+#
+#  Segunda familia de APIs del estándar, aparte de la de Cuentas. Los campos
+#  salen del OpenAPI "Operaciones de Crédito" publicado por la CMF, verificado
+#  el 26-08-2026.
+#
+#  Lo que el estándar NO define, y por eso acá tampoco está: CAE, cuotas
+#  pagadas con su desglose de capital e interés, y la tabla de amortización
+#  (solo se entrega un enlace al calendario del proveedor). Inventar esos
+#  campos haría que el consumidor se construyera contra una API que no existe.
+# ═══════════════════════════════════════════════════════════════════
+def credito_o_404(loan_id: str, cliente: dict) -> dict:
+    """
+    El crédito, SOLO si es del cliente del token. El de otro responde 404
+    igual que uno inexistente: no se filtra ni que existe.
+    """
+    c = next((c for c in cliente.get("creditos", []) if c["loanID"] == loan_id), None)
+    if c is None:
+        raise HTTPException(status_code=404, detail="Crédito no encontrado")
+    return c
+
+
+@app.get("/accounts/v1/loans", tags=["Operaciones de Crédito"],
+         summary="Listado de créditos del cliente")
+def listar_creditos(
+    page: int = Query(1, ge=1),
+    pageSize: int = Query(25, ge=1, le=100),
+    x_fapi_interaction_id: str | None = Header(None, alias="x-fapi-interaction-id"),
+    _acceso: dict | None = Depends(exigir_token_acceso),
+):
+    cliente = cliente_del_acceso(_acceso)
+    datos, links, meta = paginar(cliente.get("creditos", []), page, pageSize, "/loans")
+    return {"data": {"loans": datos}, "links": links, "meta": meta}
+
+
+@app.get("/accounts/v1/loans/{loanID}", tags=["Operaciones de Crédito"],
+         summary="Detalle de un crédito")
+def detalle_credito(loanID: str = Path(...),
+                    _acceso: dict | None = Depends(exigir_token_acceso)):
+    c = credito_o_404(loanID, cliente_del_acceso(_acceso))
+    _, links, meta = paginar([c], 1, 1, "/loans/%s" % loanID)
+    return {"data": {"loan": c}, "links": links, "meta": meta}
+
+
+@app.get("/accounts/v1/loans/{loanID}/balance", tags=["Operaciones de Crédito"],
+         summary="Saldo del crédito")
+def saldo_credito(loanID: str = Path(...),
+                  _acceso: dict | None = Depends(exigir_token_acceso)):
+    c = credito_o_404(loanID, cliente_del_acceso(_acceso))
+    saldo = {
+        "loanID": c["loanID"],
+        "currentBalance": c["currentBalance"],
+        "endOfMonthBalance": c["currentBalance"],
+        "currency": c["currency"],
+        "remainingInstallments": c["remainingInstallments"],
+        "arrears": c["arrears"],
+    }
+    _, links, meta = paginar([], 1, 1, "/loans/%s/balance" % loanID)
+    return {"data": {"balance": saldo}, "links": links, "meta": meta}
+
+
+@app.get("/accounts/v1/loans/{loanID}/current-transactions",
+         tags=["Operaciones de Crédito"], summary="Pagos del crédito en el periodo")
+def pagos_credito(loanID: str = Path(...),
+                  _acceso: dict | None = Depends(exigir_token_acceso)):
+    """
+    Pagos del periodo en curso.
+
+    Va vacío a propósito: en este simulador las cuotas se ven como cargos en
+    la cuenta corriente, que es donde el usuario las paga. Duplicarlas acá
+    haría que el mismo gasto se contara dos veces al sumar el mes.
+    """
+    credito_o_404(loanID, cliente_del_acceso(_acceso))
+    _, links, meta = paginar([], 1, 1, "/loans/%s/current-transactions" % loanID)
+    return {"data": {"transactions": []}, "links": links, "meta": meta}
 
 
 # ═══════════════════════════════════════════════════════════════════

@@ -159,6 +159,104 @@ def _cuentas_generadas(numero: int, nombre: str, perfil: str) -> list[dict]:
     ]
 
 
+# ─────────────────────────── créditos por perfil ───────────────────────────
+# Qué créditos tiene cada tipo de cliente. Van por perfil y no al azar porque
+# la coherencia es lo que hace útil al simulador: una familia con dividendo
+# tiene un hipotecario, un profesional joven un crédito de consumo, y un
+# estudiante no tiene ninguno. Un generador que le pone un hipotecario a
+# cualquiera produce datos con los que no se puede probar nada.
+#
+# Los campos son los del OpenAPI de Operaciones de Crédito de la CMF,
+# verificados el 26-08-2026. El estándar NO entrega CAE, cuotas pagadas ni
+# desglose de capital e interés: lo que falta acá falta porque falta allá.
+CREDITOS_POR_PERFIL: dict[str, list[dict]] = {
+    "profesional": [
+        {
+            "productName": "Crédito de Consumo",
+            "loanType": "Consumo",
+            "originalAmount": 4_500_000,
+            "monthlyInstallment": 148_900,
+            "loanTermMonths": 36,
+            "cuotasPagadas": 14,
+            "interestRate": 1.29,
+            "interestRateType": "Fija",
+            "purpose": "Libre disposición",
+            "openingDate": "2025-08-05",
+            "paymentDay": 5,
+        },
+    ],
+    "estudiante": [],
+    "familia": [
+        {
+            "productName": "Mutuo Hipotecario",
+            "loanType": "Hipotecario",
+            "originalAmount": 95_000_000,
+            "monthlyInstallment": 520_000,
+            "loanTermMonths": 240,
+            "cuotasPagadas": 63,
+            "interestRate": 0.37,
+            "interestRateType": "Fija",
+            "purpose": "Adquisición de vivienda",
+            "openingDate": "2021-07-01",
+            "paymentDay": 1,
+        },
+        {
+            "productName": "Crédito Automotriz",
+            "loanType": "Automotriz",
+            "originalAmount": 12_000_000,
+            "monthlyInstallment": 295_400,
+            "loanTermMonths": 48,
+            "cuotasPagadas": 31,
+            "interestRate": 0.89,
+            "interestRateType": "Variable",
+            "purpose": "Compra de vehículo",
+            "openingDate": "2024-04-12",
+            "paymentDay": 12,
+        },
+    ],
+}
+
+
+def _creditos_generados(numero: int, nombre: str, perfil: str) -> list[dict]:
+    """
+    Los créditos del cliente, en el formato del estándar.
+
+    El saldo pendiente se calcula como lo que queda por pagar en cuotas, no
+    como capital residual: el estándar entrega `currentBalance` sin decir cómo
+    lo compone cada institución, y aproximarlo por cuotas es lo que un
+    proveedor real haría con la información que expone.
+    """
+    salida = []
+    for i, c in enumerate(CREDITOS_POR_PERFIL.get(perfil, []), start=1):
+        restantes = max(0, c["loanTermMonths"] - c["cuotasPagadas"])
+        salida.append({
+            "loanID": "LOAN-%d-%d" % (numero, i),
+            "productName": c["productName"],
+            "loanType": c["loanType"],
+            "currency": "CLP",
+            "status": "Vigente" if restantes else "Pagado",
+            "ownerName": nombre.upper(),
+            "originalAmount": float(c["originalAmount"]),
+            "monthlyInstallment": float(c["monthlyInstallment"]),
+            "loanTerm": "%d meses" % c["loanTermMonths"],
+            "loanTermMonths": c["loanTermMonths"],
+            "remainingInstallments": restantes,
+            "interestRate": c["interestRate"],
+            "periodInterestRate": "Mensual",
+            "interestRateType": c["interestRateType"],
+            "purpose": c["purpose"],
+            "openingDate": c["openingDate"],
+            "paymentDay": c["paymentDay"],
+            "currentBalance": float(restantes * c["monthlyInstallment"]),
+            "arrears": False,
+            # El estándar entrega solo un enlace al calendario del proveedor,
+            # nunca los datos de la tabla de amortización.
+            "amortizationScheduleLink":
+                "https://banco-simulado.cl/creditos/LOAN-%d-%d/calendario" % (numero, i),
+        })
+    return salida
+
+
 def construir_cliente(rut: str, nombre: str, clave: str, perfil: str = "profesional",
                       sueldo: int | None = None, meses: int = 12,
                       creado_en_vivo: bool = False) -> dict:
@@ -201,6 +299,7 @@ def construir_cliente(rut: str, nombre: str, clave: str, perfil: str = "profesio
         "parametros": {"rut": rut_n, "nombre": nombre, "clave": clave, "perfil": perfil,
                        "sueldo": sueldo, "meses": meses},
         "cuentas": cuentas,
+        "creditos": _creditos_generados(numero, nombre, perfil),
         "movimientos": {principal: historial, ahorro: [traspaso]},
     }
 
@@ -217,6 +316,9 @@ def _cliente_original() -> dict:
         "creado_en_vivo": False,
         "parametros": None,
         "cuentas": datos.CUENTAS,
+        # Sus créditos sí se generan: datos_banco.json es anterior a la API de
+        # Operaciones de Crédito y no los trae.
+        "creditos": _creditos_generados(numero, "Jossue Padrón", "profesional"),
         "movimientos": datos.MOVIMIENTOS,
     }
 
@@ -225,6 +327,7 @@ def _cliente_original() -> dict:
 # Clientes de base. Clientes nuevos se agregan en vivo (ver crear_cliente).
 CLIENTES: dict[str, dict] = {}       # rut normalizado → cliente
 DUENO_CUENTA: dict[str, str] = {}    # accountId → rut normalizado del dueño
+DUENO_CREDITO: dict[str, str] = {}   # loanID → rut normalizado del dueño
 
 # Cliente que se usa cuando quien autoriza NO se identifica (compatibilidad con
 # versiones anteriores del backend/app que no mandan RUT).
@@ -238,6 +341,13 @@ def _registrar(cliente: dict) -> dict:
         if dueno and dueno != rut:
             raise ValueError("La cuenta %s ya pertenece a otro cliente" % c["accountId"])
         DUENO_CUENTA[c["accountId"]] = rut
+    # Mismo índice para los créditos: sin él, /loans/{id} tendría que recorrer
+    # todos los clientes y un cliente podría alcanzar el crédito de otro.
+    for c in cliente.get("creditos", []):
+        dueno = DUENO_CREDITO.get(c["loanID"])
+        if dueno and dueno != rut:
+            raise ValueError("El crédito %s ya pertenece a otro cliente" % c["loanID"])
+        DUENO_CREDITO[c["loanID"]] = rut
     CLIENTES[rut] = cliente
     return cliente
 

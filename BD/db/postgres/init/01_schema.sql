@@ -275,6 +275,47 @@ COMMENT ON TABLE  bitacora_auditoria            IS 'Registro de actividades de t
 COMMENT ON COLUMN bitacora_auditoria.usuario_id IS 'ON DELETE SET NULL: al suprimir la cuenta el registro se anonimiza pero sobrevive (RNF-22).';
 
 -- =============================================================================
+-- 11b. CREDITO  (operaciones de crédito traídas por el SFA)
+-- =============================================================================
+-- Cuelga de `conexion` igual que `cuenta`: un crédito pertenece a la relación
+-- con una institución, no al usuario directamente. Si se desvincula el banco,
+-- se van sus créditos con él.
+--
+-- Los campos son los que entrega el estándar (API de Operaciones de Crédito,
+-- Anexo 3). **No hay CAE ni tabla de amortización**: el estándar no los expone
+-- —`amortizationScheduleLink` es solo una URL al calendario del proveedor— y
+-- calcularlos sería un motor propio, fuera del alcance comprometido. Guardar
+-- columnas vacías esperando datos que la fuente no da sería diseñar contra una
+-- API que no existe.
+CREATE TABLE credito (
+    id                   uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
+    conexion_id          uuid          NOT NULL REFERENCES conexion(id) ON DELETE CASCADE,
+    usuario_id           uuid          NOT NULL REFERENCES usuario(id)  ON DELETE CASCADE,
+    id_externo           varchar(64)   NOT NULL,
+    producto             varchar(120)  NOT NULL,
+    tipo                 varchar(40),
+    moneda               varchar(3)    NOT NULL DEFAULT 'CLP',
+    estado               varchar(20),
+    monto_original       numeric(15,2),
+    cuota_mensual        numeric(15,2),
+    plazo_meses          smallint,
+    cuotas_restantes     smallint,
+    saldo_actual         numeric(15,2),
+    tasa_interes         numeric(7,4),
+    tipo_tasa            varchar(20),
+    proposito            varchar(160),
+    dia_de_pago          smallint,
+    en_mora              boolean       NOT NULL DEFAULT false,
+    calendario_url       varchar(300),
+    actualizado_at       timestamptz
+);
+
+COMMENT ON TABLE  credito                IS 'Crédito del usuario obtenido vía la API de Operaciones de Crédito del SFA.';
+COMMENT ON COLUMN credito.id_externo     IS 'loanID tal como lo entrega la institución. Único por conexión.';
+COMMENT ON COLUMN credito.cuotas_restantes IS 'Lo entrega la institución. El estándar NO da las cuotas ya pagadas ni su desglose.';
+COMMENT ON COLUMN credito.calendario_url IS 'amortizationScheduleLink: el estándar entrega solo el enlace, no la tabla.';
+
+-- =============================================================================
 -- 12. INCIDENTE_SEGURIDAD  (brechas de datos personales)
 -- =============================================================================
 -- La Ley 21.719 obliga a notificar las vulneraciones de seguridad que afecten
@@ -325,6 +366,9 @@ COMMENT ON COLUMN incidente_afectado.visto_at IS 'Cuándo el titular leyó el av
 -- Índices  (además de los UNIQUE/PK ya creados)
 -- =============================================================================
 CREATE INDEX idx_incidente_afectado_usuario ON incidente_afectado (usuario_id);
+CREATE INDEX idx_credito_usuario ON credito (usuario_id);
+-- loanID único por conexión: la sincronización hace upsert y no duplica.
+CREATE UNIQUE INDEX uq_credito_conexion_externo ON credito (conexion_id, id_externo);
 CREATE INDEX idx_conexion_usuario        ON conexion (usuario_id);
 CREATE INDEX idx_conexion_institucion    ON conexion (institucion_id);
 CREATE INDEX idx_cuenta_conexion         ON cuenta (conexion_id);

@@ -158,6 +158,51 @@ class Repositorio:
         ).fetchone()
         return fila[0]
 
+    def upsert_creditos(self, conexion_id: str, usuario_id: str,
+                        creditos: list[dict]) -> int:
+        """
+        Guarda los créditos que trajo el banco, y retira los que ya no vienen.
+
+        Un crédito que desaparece del listado es uno que se terminó de pagar o
+        que la institución dejó de exponer. Dejarlo en la base lo mostraría
+        como vigente para siempre, que es peor que no mostrarlo: alguien
+        creería que todavía debe algo que ya pagó.
+        """
+        vistos: list[str] = []
+        for c in creditos:
+            self.conn.execute(
+                """
+                INSERT INTO credito (conexion_id, usuario_id, id_externo, producto, tipo,
+                                     moneda, estado, monto_original, cuota_mensual,
+                                     plazo_meses, cuotas_restantes, saldo_actual,
+                                     tasa_interes, tipo_tasa, proposito, dia_de_pago,
+                                     en_mora, calendario_url, actualizado_at)
+                VALUES (%(conexion_id)s, %(usuario_id)s, %(id_externo)s, %(producto)s, %(tipo)s,
+                        %(moneda)s, %(estado)s, %(monto_original)s, %(cuota_mensual)s,
+                        %(plazo_meses)s, %(cuotas_restantes)s, %(saldo_actual)s,
+                        %(tasa_interes)s, %(tipo_tasa)s, %(proposito)s, %(dia_de_pago)s,
+                        %(en_mora)s, %(calendario_url)s, now())
+                ON CONFLICT (conexion_id, id_externo) DO UPDATE
+                   SET producto         = EXCLUDED.producto,
+                       estado           = EXCLUDED.estado,
+                       cuota_mensual    = EXCLUDED.cuota_mensual,
+                       cuotas_restantes = EXCLUDED.cuotas_restantes,
+                       saldo_actual     = EXCLUDED.saldo_actual,
+                       tasa_interes     = EXCLUDED.tasa_interes,
+                       tipo_tasa        = EXCLUDED.tipo_tasa,
+                       en_mora          = EXCLUDED.en_mora,
+                       actualizado_at   = now()
+                """,
+                {"conexion_id": conexion_id, "usuario_id": usuario_id, **c},
+            )
+            vistos.append(c["id_externo"])
+
+        self.conn.execute(
+            "DELETE FROM credito WHERE conexion_id = %s AND NOT (id_externo = ANY(%s))",
+            (conexion_id, vistos),
+        )
+        return len(vistos)
+
     # ── PostgreSQL: upsert de transacciones (en lote) ───────────────────────
     # ── PostgreSQL: categorías ──────────────────────────────────────────────
     def categoria_id(self, nombre: str | None) -> str | None:

@@ -36,13 +36,15 @@ from motor.recurrencias import Cobro, detectar
 from . import config
 from .bootstrap import asegurar_identidad, conexion_de_usuario
 from .cliente_sfa import ClienteSFA, ReautorizacionRequerida
-from .normalizador import (categoria_propuesta, cuenta_canonica, monto_con_signo,
+from .normalizador import (categoria_propuesta, credito_canonico, cuenta_canonica,
+                           monto_con_signo,
                            transacciones_canonicas, _categoria_origen, _glosa)
 from .repositorio import Repositorio
 
 # Qué datos se piden al banco (RAR — Rich Authorization Request). Es el alcance
 # que el usuario autoriza: leer sus cuentas, saldos y movimientos.
-PERMISOS = ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsDetail"]
+PERMISOS = ["ReadAccountsBasic", "ReadBalances", "ReadTransactionsDetail",
+            "ReadLoansBasic"]
 
 
 class ConexionDeOtroCliente(Exception):
@@ -157,6 +159,15 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
         )
         repo.registrar_consentimiento(conexion_id, alcance, expira)
 
+        # 1b. Los créditos. Son otra familia de APIs del estándar (Operaciones
+        #     de Crédito), con su propio permiso en el consentimiento. Se traen
+        #     enteros en cada sincronización: son pocos y cambian de saldo cada
+        #     mes, así que no hay nada que ganar trayéndolos de a poco.
+        creditos = repo.upsert_creditos(
+            conexion_id, usuario_id,
+            [credito_canonico(c) for c in banco.listar_creditos()],
+        )
+
         # 2. Por cada cuenta del banco...
         for cuenta in banco.listar_cuentas():
             account_id = cuenta["accountId"]
@@ -216,6 +227,7 @@ def _sincronizar_conexion(repo: Repositorio, usuario_id: str, conexion_id: str,
         "sin_cambio": sin_cambio,
         "clasificados_ahora": clasificados,
         "suscripciones": suscripciones,
+        "creditos": creditos,
     }
 
 

@@ -120,6 +120,40 @@ def cuenta_canonica(cuenta: dict, saldo: dict | None) -> dict:
     }
 
 
+def credito_canonico(credito: dict) -> dict:
+    """
+    Crédito del banco → columnas de la tabla `credito`.
+
+    Solo se copia lo que el estándar entrega. No se derivan cuotas pagadas a
+    partir del plazo y las restantes, aunque la resta sea tentadora: el
+    estándar no define qué incluye cada institución en `remainingInstallments`
+    —si cuenta la del mes en curso, si descuenta prepagos— y un número
+    inventado sobre esa base se vería igual de cierto que uno correcto.
+    """
+    def numero(clave):
+        valor = credito.get(clave)
+        return Decimal(str(valor)) if valor is not None else None
+
+    return {
+        "id_externo": credito["loanID"],
+        "producto": credito.get("productName") or "Crédito",
+        "tipo": credito.get("loanType"),
+        "moneda": credito.get("currency", "CLP"),
+        "estado": credito.get("status"),
+        "monto_original": numero("originalAmount"),
+        "cuota_mensual": numero("monthlyInstallment"),
+        "plazo_meses": credito.get("loanTermMonths"),
+        "cuotas_restantes": credito.get("remainingInstallments"),
+        "saldo_actual": numero("currentBalance"),
+        "tasa_interes": numero("interestRate"),
+        "tipo_tasa": credito.get("interestRateType"),
+        "proposito": credito.get("purpose"),
+        "dia_de_pago": credito.get("paymentDay"),
+        "en_mora": bool(credito.get("arrears")),
+        "calendario_url": credito.get("amortizationScheduleLink"),
+    }
+
+
 def categoria_propuesta(glosa: str | None, monto) -> tuple[str | None, float | None]:
     """
     Lo que propone el clasificador (bloque E) para un movimiento: (categoría,

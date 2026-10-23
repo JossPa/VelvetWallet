@@ -204,6 +204,23 @@ class ClienteSFA:
         cuerpo = self._get("/accounts/%s/balance" % account_id)
         return cuerpo["data"].get("balance")
 
+    def listar_creditos(self) -> list[dict]:
+        """
+        Créditos del cliente (API de Operaciones de Crédito del estándar).
+
+        Si la institución no expone esa API, o el consentimiento no incluye su
+        permiso, responde 404 o 403. Eso no es un error de sincronización: es
+        un banco que no ofrece el dato o un usuario que no lo autorizó, y en
+        ambos casos corresponde seguir con lo demás.
+        """
+        try:
+            cuerpo = self._get("/loans")
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (403, 404):
+                return []
+            raise
+        return cuerpo["data"]["loans"]
+
     def obtener_movimientos(self, account_id: str,
                             desde: str | None = None,
                             page_size: int = 100) -> list[dict]:
