@@ -118,6 +118,39 @@ ul.movs li:first-child { border-top:0; }
   </section>
 
   <section class="tarjeta">
+    <h2>Créditos</h2>
+    <ul class="movs" id="creditos"></ul>
+    <div class="fila">
+      <div>
+        <label for="cr_producto">Producto</label>
+        <input id="cr_producto" type="text" list="productos" placeholder="Crédito de Consumo">
+        <datalist id="productos">
+          <option value="Crédito de Consumo"><option value="Mutuo Hipotecario">
+          <option value="Crédito Automotriz"><option value="Avance en cuotas">
+        </datalist>
+      </div>
+      <div>
+        <label for="cr_cuota">Cuota mensual (CLP)</label>
+        <input id="cr_cuota" type="number" min="1" step="1000" placeholder="120000">
+      </div>
+    </div>
+    <div class="fila">
+      <div>
+        <label for="cr_plazo">Plazo (meses)</label>
+        <input id="cr_plazo" type="number" min="1" max="600" placeholder="24">
+      </div>
+      <div>
+        <label for="cr_pagadas">Cuotas ya pagadas</label>
+        <input id="cr_pagadas" type="number" min="0" placeholder="0">
+      </div>
+    </div>
+    <div class="acciones">
+      <button id="crear_credito">Agregar crédito</button>
+    </div>
+    <p class="nota">Toca una cuota de un crédito para pagarla y ver cómo baja el saldo en Velvet.</p>
+  </section>
+
+  <section class="tarjeta">
     <h2>Últimos movimientos</h2>
     <ul class="movs" id="movs"></ul>
   </section>
@@ -170,9 +203,10 @@ async function cargarClientes() {
 async function cargarCliente() {
   const rut = $("cliente").value;
   try { localStorage.setItem("panel-cliente", rut); } catch (_) {}
-  const [detalle, movs] = await Promise.all([
+  const [detalle, movs, cred] = await Promise.all([
     pedir("/simulador/clientes/" + encodeURIComponent(rut)),
     pedir("/simulador/clientes/" + encodeURIComponent(rut) + "/movimientos?limite=15"),
+    pedir("/simulador/clientes/" + encodeURIComponent(rut) + "/creditos"),
   ]);
   clienteActual = detalle;
 
@@ -201,7 +235,62 @@ async function cargarCliente() {
   const pendientes = movs.pendientes;
   $("confirmar").textContent = pendientes ? "Confirmar pendientes (" + pendientes + ")" : "Confirmar pendientes";
   $("confirmar").disabled = !pendientes;
+
+  pintarCreditos(cred.creditos);
 }
+
+/** Un crédito por fila, con el botón de pagar una cuota. */
+function pintarCreditos(creditos) {
+  const lista = $("creditos");
+  lista.replaceChildren();
+  if (!creditos.length) {
+    lista.append(el("li", "vacio", "Este cliente no tiene créditos."));
+    return;
+  }
+  for (const c of creditos) {
+    const li = el("li");
+    const desc = el("div", "desc", c.productName);
+    if (c.arrears) desc.append(el("span", "chip pend", "EN MORA"));
+    if (!c.remainingInstallments) desc.append(el("span", "chip vivo", "PAGADO"));
+    li.append(desc, el("div", "monto", pesos(-c.currentBalance)));
+
+    const meta = el("div", "meta",
+      "cuota " + pesos(c.monthlyInstallment).replace("−", "") +
+      " · quedan " + c.remainingInstallments + " de " + c.loanTermMonths);
+    if (c.remainingInstallments) {
+      const pagar = el("button", "secundario", "Pagar 1 cuota");
+      pagar.style.cssText = "margin-left:10px;padding:4px 10px;font-size:12px";
+      pagar.addEventListener("click", async () => {
+        pagar.disabled = true;
+        try {
+          await pedir("/simulador/creditos/" + encodeURIComponent(c.loanID) + "/pagar?cuotas=1",
+                      { method: "POST" });
+          avisar("Cuota pagada en " + c.productName + ". Sincroniza en Velvet para verlo.");
+          await cargarCliente();
+        } catch (e) { avisar(e.message, true); pagar.disabled = false; }
+      });
+      meta.append(pagar);
+    }
+    li.append(meta);
+    lista.append(li);
+  }
+}
+
+$("crear_credito").addEventListener("click", async () => {
+  const b = $("crear_credito"); b.disabled = true;
+  try {
+    const q = new URLSearchParams({ rut: $("cliente").value });
+    const producto = $("cr_producto").value.trim();
+    if (producto) q.set("producto", producto);
+    if ($("cr_cuota").value) q.set("cuota", $("cr_cuota").value);
+    if ($("cr_plazo").value) q.set("plazo", $("cr_plazo").value);
+    if ($("cr_pagadas").value) q.set("pagadas", $("cr_pagadas").value);
+    const r = await pedir("/simulador/clientes/" + encodeURIComponent($("cliente").value) +
+                          "/creditos?" + q, { method: "POST" });
+    avisar("Crédito creado: " + r.creado.productName + ". Sincroniza en Velvet para verlo.");
+    await cargarCliente();
+  } catch (e) { avisar(e.message, true); } finally { b.disabled = false; }
+});
 
 $("cliente").addEventListener("change", () => { $("aviso").className = "aviso"; cargarCliente(); });
 $("sucia").addEventListener("change", (e) => { $("comercio").disabled = e.target.checked; });

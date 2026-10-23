@@ -967,6 +967,99 @@ def detalle_cliente(rut: str = Path(...)):
     }
 
 
+@app.get("/simulador/clientes/{rut}/creditos", tags=["Simulador"],
+         summary="Créditos de un cliente (para el panel)")
+def creditos_cliente(rut: str = Path(...)):
+    return {"creditos": _cliente_o_404(rut).get("creditos", [])}
+
+
+@app.post("/simulador/clientes/{rut}/creditos", tags=["Simulador"], status_code=201,
+          summary="Agrega un crédito a un cliente (demo en vivo)")
+def agregar_credito(
+    rut: str = Path(...),
+    producto: str = Query("Crédito de Consumo"),
+    tipo: str = Query("Consumo"),
+    monto: float = Query(3_000_000, gt=0, description="Monto original en CLP"),
+    cuota: float = Query(120_000, gt=0, description="Cuota mensual en CLP"),
+    plazo: int = Query(24, ge=1, le=600, description="Plazo total en meses"),
+    pagadas: int = Query(0, ge=0, description="Cuotas ya pagadas"),
+    tasa: float = Query(1.2, description="Tasa de interés del periodo, en %"),
+):
+    """
+    Crea un crédito para probar la pestaña Deudas sin esperar a nada.
+
+    No es parte del estándar: un banco real no tiene un botón para inventar
+    créditos. Vive bajo /simulador justamente para dejarlo claro.
+    """
+    cliente = _cliente_o_404(rut)
+    creditos = cliente.setdefault("creditos", [])
+    numero = C.normalizar_rut(cliente["rut_normalizado"]).split("-")[0]
+    restantes = max(0, plazo - pagadas)
+
+    nuevo = {
+        "loanID": "LOAN-%s-%d" % (numero, len(creditos) + 1),
+        "productName": producto,
+        "loanType": tipo,
+        "currency": "CLP",
+        "status": "Vigente" if restantes else "Pagado",
+        "ownerName": cliente["nombre"].upper(),
+        "originalAmount": float(monto),
+        "monthlyInstallment": float(cuota),
+        "loanTerm": "%d meses" % plazo,
+        "loanTermMonths": plazo,
+        "remainingInstallments": restantes,
+        "interestRate": tasa,
+        "periodInterestRate": "Mensual",
+        "interestRateType": "Fija",
+        "purpose": "Libre disposición",
+        "openingDate": datetime.now().date().isoformat(),
+        "paymentDay": min(28, datetime.now().day),
+        "currentBalance": float(restantes * cuota),
+        "arrears": False,
+        "amortizationScheduleLink":
+            "https://banco-simulado.cl/creditos/LOAN-%s-%d/calendario" % (numero, len(creditos) + 1),
+    }
+    creditos.append(nuevo)
+    C.DUENO_CREDITO[nuevo["loanID"]] = cliente["rut_normalizado"]
+    return {"creado": nuevo}
+
+
+@app.post("/simulador/creditos/{loanID}/pagar", tags=["Simulador"],
+          summary="Paga una cuota del crédito (demo en vivo)")
+def pagar_cuota(loanID: str = Path(...), cuotas: int = Query(1, ge=1, le=60)):
+    """
+    Descuenta cuotas y recalcula el saldo.
+
+    Sirve para ver en vivo lo que hace la sincronización: se paga acá, se
+    sincroniza en la app y el saldo baja. Es la forma de comprobar que el dato
+    viene del banco y no de una copia guardada.
+    """
+    rut = C.DUENO_CREDITO.get(loanID)
+    cliente = C.CLIENTES.get(rut) if rut else None
+    if cliente is None:
+        raise HTTPException(status_code=404, detail="No existe el crédito %s" % loanID)
+
+    credito = next(c for c in cliente["creditos"] if c["loanID"] == loanID)
+    credito["remainingInstallments"] = max(0, credito["remainingInstallments"] - cuotas)
+    credito["currentBalance"] = float(
+        credito["remainingInstallments"] * credito["monthlyInstallment"]
+    )
+    credito["status"] = "Vigente" if credito["remainingInstallments"] else "Pagado"
+    return {"credito": credito}
+
+
+@app.post("/simulador/creditos/{loanID}/mora", tags=["Simulador"],
+          summary="Marca o quita la mora de un crédito (demo en vivo)")
+def marcar_mora(loanID: str = Path(...), en_mora: bool = Query(True)):
+    rut = C.DUENO_CREDITO.get(loanID)
+    cliente = C.CLIENTES.get(rut) if rut else None
+    if cliente is None:
+        raise HTTPException(status_code=404, detail="No existe el crédito %s" % loanID)
+    credito = next(c for c in cliente["creditos"] if c["loanID"] == loanID)
+    credito["arrears"] = en_mora
+    return {"credito": credito}
+
+
 @app.get("/simulador/clientes/{rut}/movimientos", tags=["Simulador"],
          summary="Últimos movimientos de un cliente (para el panel)")
 def movimientos_cliente(rut: str = Path(...),
