@@ -40,9 +40,17 @@ def _precalentar() -> None:
     Corre en segundo plano: el servidor atiende mientras tanto.
     """
     from clasificador import precalentar
-    from ingesta.conexiones_bd import mongo, pool
+    from ingesta.conexiones_bd import conexion, mongo
 
-    for nombre, paso in (("Postgres", lambda: pool().wait(timeout=30)),
+    def postgres():
+        # Una consulta de verdad, no pool().wait(): wait() cierra el pool si no
+        # alcanza a llenarlo, y entonces el precalentado dejaría al servidor
+        # peor de lo que lo encontró. Esto ejercita el mismo camino que una
+        # petición y, si falla, no rompe nada.
+        with conexion() as conn:
+            conn.execute("SELECT 1")
+
+    for nombre, paso in (("Postgres", postgres),
                          ("MongoDB", lambda: mongo().admin.command("ping")),
                          ("clasificador", precalentar)):
         try:

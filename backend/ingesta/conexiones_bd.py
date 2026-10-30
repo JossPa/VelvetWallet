@@ -37,6 +37,13 @@ _mongo: MongoClient | None = None
 def pool() -> ConnectionPool:
     global _pool
     with _candado:
+        # Un pool cerrado se reemplaza en vez de reutilizarse. Pasa cuando algo
+        # lo cierra sin pasar por `cerrar()`: psycopg_pool.wait(), por ejemplo,
+        # cierra el pool si no alcanza a llenarlo en el tiempo dado. Sin esto el
+        # proceso queda inservible —toda petición responde PoolClosed— hasta que
+        # alguien reinicie el servidor.
+        if _pool is not None and _pool.closed:
+            _pool = None
         if _pool is None:
             _pool = ConnectionPool(
                 config.DATABASE_URL,

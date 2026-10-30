@@ -32,6 +32,26 @@ def tipo_cuenta(account_type: str | None) -> str | None:
     return _TIPOS_CUENTA.get(account_type.strip().lower(), "otro")
 
 
+# Tipo canónico → cómo se le muestra al usuario. Es el camino de vuelta de
+# `tipo_cuenta`: la base guarda el código y la app no debería tener que
+# traducirlo, porque entonces el vocabulario quedaría definido en dos partes.
+_ETIQUETAS_CUENTA = {
+    "corriente": "Cuenta Corriente",
+    "vista": "Cuenta Vista",
+    "ahorro": "Cuenta de Ahorro",
+    "credito": "Línea de Crédito",
+    "tarjeta": "Tarjeta de Crédito",
+    "otro": "Otro producto",
+}
+
+
+def etiqueta_tipo_cuenta(tipo: str | None) -> str:
+    """Nombre legible del tipo de cuenta. Si el banco no lo informó, lo dice."""
+    if not tipo:
+        return "Cuenta"
+    return _ETIQUETAS_CUENTA.get(tipo, "Otro producto")
+
+
 def monto_con_signo(amount: float, tipo_movimiento: str) -> Decimal:
     """
     El banco manda el monto SIEMPRE positivo, más 'Cargo' o 'Abono'. El modelo

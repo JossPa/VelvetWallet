@@ -10,7 +10,7 @@
  * canónico (clasificados, deduplicados) y SOLO los del usuario del token. Así
  * cada usuario ve únicamente lo suyo.
  */
-import type { Movimiento } from "@/modelo/tipos";
+import type { Conexion, Movimiento } from "@/modelo/tipos";
 import { tokenActual } from "@/servicios/auth";
 
 /**
@@ -178,15 +178,16 @@ export async function conectarBanco(): Promise<ResultadoConexion> {
   return (await respuesta.json()) as ResultadoConexion;
 }
 
-export type ConexionBanco = {
-  id: string;
-  institucion: string;
+/**
+ * Lo que entrega el backend: el contrato (`Conexion`) más a qué cliente del
+ * banco quedó atada. Eso último no es parte del contrato porque no describe la
+ * conexión sino la vinculación, y solo lo usa el encabezado del inicio.
+ */
+export type ConexionBanco = Conexion & {
   rutCliente: string | null;
   nombreCliente: string | null;
-  cuentas: number;
   /** false si el permiso es de antes del flujo por el banco y hay que re-autorizar. */
-  autorizada?: boolean;
-  ultimaSincronizacion: string | null;
+  autorizada: boolean;
 };
 
 /** Bancos vinculados del usuario (y a qué cliente del banco está atado cada uno). */

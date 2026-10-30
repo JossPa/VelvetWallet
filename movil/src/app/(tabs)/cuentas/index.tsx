@@ -14,7 +14,7 @@ import { FilaConexion } from "@/components/FilaConexion";
 import { Ficha } from "@/components/Ficha";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente } from "@/constants/tema";
-import { CONEXIONES } from "@/datos/conexiones";
+import { useMovimientos } from "@/datos/MovimientosContexto";
 import { useSesion } from "@/sesion/SesionContexto";
 
 /**
@@ -33,10 +33,15 @@ const DERECHOS: { texto: string; ruta: string; peligro?: boolean }[] = [
 export default function Cuentas() {
   const router = useRouter();
   const { usuario, salir } = useSesion();
-  const conexiones = CONEXIONES;
+  // Las instituciones salen del backend, que es el único que sabe qué permiso
+  // está vigente y de cuándo es el dato. La vinculación y la desvinculación
+  // viven en Inicio: aquí solo se muestra el estado.
+  const { conexiones, sincronizando } = useMovimientos();
+
+  const etiqueta = conexiones.length === 1 ? "1 conectada" : `${conexiones.length} conectadas`;
 
   return (
-    <Pantalla titulo="Cuentas" etiqueta={`${conexiones.length} conectadas`}>
+    <Pantalla titulo="Cuentas" etiqueta={sincronizando ? "Actualizando…" : etiqueta}>
       <Seccion titulo="Tu perfil" />
       <Ficha
         filas={[
@@ -46,11 +51,17 @@ export default function Cuentas() {
       />
 
       <Seccion titulo="Instituciones" />
-      <View>
-        {conexiones.map((c) => (
-          <FilaConexion key={c.id} conexion={c} />
-        ))}
-      </View>
+      {conexiones.length === 0 ? (
+        <Nota>
+          Todavía no has autorizado ninguna institución. Puedes conectar tu banco desde Inicio.
+        </Nota>
+      ) : (
+        <View>
+          {conexiones.map((c) => (
+            <FilaConexion key={c.id} conexion={c} />
+          ))}
+        </View>
+      )}
 
       <Seccion titulo="Tus datos" />
       {DERECHOS.map(({ texto, ruta, peligro }) => (

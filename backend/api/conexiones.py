@@ -37,6 +37,7 @@ from .sesion_actual import usuario_actual
 
 # La ingesta vive en backend/ingesta; se corre desde backend/, así que es importable.
 from ingesta.cliente_sfa import AutorizacionFallida, ClienteSFA, ReautorizacionRequerida
+from ingesta.normalizador import etiqueta_tipo_cuenta
 from ingesta.repositorio import Repositorio
 from ingesta.sincronizar import (PERMISOS, ConexionDeOtroCliente, sincronizar_usuario,
                                  vincular_conexion)
@@ -208,6 +209,32 @@ def conectar_banco(
     }
 
 
+# Desde cuándo el dato deja de ser confiable y la app tiene que advertirlo
+# (RF-35). El estándar no lo fija: la NCG 514 no obliga al consumidor a una
+# frecuencia de sincronización, así que es una decisión de producto nuestra.
+HORAS_DE_FRESCURA = 24
+
+
+def _estado_visible(estado_bd: str, autorizada: bool, expira, ahora) -> str:
+    """
+    Traduce el estado guardado al vocabulario que entiende la app (EstadoConexion).
+
+    La base guarda el estado del VÍNCULO ('activa', 'expirada', 'revocada',
+    'error') y la app muestra el estado del DATO. No son lo mismo, y el orden
+    importa: un vínculo marcado activo cuyo consentimiento ya expiró necesita
+    reautorización, mientras que uno que falló técnicamente sigue mostrando los
+    datos de la última vez. La falta de permiso siempre gana, porque es lo único
+    que el usuario puede resolver.
+    """
+    if estado_bd in ("expirada", "revocada") or not autorizada:
+        return "autorizacion_vencida"
+    if expira is not None and expira <= ahora:
+        return "autorizacion_vencida"
+    if estado_bd == "error":
+        return "sin_respuesta"
+    return "al_dia"
+
+
 @router.get("/conexiones", summary="Bancos conectados del usuario")
 def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
     with db.conectar(diccionarios=True) as conn:
@@ -215,33 +242,72 @@ def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
             """
             SELECT cx.id, cx.estado, cx.ultima_sincronizacion,
                    inst.nombre AS institucion,
-                   (SELECT COUNT(*) FROM cuenta c WHERE c.conexion_id = cx.id) AS cuentas,
-                   (SELECT cs.alcance_rar FROM consentimiento cs
-                     WHERE cs.conexion_id = cx.id AND cs.estado = 'vigente'
-                     ORDER BY cs.fecha_inicio DESC LIMIT 1) AS alcance
+                   cs.alcance_rar      AS alcance,
+                   cs.fecha_expiracion AS expira
             FROM conexion cx
             JOIN institucion inst ON inst.id = cx.institucion_id
+            -- El consentimiento vigente más reciente. LATERAL y no dos
+            -- subconsultas: así el alcance y su vencimiento salen de la MISMA
+            -- fila y no pueden describir consentimientos distintos.
+            LEFT JOIN LATERAL (
+                SELECT c2.alcance_rar, c2.fecha_expiracion
+                FROM consentimiento c2
+                WHERE c2.conexion_id = cx.id AND c2.estado = 'vigente'
+                ORDER BY c2.fecha_inicio DESC
+                LIMIT 1
+            ) cs ON TRUE
             WHERE cx.usuario_id = %s
             ORDER BY inst.nombre
             """,
             (usuario_id,),
         ).fetchall()
 
-    conexiones = [
-        {
+        cuentas = conn.execute(
+            """
+            SELECT conexion_id, id, id_externo, tipo, numero_enmascarado, moneda, saldo
+            FROM cuenta
+            WHERE usuario_id = %s
+            ORDER BY tipo, id_externo
+            """,
+            (usuario_id,),
+        ).fetchall()
+
+    por_conexion: dict[str, list[dict]] = {}
+    for c in cuentas:
+        por_conexion.setdefault(str(c["conexion_id"]), []).append({
+            "id": str(c["id"]),
+            # El id del banco: es el que traen los movimientos (RF-05).
+            "idExterno": c["id_externo"],
+            "tipo": etiqueta_tipo_cuenta(c["tipo"]),
+            "numeroEnmascarado": c["numero_enmascarado"],
+            "moneda": c["moneda"],
+            "saldo": float(c["saldo"]) if c["saldo"] is not None else None,
+        })
+
+    ahora = datetime.now(timezone.utc)
+    conexiones = []
+    for r in filas:
+        alcance = r["alcance"] or {}
+        autorizada = bool(alcance.get("refreshToken"))
+        estado = _estado_visible(r["estado"], autorizada, r["expira"], ahora)
+        ultima = r["ultima_sincronizacion"]
+        conexiones.append({
             "id": str(r["id"]),
             "institucion": r["institucion"],
-            "estado": r["estado"],
-            "cuentas": r["cuentas"],
+            "estado": estado,
+            "cuentas": por_conexion.get(str(r["id"]), []),
+            "ultimaSincronizacion": ultima.isoformat() if ultima else None,
+            "autorizacionVencioEl": r["expira"].isoformat()
+            if estado == "autorizacion_vencida" and r["expira"] else None,
+            # Nunca se sincronizó, o lo que hay es más viejo que la ventana: la
+            # app lo advierte en vez de mostrar un total que parece completo.
+            "datoAntiguo": ultima is None
+            or (ahora - ultima) > timedelta(hours=HORAS_DE_FRESCURA),
             # A qué cliente del banco está atada (nunca el refresh token).
-            "rutCliente": (r["alcance"] or {}).get("rutCliente"),
-            "nombreCliente": (r["alcance"] or {}).get("nombreCliente"),
-            "autorizada": bool((r["alcance"] or {}).get("refreshToken")),
-            "ultimaSincronizacion": r["ultima_sincronizacion"].isoformat()
-            if r["ultima_sincronizacion"] else None,
-        }
-        for r in filas
-    ]
+            "rutCliente": alcance.get("rutCliente"),
+            "nombreCliente": alcance.get("nombreCliente"),
+            "autorizada": autorizada,
+        })
     return {"conexiones": conexiones, "total": len(conexiones)}
 
 

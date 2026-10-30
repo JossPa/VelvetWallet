@@ -26,6 +26,7 @@ import {
   iniciarVinculacion,
   obtenerConexiones,
   obtenerMovimientos,
+  type ConexionBanco,
 } from "@/servicios/sincronizacion";
 import { useSesion } from "@/sesion/SesionContexto";
 import { fusionar } from "@/utils/fusion";
@@ -69,6 +70,8 @@ type ValorMovimientos = {
   desvincular: () => Promise<void>;
   /** Con qué cliente del banco quedó vinculado el usuario (null si no se sabe). */
   clienteBanco: { rut: string; nombre: string } | null;
+  /** Instituciones vinculadas, con su estado y sus cuentas, como las da el backend. */
+  conexiones: ConexionBanco[];
   /** Asigna o corrige la categoría de un movimiento (el usuario en "Por revisar"). */
   corregirCategoria: (id: string, categoria: string) => void;
   /** Apaga el destacado y el contador de la pestaña. */
@@ -89,6 +92,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
   const [ultimaSincronizacion, setUltima] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [clienteBanco, setClienteBanco] = useState<{ rut: string; nombre: string } | null>(null);
+  const [conexiones, setConexiones] = useState<ConexionBanco[]>([]);
 
   // Cada operación que carga datos sube la generación; la carga inicial solo se
   // aplica si nadie cargó algo más nuevo mientras tanto (evita que una carga
@@ -100,6 +104,25 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     setMovimientos(lista);
   }, []);
 
+  /**
+   * Vuelve a preguntar en qué estado están los bancos vinculados.
+   *
+   * Es a mejor esfuerzo: si falla, la app sigue andando con los movimientos que
+   * ya tiene. Sacar el cliente del banco de la misma respuesta evita que la
+   * lista y el nombre que se muestra arriba queden describiendo momentos
+   * distintos.
+   */
+  const refrescarConexiones = useCallback(async () => {
+    try {
+      const lista = await obtenerConexiones();
+      setConexiones(lista);
+      const c = lista.find((x) => x.nombreCliente);
+      setClienteBanco(c ? { rut: c.rutCliente ?? "", nombre: c.nombreCliente ?? "" } : null);
+    } catch {
+      // Información de estado, no de uso: no vale la pena interrumpir por esto.
+    }
+  }, []);
+
   // Carga inicial de los datos del usuario al entrar; limpieza al salir.
   useEffect(() => {
     let vivo = true;
@@ -107,6 +130,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     if (!usuario) {
       reemplazar([]);
       setClienteBanco(null);
+      setConexiones([]);
       setNovedades(SIN_NOVEDADES);
       setUltima(null);
       setError(null);
@@ -121,13 +145,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
         if (!vivo || miGeneracion !== generacion.current) return;
         reemplazar(lista);
         setUltima(new Date().toISOString());
-        // A qué cliente del banco está vinculado (para mostrarlo). Mejor esfuerzo.
-        obtenerConexiones()
-          .then((cx) => {
-            const c = cx.find((x) => x.nombreCliente);
-            if (vivo) setClienteBanco(c ? { rut: c.rutCliente ?? "", nombre: c.nombreCliente ?? "" } : null);
-          })
-          .catch(() => {});
+        if (vivo) refrescarConexiones();
       })
       .catch((e) => {
         if (vivo) setError(e instanceof Error ? e.message : "No se pudieron cargar los datos.");
@@ -139,7 +157,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     return () => {
       vivo = false;
     };
-  }, [usuario?.id, reemplazar]);
+  }, [usuario?.id, reemplazar, refrescarConexiones]);
 
   const sincronizar = useCallback(async () => {
     setSincronizando(true);
@@ -148,8 +166,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       generacion.current++;
       // Vuelve a pedir al banco (re-corre la ingesta): así llegan los
       // movimientos nuevos que el banco generó desde la última vez.
-      const vinculo = await conectarBanco();   // sin clave: usa el permiso guardado
-      setClienteBanco(vinculo.cliente ?? null);
+      await conectarBanco();   // sin clave: usa el permiso guardado
       const entrantes = await obtenerMovimientos();
 
       const r = fusionar(actualesRef.current, entrantes);
@@ -167,6 +184,9 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       }
 
       setUltima(new Date().toISOString());
+      // Cambió la fecha de la última sincronización y puede haber cambiado el
+      // estado del permiso: la pantalla de Cuentas tiene que reflejarlo.
+      refrescarConexiones();
       return { nuevos: r.nuevos.length, actualizados: r.actualizados.length };
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo sincronizar.");
@@ -174,7 +194,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     } finally {
       setSincronizando(false);
     }
-  }, []);
+  }, [refrescarConexiones]);
 
   const irAlBanco = useCallback(async (): Promise<VueltaDelBanco | null> => {
     setError(null);
@@ -202,18 +222,18 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
     generacion.current++;
     try {
       // El permiso ya lo dio el usuario en su banco: ahora se traen SUS datos.
-      const vinculo = await conectarBanco();
-      setClienteBanco(vinculo.cliente ?? null);
+      await conectarBanco();
       const lista = await obtenerMovimientos();  // y cargamos lo que llegó
       reemplazar(lista);
       setUltima(new Date().toISOString());
+      refrescarConexiones();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo conectar el banco.");
       throw e;
     } finally {
       setSincronizando(false);
     }
-  }, [reemplazar]);
+  }, [reemplazar, refrescarConexiones]);
 
   // El usuario asigna o corrige una categoría (p. ej. en "Por revisar"). Se ve
   // al tiro y se guarda en el backend como corrección: el dato del banco no se
@@ -264,6 +284,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       reemplazar([]);
       setNovedades(SIN_NOVEDADES);
       setClienteBanco(null);
+      setConexiones([]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo desvincular el banco.");
       throw e;
@@ -286,10 +307,11 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       completarVinculacion,
       desvincular,
       clienteBanco,
+      conexiones,
       corregirCategoria,
       marcarVistas,
     }),
-    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, corregirCategoria, marcarVistas],
+    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, conexiones, corregirCategoria, marcarVistas],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

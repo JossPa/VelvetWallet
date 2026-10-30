@@ -11,9 +11,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ficha } from "@/components/Ficha";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
-import { CONEXIONES } from "@/datos/conexiones";
 import { useMovimientos } from "@/datos/MovimientosContexto";
-import type { Correccion, Movimiento, OrigenMovimiento } from "@/modelo/tipos";
+import type { Conexion, Correccion, Movimiento, OrigenMovimiento } from "@/modelo/tipos";
 import { fechaCorta, fechaHora, pesos } from "@/utils/formato";
 
 const ORIGEN: Record<OrigenMovimiento, string> = {
@@ -31,10 +30,15 @@ const TIPO_CORRECCION: Record<Correccion["tipo"], string> = {
 
 const ACCIONES = ["Asignar categoría", "Dividir en varias", "Marcar duplicado", "Excluir del gasto"];
 
-/** Tipo de la cuenta a la que pertenece el movimiento ("Cuenta Corriente"). */
-function tipoCuenta(m: Movimiento): string | undefined {
-  for (const c of CONEXIONES) {
-    const cuenta = c.cuentas.find((x) => x.id === m.cuentaId);
+/**
+ * Tipo de la cuenta a la que pertenece el movimiento ("Cuenta Corriente").
+ *
+ * El cruce va por `idExterno` y no por `id`: el movimiento trae el
+ * identificador que le puso la institución, no el nuestro.
+ */
+function tipoCuenta(m: Movimiento, conexiones: Conexion[]): string | undefined {
+  for (const c of conexiones) {
+    const cuenta = c.cuentas.find((x) => x.idExterno === m.cuentaId);
     if (cuenta) return cuenta.tipo;
   }
 }
@@ -76,7 +80,7 @@ function resumenCorrecciones(lista: Correccion[]): string {
 export default function DetalleMovimiento() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { movimientos } = useMovimientos();
+  const { movimientos, conexiones } = useMovimientos();
   const m = movimientos.find((x) => x.id === id);
 
   if (!m) {
@@ -88,7 +92,9 @@ export default function DetalleMovimiento() {
   }
 
   const esCargo = m.monto < 0;
-  const subtitulo = [m.institucion, tipoCuenta(m), fechaHora(m.fecha)].filter(Boolean).join(" · ");
+  const subtitulo = [m.institucion, tipoCuenta(m, conexiones), fechaHora(m.fecha)]
+    .filter(Boolean)
+    .join(" · ");
   const sinIdentificar = m.comercio === null;
   const decision = describirClasificacion(m);
 

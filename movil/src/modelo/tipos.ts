@@ -59,20 +59,37 @@ export type Conexion = {
   id: string;
   institucion: string;
   estado: EstadoConexion;
-  /** Última vez que se obtuvieron datos con éxito. */
-  ultimaSincronizacion: string;
-  /** Solo cuando estado = "autorizacion_vencida". */
-  autorizacionVencioEl?: string;
+  /** Última vez que se obtuvieron datos con éxito. null si nunca se sincronizó. */
+  ultimaSincronizacion: string | null;
+  /** Solo cuando estado = "autorizacion_vencida", y solo si se sabe la fecha. */
+  autorizacionVencioEl?: string | null;
+  /**
+   * El dato ya no es confiable: nunca se sincronizó, o lo que hay es más viejo
+   * que la ventana de frescura. Se advierte en vez de mostrar un total que
+   * parece completo cuando no lo está (RF-35).
+   */
+  datoAntiguo: boolean;
   cuentas: CuentaConectada[];
 };
 
 export type CuentaConectada = {
+  /** Id interno de Velvet. */
   id: string;
-  /** Tal como lo entrega la institución: "Cuenta Corriente", "Cuenta Vista"… */
+  /**
+   * Id que le da la institución. Es el que viaja en `Movimiento.cuentaId`, así
+   * que es el que hay que usar para cruzar un movimiento con su cuenta.
+   */
+  idExterno: string | null;
+  /** Tipo ya legible: "Cuenta Corriente", "Cuenta Vista"… */
   tipo: string;
-  alias: string;
-  saldo: number;
-  moneda: "CLP";
+  /**
+   * Últimos dígitos, como los entrega la institución. El número completo no se
+   * guarda. null si el banco no lo informó.
+   */
+  numeroEnmascarado: string | null;
+  /** null si la institución no entregó saldo para esa cuenta. */
+  saldo: number | null;
+  moneda: string;
 };
 
 /** Por qué camino entró el movimiento al sistema. */
@@ -108,6 +125,7 @@ export type Correccion = {
  */
 export type Movimiento = {
   id: string;
+  /** El id que le da la INSTITUCIÓN a la cuenta: calza con `CuentaConectada.idExterno`. */
   cuentaId: string;
   institucion: string;
   fecha: string;
