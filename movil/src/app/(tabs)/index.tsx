@@ -16,6 +16,7 @@ import { Boton } from "@/components/Boton";
 import { Comparacion } from "@/components/Comparacion";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
 import { GraficoMeses } from "@/components/GraficoMeses";
+import { PanelFlujo } from "@/components/PanelFlujo";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos, type VueltaDelBanco } from "@/datos/MovimientosContexto";
@@ -335,6 +336,10 @@ export default function Inicio() {
           <Text style={estilos.pieTarjeta}>{resumen.cantidadGastos} movimientos</Text>
         </View>
       </View>
+
+      {/* Se le pasa `movimientos` para que se recalcule cuando cambian: una
+          sincronización o una corrección mueven estas cifras. */}
+      <PanelFlujo recalcularCon={movimientos} />
 
       <Seccion titulo="Gasto de los últimos meses" />
       <GraficoMeses

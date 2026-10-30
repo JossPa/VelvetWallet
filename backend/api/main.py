@@ -27,6 +27,7 @@ from .metas import router as metas_router
 from .perfil import router as perfil_router
 from .privacidad import router as privacidad_router
 from .creditos import router as creditos_router
+from .flujo import router as flujo_router
 from .incidentes import router as incidentes_router
 from .suscripciones import router as suscripciones_router
 
@@ -94,6 +95,7 @@ app.include_router(privacidad_router)
 app.include_router(suscripciones_router)
 app.include_router(incidentes_router)
 app.include_router(creditos_router)
+app.include_router(flujo_router)
 
 
 @app.get("/health", tags=["Operación"], summary="Comprobación de vida")
