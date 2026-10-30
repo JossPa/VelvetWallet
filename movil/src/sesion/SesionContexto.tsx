@@ -18,6 +18,12 @@ type ValorSesion = {
   entrar: (c: Credenciales) => Promise<void>;
   registrarse: (d: DatosRegistro) => Promise<void>;
   salir: () => Promise<void>;
+  /**
+   * Deja anotado el sueldo que la persona acabó de declarar en el backend
+   * (RF-36). Se guarda también en la sesión del dispositivo: si solo cambiara
+   * en memoria, al reabrir la app volvería el valor viejo.
+   */
+  anotarSueldo: (monto: number | null) => Promise<void>;
 };
 
 const Contexto = createContext<ValorSesion | null>(null);
@@ -49,9 +55,14 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     setUsuario(null);
   }, []);
 
+  const anotarSueldo = useCallback(async (monto: number | null) => {
+    const actualizado = await auth.actualizarUsuario({ sueldoDeclarado: monto });
+    if (actualizado) setUsuario(actualizado);
+  }, []);
+
   const valor = useMemo(
-    () => ({ usuario, cargando, entrar, registrarse, salir }),
-    [usuario, cargando, entrar, registrarse, salir],
+    () => ({ usuario, cargando, entrar, registrarse, salir, anotarSueldo }),
+    [usuario, cargando, entrar, registrarse, salir, anotarSueldo],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

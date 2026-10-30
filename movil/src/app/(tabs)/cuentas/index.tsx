@@ -16,6 +16,7 @@ import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { useSesion } from "@/sesion/SesionContexto";
+import { pesos } from "@/utils/formato";
 
 /**
  * Los cinco derechos del titular que reconoce la Ley 21.719, cada uno con su
@@ -47,8 +48,25 @@ export default function Cuentas() {
         filas={[
           { etiqueta: "Nombre", valor: usuario?.nombre ?? "—" },
           { etiqueta: "Correo", valor: usuario?.email ?? "—" },
+          {
+            etiqueta: "Sueldo mensual",
+            // Sin declarar no se muestra el estimado: aquí solo cabe una línea
+            // y un número sin su evidencia al lado se lee como un hecho. La
+            // estimación se explica en su pantalla, donde sí cabe justificarla.
+            valor: usuario?.sueldoDeclarado != null ? pesos(usuario.sueldoDeclarado) : "Sin declarar",
+            destacar: usuario?.sueldoDeclarado == null,
+          },
         ]}
       />
+      <Pressable
+        onPress={() => router.push("/cuentas/sueldo")}
+        style={({ pressed }) => [estilos.enlace, pressed && estilos.enlacePresionado]}
+      >
+        <Text style={estilos.enlaceTexto}>
+          {usuario?.sueldoDeclarado != null ? "Cambiar mi sueldo" : "Configurar mi sueldo"}
+        </Text>
+        <Ionicons name="chevron-forward" size={17} color={colores.acento} />
+      </Pressable>
 
       <Seccion titulo="Instituciones" />
       {conexiones.length === 0 ? (

@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 import psycopg
 
 from . import config, db
+from .perfil import sueldo_mensual
 from .sesion_actual import usuario_actual
 from motor.proyeccion import Proyeccion, excedentes_observados, proyectar
 
@@ -51,43 +52,6 @@ def _conectar():
 
 # ───────────────────────── historial de excedentes ─────────────────────────
 
-def _sueldo_mensual(conn, usuario_id: str) -> float:
-    """
-    Cuánto entra al mes.
-
-    Primero el sueldo que la persona declaró (RF-36); es el dato más confiable
-    porque lo puso ella. Si no lo declaró, se toma el abono recurrente más
-    reciente que no sea una transferencia entre cuentas propias.
-
-    Se usa un ingreso **constante**, no los abonos de cada mes, por el mismo
-    principio que el resumen del panel: el sueldo llega a fin de mes, así que
-    contar abonos reales dejaría casi todos los meses en rojo hasta el día de
-    pago. Un bono o aguinaldo suelto queda fuera, y eso hace la proyección algo
-    conservadora: prefiere prometer de menos.
-    """
-    fila = conn.execute(
-        "SELECT sueldo_declarado FROM usuario WHERE id = %s", (usuario_id,)
-    ).fetchone()
-    if fila and fila["sueldo_declarado"] is not None:
-        return float(fila["sueldo_declarado"])
-
-    abono = conn.execute(
-        """
-        SELECT t.monto
-        FROM transaccion t
-        JOIN cuenta c ON c.id = t.cuenta_id
-        WHERE c.usuario_id = %s
-          AND t.monto > 0
-          AND t.estado <> 'excluido'
-          AND t.glosa_original !~* 'transferencia'
-        ORDER BY t.fecha DESC
-        LIMIT 1
-        """,
-        (usuario_id,),
-    ).fetchone()
-    return float(abono["monto"]) if abono else 0.0
-
-
 def _gasto_por_mes(conn, usuario_id: str) -> dict[str, float]:
     """Gasto total de cada mes con movimientos, en positivo."""
     filas = conn.execute(
@@ -108,7 +72,7 @@ def _historial(conn, usuario_id: str) -> list[float]:
     hoy = datetime.now(timezone.utc)
     return excedentes_observados(
         _gasto_por_mes(conn, usuario_id),
-        _sueldo_mensual(conn, usuario_id),
+        sueldo_mensual(conn, usuario_id),
         mes_en_curso=f"{hoy.year}-{hoy.month:02d}",
     )
 

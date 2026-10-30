@@ -12,7 +12,7 @@
  *  · El error de credenciales no dice si falló el correo o la contraseña:
  *    distinguirlos permitiría averiguar qué correos están registrados.
  */
-import type { Credenciales, DatosRegistro, SesionIniciada } from "@/modelo/tipos";
+import type { Credenciales, DatosRegistro, SesionIniciada, Usuario } from "@/modelo/tipos";
 import { borrar, guardar, leer } from "@/servicios/almacenamiento";
 
 // URL del backend. En web, localhost funciona. En un celular físico, cámbiala
@@ -108,6 +108,22 @@ export async function sesionGuardada(): Promise<SesionIniciada | null> {
     await borrar(CLAVE_SESION);
     return null;
   }
+}
+
+/**
+ * Actualiza los datos del usuario dentro de la sesión guardada, sin tocar el
+ * token ni su vencimiento.
+ *
+ * Hace falta porque el usuario viaja dentro de la sesión: si solo se cambiara
+ * en memoria, al reabrir la app volvería el valor viejo. Devuelve el usuario
+ * ya guardado, o null si entremedio se cerró la sesión.
+ */
+export async function actualizarUsuario(cambios: Partial<Usuario>): Promise<Usuario | null> {
+  const sesion = await sesionGuardada();
+  if (!sesion) return null;
+  const usuario = { ...sesion.usuario, ...cambios };
+  await guardarSesion({ ...sesion, usuario });
+  return usuario;
 }
 
 /**
