@@ -68,13 +68,6 @@ export function Nota({ children }: { children: ReactNode }) {
   );
 }
 
-/** Contenido provisional para las secciones que dependen de motores futuros. */
-export function Proximamente({ que }: { que: string }) {
-  return (
-    <Nota>{que}</Nota>
-  );
-}
-
 const estilos = StyleSheet.create({
   area: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, paddingBottom: espacio.xl * 2 },
