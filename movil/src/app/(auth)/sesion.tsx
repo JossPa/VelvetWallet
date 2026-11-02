@@ -89,6 +89,9 @@ const estilos = StyleSheet.create({
   enlace: { color: colores.acento, fontFamily: fuente.textoFuerte },
   demo: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     padding: espacio.m,
     alignItems: "center",

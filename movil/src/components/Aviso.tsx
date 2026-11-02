@@ -30,6 +30,9 @@ const estilos = StyleSheet.create({
   caja: {
     flexDirection: "row",
     backgroundColor: colores.alertaSuave,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     padding: espacio.l,
     marginTop: espacio.l,

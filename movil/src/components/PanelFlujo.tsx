@@ -14,9 +14,11 @@
  * mueve estas cifras, y mostrarlas viejas sería peor que no mostrarlas.
  */
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { Cifra } from "@/components/Cifra";
 import { Ficha } from "@/components/Ficha";
+import { Fila, GrupoDeFilas } from "@/components/Fila";
 import { Nota, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente } from "@/constants/tema";
 import { obtenerFlujo, type RespuestaFlujo } from "@/servicios/flujo";
@@ -53,9 +55,10 @@ export function PanelFlujo({ recalcularCon }: { recalcularCon: unknown }) {
         <Ficha
           encabezado={
             <View style={estilos.encabezado}>
-              <Text style={[estilos.cifra, e.excedente < 0 && estilos.negativa]}>
-                {pesos(e.excedente)}
-              </Text>
+              <Cifra
+                valor={e.excedente}
+                style={[estilos.cifra, e.excedente < 0 && estilos.negativa]}
+              />
               <Text style={estilos.pie}>te queda después de lo que ya está comprometido</Text>
             </View>
           }
@@ -83,9 +86,10 @@ export function PanelFlujo({ recalcularCon }: { recalcularCon: unknown }) {
           <Ficha
             encabezado={
               <View style={estilos.encabezado}>
-                <Text style={[estilos.cifra, f.proyectado < 0 && estilos.negativa]}>
-                  {pesos(f.proyectado)}
-                </Text>
+                <Cifra
+                  valor={f.proyectado}
+                  style={[estilos.cifra, f.proyectado < 0 && estilos.negativa]}
+                />
                 <Text style={estilos.pie}>
                   {f.proyectado < 0
                     ? `te faltarían para llegar al ${fechaCorta(f.proximoPago)}`
@@ -102,27 +106,34 @@ export function PanelFlujo({ recalcularCon }: { recalcularCon: unknown }) {
             ]}
           />
 
+          {/* Antes era un enlace rojo suelto. Como fila dentro de su tarjeta
+              se lee como lo que es —el detalle de una cifra que está justo
+              arriba— y el chevrón dice que se despliega ahí mismo. */}
           {f.proximosCargos.length > 0 ? (
-            <Pressable onPress={() => setVerCargos((v) => !v)} hitSlop={8}>
-              <Text style={estilos.enlace}>
-                {verCargos
-                  ? "Ocultar los cargos"
-                  : `Ver los ${f.proximosCargos.length} cargos que vienen`}
-              </Text>
-            </Pressable>
-          ) : null}
-
-          {verCargos ? (
-            <View style={estilos.cargos}>
-              {f.proximosCargos.map((c) => (
-                <View key={`${c.nombre}-${c.fecha}`} style={estilos.cargo}>
-                  <Text style={estilos.cargoNombre} numberOfLines={1}>
-                    {c.nombre}
-                  </Text>
-                  <Text style={estilos.cargoFecha}>{fechaCorta(c.fecha)}</Text>
-                  <Text style={estilos.cargoMonto}>{menos(c.monto)}</Text>
-                </View>
-              ))}
+            <View style={estilos.caja}>
+              <GrupoDeFilas>
+                <Fila
+                  titulo={`${f.proximosCargos.length} ${f.proximosCargos.length === 1 ? "cargo que viene" : "cargos que vienen"}`}
+                  icono="calendar-outline"
+                  valor={menos(f.comprometido)}
+                  onPress={() => setVerCargos((v) => !v)}
+                  expandido={verCargos}
+                  ultima={!verCargos}
+                />
+                {verCargos ? (
+                  <View style={estilos.cargos}>
+                    {f.proximosCargos.map((c) => (
+                      <View key={`${c.nombre}-${c.fecha}`} style={estilos.cargo}>
+                        <Text style={estilos.cargoNombre} numberOfLines={1}>
+                          {c.nombre}
+                        </Text>
+                        <Text style={estilos.cargoFecha}>{fechaCorta(c.fecha)}</Text>
+                        <Text style={estilos.cargoMonto}>{menos(c.monto)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+              </GrupoDeFilas>
             </View>
           ) : null}
 
@@ -142,13 +153,8 @@ const estilos = StyleSheet.create({
   cifra: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 30 },
   negativa: { color: colores.acento },
   pie: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, lineHeight: 19 },
-  enlace: {
-    color: colores.acento,
-    fontFamily: fuente.textoFuerte,
-    fontSize: 14,
-    marginTop: espacio.m,
-  },
-  cargos: { marginTop: espacio.m, gap: espacio.s },
+  caja: { marginTop: espacio.m },
+  cargos: { paddingHorizontal: espacio.l, paddingVertical: espacio.m, gap: espacio.m },
   cargo: { flexDirection: "row", alignItems: "center", gap: espacio.m },
   cargoNombre: { flex: 1, color: colores.texto, fontFamily: fuente.texto, fontSize: 14 },
   cargoFecha: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13 },

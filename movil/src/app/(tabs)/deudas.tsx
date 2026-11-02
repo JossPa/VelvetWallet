@@ -17,8 +17,10 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { BarraAvance } from "@/components/BarraAvance";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { retraso } from "@/utils/animacion";
 import { pesos } from "@/utils/formato";
 import { obtenerCreditos, type Credito } from "@/servicios/creditos";
 
@@ -29,7 +31,7 @@ function avance(c: Credito): { pagadas: number; total: number; fraccion: number 
   return { pagadas, total: c.plazoMeses, fraccion: pagadas / c.plazoMeses };
 }
 
-function Tarjeta({ c }: { c: Credito }) {
+function Tarjeta({ c, demora }: { c: Credito; demora: number }) {
   const a = avance(c);
   const terminado = (c.cuotasRestantes ?? 0) === 0;
 
@@ -76,9 +78,7 @@ function Tarjeta({ c }: { c: Credito }) {
 
       {a ? (
         <>
-          <View style={estilos.pista}>
-            <View style={[estilos.avance, { width: `${Math.round(a.fraccion * 100)}%` }]} />
-          </View>
+          <BarraAvance fraccion={a.fraccion} demora={demora} style={estilos.pista} />
           <View style={estilos.piePista}>
             <Text style={estilos.cuotas}>
               {a.pagadas} de {a.total} cuotas
@@ -155,8 +155,8 @@ export default function Deudas() {
       </View>
 
       <Seccion titulo="Tus créditos" />
-      {datos.creditos.map((c) => (
-        <Tarjeta key={c.id} c={c} />
+      {datos.creditos.map((c, i) => (
+        <Tarjeta key={c.id} c={c} demora={retraso(i, tiempos.escalon)} />
       ))}
 
       <Nota>
@@ -188,6 +188,9 @@ const estilos = StyleSheet.create({
 
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
@@ -206,14 +209,7 @@ const estilos = StyleSheet.create({
   cifraValor: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 18 },
   cifraPie: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 11.5 },
 
-  pista: {
-    height: 6,
-    backgroundColor: colores.chip,
-    borderRadius: 3,
-    marginTop: espacio.l,
-    overflow: "hidden",
-  },
-  avance: { height: "100%", backgroundColor: colores.acento, borderRadius: 3 },
+  pista: { marginTop: espacio.l },
   piePista: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   cuotas: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 12.5 },
   restantes: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5 },

@@ -6,9 +6,10 @@
  * aparte y el dato original del banco nunca se modifica (RF-14 / RNF-31).
  */
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { Ficha } from "@/components/Ficha";
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
@@ -124,9 +125,9 @@ export default function DetalleMovimiento() {
       <Seccion titulo="Corregir" />
       <View style={estilos.acciones}>
         {ACCIONES.map((texto) => (
-          <Pressable key={texto} style={({ pressed }) => [estilos.accion, pressed && estilos.accionPresionada]}>
+          <Tocable key={texto} style={estilos.accion}>
             <Text style={estilos.accionTexto}>{texto}</Text>
-          </Pressable>
+          </Tocable>
         ))}
       </View>
 
@@ -154,11 +155,13 @@ const estilos = StyleSheet.create({
     width: "48%",
     flexGrow: 1,
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     paddingVertical: espacio.l,
     alignItems: "center",
   },
-  accionPresionada: { opacity: 0.7 },
   accionTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 15 },
   pie: {
     color: colores.texto2,

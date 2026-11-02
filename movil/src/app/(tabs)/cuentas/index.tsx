@@ -7,28 +7,72 @@
  */
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Boton } from "@/components/Boton";
+import { Fila, GrupoDeFilas } from "@/components/Fila";
 import { FilaConexion } from "@/components/FilaConexion";
 import { Ficha } from "@/components/Ficha";
+import { Aparecer } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { colores, espacio, movimiento, radio } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { useSesion } from "@/sesion/SesionContexto";
 import { pesos } from "@/utils/formato";
 
 /**
- * Los cinco derechos del titular que reconoce la Ley 21.719, cada uno con su
+ * Los derechos del titular que reconoce la Ley 21.719, cada uno con su
  * pantalla. `peligro` marca el que no tiene vuelta atrás.
+ *
+ * El detalle no es decorativo: nombra el derecho legal que hay detrás, que es
+ * justamente lo que un evaluador quiere ver conectado con la ley. El icono
+ * además deja la lista legible de un vistazo, sin tener que leer seis títulos
+ * parecidos.
  */
-const DERECHOS: { texto: string; ruta: string; peligro?: boolean }[] = [
-  { texto: "Para qué usamos tus datos", ruta: "/cuentas/privacidad" },
-  { texto: "Qué autorizaste y por cuánto tiempo", ruta: "/cuentas/autorizaciones" },
-  { texto: "Descargar todos mis datos", ruta: "/cuentas/exportar" },
-  { texto: "Bitácora de accesos", ruta: "/cuentas/bitacora" },
-  { texto: "Avisos de seguridad", ruta: "/cuentas/incidentes" },
-  { texto: "Eliminar mi cuenta y mis datos", ruta: "/cuentas/eliminar", peligro: true },
+const DERECHOS: {
+  texto: string;
+  detalle: string;
+  icono: keyof typeof Ionicons.glyphMap;
+  ruta: string;
+  peligro?: boolean;
+}[] = [
+  {
+    texto: "Para qué usamos tus datos",
+    detalle: "Finalidades del tratamiento",
+    icono: "information-circle-outline",
+    ruta: "/cuentas/privacidad",
+  },
+  {
+    texto: "Qué autorizaste y por cuánto tiempo",
+    detalle: "Consentimientos vigentes y revocación",
+    icono: "key-outline",
+    ruta: "/cuentas/autorizaciones",
+  },
+  {
+    texto: "Descargar todos mis datos",
+    detalle: "Derecho de portabilidad",
+    icono: "download-outline",
+    ruta: "/cuentas/exportar",
+  },
+  {
+    texto: "Bitácora de accesos",
+    detalle: "Registro de actividades de tratamiento",
+    icono: "time-outline",
+    ruta: "/cuentas/bitacora",
+  },
+  {
+    texto: "Avisos de seguridad",
+    detalle: "Notificación de brechas",
+    icono: "shield-outline",
+    ruta: "/cuentas/incidentes",
+  },
+  {
+    texto: "Eliminar mi cuenta y mis datos",
+    detalle: "Derecho de supresión",
+    icono: "trash-outline",
+    ruta: "/cuentas/eliminar",
+    peligro: true,
+  },
 ];
 
 export default function Cuentas() {
@@ -58,15 +102,16 @@ export default function Cuentas() {
           },
         ]}
       />
-      <Pressable
-        onPress={() => router.push("/cuentas/sueldo")}
-        style={({ pressed }) => [estilos.enlace, pressed && estilos.enlacePresionado]}
-      >
-        <Text style={estilos.enlaceTexto}>
-          {usuario?.sueldoDeclarado != null ? "Cambiar mi sueldo" : "Configurar mi sueldo"}
-        </Text>
-        <Ionicons name="chevron-forward" size={17} color={colores.acento} />
-      </Pressable>
+      <View style={estilos.sueldo}>
+        <GrupoDeFilas>
+          <Fila
+            titulo={usuario?.sueldoDeclarado != null ? "Cambiar mi sueldo" : "Configurar mi sueldo"}
+            icono="wallet-outline"
+            onPress={() => router.push("/cuentas/sueldo")}
+            ultima
+          />
+        </GrupoDeFilas>
+      </View>
 
       <Seccion titulo="Instituciones" />
       {conexiones.length === 0 ? (
@@ -74,7 +119,7 @@ export default function Cuentas() {
           Todavía no has autorizado ninguna institución. Puedes conectar tu banco desde Inicio.
         </Nota>
       ) : (
-        <View>
+        <View style={estilos.instituciones}>
           {conexiones.map((c) => (
             <FilaConexion key={c.id} conexion={c} />
           ))}
@@ -82,20 +127,21 @@ export default function Cuentas() {
       )}
 
       <Seccion titulo="Tus datos" />
-      {DERECHOS.map(({ texto, ruta, peligro }) => (
-        <Pressable
-          key={texto}
-          onPress={() => router.push(ruta as never)}
-          style={({ pressed }) => [estilos.enlace, pressed && estilos.enlacePresionado]}
-        >
-          <Text style={[estilos.enlaceTexto, peligro && estilos.enlacePeligro]}>{texto}</Text>
-          <Ionicons
-            name="chevron-forward"
-            size={17}
-            color={peligro ? colores.texto3 : colores.acento}
-          />
-        </Pressable>
-      ))}
+      <Aparecer demora={movimiento.escalon}>
+        <GrupoDeFilas>
+          {DERECHOS.map(({ texto, detalle, icono, ruta, peligro }, i) => (
+            <Fila
+              key={texto}
+              titulo={texto}
+              detalle={detalle}
+              icono={icono}
+              tono={peligro ? "peligro" : "normal"}
+              onPress={() => router.push(ruta as never)}
+              ultima={i === DERECHOS.length - 1}
+            />
+          ))}
+        </GrupoDeFilas>
+      </Aparecer>
 
       <Nota>
         Velvet Wallet nunca pide ni guarda tu clave del banco. La autorización ocurre en el sitio de
@@ -108,15 +154,16 @@ export default function Cuentas() {
 }
 
 const estilos = StyleSheet.create({
-  enlace: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: espacio.m,
+  sueldo: { marginTop: espacio.m },
+  // Las instituciones iban sueltas sobre el fondo mientras todo lo demás
+  // estaba en tarjetas: se leían como si no pertenecieran a la pantalla.
+  instituciones: {
+    backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
+    borderRadius: radio.l,
+    paddingHorizontal: espacio.l,
   },
-  enlacePresionado: { opacity: 0.7 },
-  enlaceTexto: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 16 },
-  // El borrado no se destaca: no es una acción que haya que invitar a tocar.
-  enlacePeligro: { color: colores.texto2 },
   salir: { marginTop: espacio.xl },
 });

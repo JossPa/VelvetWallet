@@ -8,8 +8,9 @@
  */
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
@@ -57,16 +58,15 @@ function Tarjeta({
 
       <View style={estilos.opciones}>
         {sugeridas.map((categoria, i) => (
-          <Pressable
+          <Tocable
             key={categoria}
             onPress={() => onElegir(categoria)}
-            style={({ pressed }) => [
+            style={[
               estilos.chip,
               // Solo se destaca si una regla reconoció la glosa. Si no
               // sabemos, todas las opciones pesan igual: no presentamos una
               // suposición como si fuera una certeza.
               i === 0 && sugerencia.porRegla && estilos.chipPrincipal,
-              pressed && estilos.presionado,
             ]}
           >
             <Text
@@ -77,25 +77,18 @@ function Tarjeta({
             >
               {categoria}
             </Text>
-          </Pressable>
+          </Tocable>
         ))}
 
         {!verTodas ? (
-          <Pressable
-            onPress={() => setVerTodas(true)}
-            style={({ pressed }) => [estilos.chip, pressed && estilos.presionado]}
-          >
+          <Tocable onPress={() => setVerTodas(true)} style={estilos.chip}>
             <Text style={estilos.chipTexto}>Otra…</Text>
-          </Pressable>
+          </Tocable>
         ) : (
           opciones.map((categoria) => (
-            <Pressable
-              key={categoria}
-              onPress={() => onElegir(categoria)}
-              style={({ pressed }) => [estilos.chip, pressed && estilos.presionado]}
-            >
+            <Tocable key={categoria} onPress={() => onElegir(categoria)} style={estilos.chip}>
               <Text style={estilos.chipTexto}>{categoria}</Text>
-            </Pressable>
+            </Tocable>
           ))
         )}
       </View>
@@ -147,6 +140,9 @@ export default function PorRevisar() {
 const estilos = StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginBottom: espacio.m,
@@ -172,7 +168,6 @@ const estilos = StyleSheet.create({
     borderRadius: radio.m,
   },
   chipPrincipal: { backgroundColor: colores.acento },
-  presionado: { opacity: 0.75 },
   chipTexto: { color: colores.texto2, fontFamily: fuente.textoFuerte, fontSize: 15 },
   chipTextoPrincipal: { color: "#FFFFFF" },
   cobertura: {

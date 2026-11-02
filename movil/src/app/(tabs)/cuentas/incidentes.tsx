@@ -13,8 +13,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { fechaConAnio, hora } from "@/utils/formato";
@@ -90,12 +91,9 @@ function Tarjeta({ i, onVisto }: { i: Incidente; onVisto: () => void }) {
       </View>
 
       {sinLeer ? (
-        <Pressable
-          onPress={onVisto}
-          style={({ pressed }) => [estilos.boton, pressed && estilos.presionado]}
-        >
+        <Tocable onPress={onVisto} style={estilos.boton}>
           <Text style={estilos.botonTexto}>Entendido</Text>
-        </Pressable>
+        </Tocable>
       ) : (
         <Text style={estilos.leido}>Lo leíste el {fechaConAnio(i.visto!)}</Text>
       )}
@@ -180,6 +178,9 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     gap: espacio.m,
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.xl,
   },
@@ -193,6 +194,9 @@ const estilos = StyleSheet.create({
 
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
@@ -229,7 +233,6 @@ const estilos = StyleSheet.create({
     alignItems: "center",
     marginTop: espacio.m,
   },
-  presionado: { opacity: 0.7 },
   botonTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14.5 },
   leido: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5, marginTop: espacio.m },
 });

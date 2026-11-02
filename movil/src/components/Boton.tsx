@@ -2,8 +2,9 @@
  * Botón principal. Mientras `cargando` está activo se deshabilita y muestra un
  * indicador: sin eso, el usuario toca dos veces y se envían dos peticiones.
  */
-import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 
+import { Tocable } from "@/components/Movimiento";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 
 type Props = {
@@ -20,23 +21,19 @@ export function Boton({ titulo, onPress, cargando, deshabilitado, secundario, st
   const inactivo = deshabilitado || cargando;
 
   return (
-    <Pressable
+    // `disabled` también corta el encogido: deshabilitado no debe ceder al
+    // dedo, porque eso diría que sí pasó algo.
+    <Tocable
       onPress={onPress}
       disabled={inactivo}
-      style={({ pressed }) => [
-        estilos.boton,
-        secundario && estilos.secundario,
-        inactivo && estilos.inactivo,
-        pressed && !inactivo && estilos.presionado,
-        style,
-      ]}
+      style={[estilos.boton, secundario && estilos.secundario, inactivo && estilos.inactivo, style]}
     >
       {cargando ? (
         <ActivityIndicator color={secundario ? colores.texto : "#FFFFFF"} />
       ) : (
         <Text style={[estilos.texto, secundario && estilos.textoSecundario]}>{titulo}</Text>
       )}
-    </Pressable>
+    </Tocable>
   );
 }
 
@@ -49,9 +46,14 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
     minHeight: 54,
   },
-  secundario: { backgroundColor: colores.tarjeta },
+  // El secundario es una superficie, no un bloque de color: necesita su canto
+  // igual que las tarjetas, o sobre el fondo oscuro se lee como una mancha.
+  secundario: {
+    backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.bordeVivo,
+  },
   inactivo: { opacity: 0.5 },
-  presionado: { opacity: 0.85 },
   texto: { color: "#FFFFFF", fontFamily: fuente.textoFuerte, fontSize: 16 },
   textoSecundario: { color: colores.texto },
 });

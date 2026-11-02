@@ -7,6 +7,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { colores, fuente, radio } from "@/constants/tema";
 import { COMERCIOS, LOGOS } from "@/datos/comercios";
+import { tinte } from "@/utils/coloresCategoria";
 
 /** "Uber Eats" → "UE", "Lider" → "LI". */
 function iniciales(nombre: string): string {
@@ -19,9 +20,23 @@ type Props = {
   nombre: string;
   sinIdentificar?: boolean;
   tamano?: number;
+  /**
+   * Color de la categoría del movimiento.
+   *
+   * Solo se usa en el monograma, que es el caso sin logo: ahí el avatar no
+   * tenía identidad y era un cuadro gris más. Un comercio con logo conserva su
+   * marca —Lider azul, Uber Eats verde— porque reconocerlo de un vistazo vale
+   * más que saber su categoría, que de todas formas va escrita al lado.
+   */
+  colorCategoria?: string;
 };
 
-export function AvatarComercio({ nombre, sinIdentificar = false, tamano = 44 }: Props) {
+export function AvatarComercio({
+  nombre,
+  sinIdentificar = false,
+  tamano = 44,
+  colorCategoria,
+}: Props) {
   const caja = { width: tamano, height: tamano, borderRadius: radio.m };
 
   if (sinIdentificar) {
@@ -60,10 +75,25 @@ export function AvatarComercio({ nombre, sinIdentificar = false, tamano = 44 }: 
     );
   }
 
-  // 3. Monograma
+  // 3. Monograma. Sin logo que lo identifique, el avatar toma el color de su
+  //    categoría: deja de ser un cuadro gris indistinguible del de al lado.
+  const hayTinte = !entrada && colorCategoria;
   return (
-    <View style={[estilos.caja, caja, { backgroundColor: fondo }]}>
-      <Text style={[estilos.texto, { color: tinta, fontSize: tamano * 0.32 }]}>{iniciales(nombre)}</Text>
+    <View
+      style={[
+        estilos.caja,
+        caja,
+        { backgroundColor: hayTinte ? tinte(colorCategoria) : fondo },
+      ]}
+    >
+      <Text
+        style={[
+          estilos.texto,
+          { color: hayTinte ? colorCategoria : tinta, fontSize: tamano * 0.32 },
+        ]}
+      >
+        {iniciales(nombre)}
+      </Text>
     </View>
   );
 }

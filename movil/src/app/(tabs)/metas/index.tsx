@@ -9,13 +9,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { BarraAvance } from "@/components/BarraAvance";
 import { Boton } from "@/components/Boton";
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
 import type { Meta } from "@/modelo/tipos";
 import { listarMetas } from "@/servicios/metas";
+import { retraso } from "@/utils/animacion";
 import { pesos } from "@/utils/formato";
 import { describirProyeccion, faltaPara } from "@/utils/metas";
 
@@ -70,10 +73,11 @@ export default function Metas() {
           </Text>
         </View>
       ) : (
-        metas.map((m) => (
+        metas.map((m, i) => (
           <TarjetaMeta
             key={m.id}
             meta={m}
+            demora={retraso(i, tiempos.escalon)}
             onPress={() => router.push({ pathname: "/metas/[id]", params: { id: m.id } })}
           />
         ))
@@ -95,15 +99,11 @@ export default function Metas() {
   );
 }
 
-function TarjetaMeta({ meta, onPress }: { meta: Meta; onPress: () => void }) {
+function TarjetaMeta({ meta, onPress, demora }: { meta: Meta; onPress: () => void; demora: number }) {
   const resumen = describirProyeccion(meta);
   const avance = Math.round(meta.avance * 100);
-
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [estilos.tarjeta, pressed && estilos.presionada]}
-    >
+    <Tocable onPress={onPress} style={estilos.tarjeta}>
       <View style={estilos.cabecera}>
         <Text style={estilos.nombre} numberOfLines={1}>
           {meta.nombre}
@@ -116,9 +116,7 @@ function TarjetaMeta({ meta, onPress }: { meta: Meta; onPress: () => void }) {
         <Text style={estilos.objetivo}>{`  de ${pesos(meta.montoObjetivo)}`}</Text>
       </Text>
 
-      <View style={estilos.pista}>
-        <View style={[estilos.avance, { width: `${Math.min(avance, 100)}%` }]} />
-      </View>
+      <BarraAvance fraccion={meta.avance} demora={demora} style={estilos.pista} />
 
       <View style={estilos.piePorcentaje}>
         <Text style={estilos.porcentaje}>{avance}%</Text>
@@ -133,7 +131,7 @@ function TarjetaMeta({ meta, onPress }: { meta: Meta; onPress: () => void }) {
         </Text>
         {resumen.detalle ? <Text style={estilos.detalle}>{resumen.detalle}</Text> : null}
       </View>
-    </Pressable>
+    </Tocable>
   );
 }
 
@@ -141,24 +139,19 @@ const estilos = StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
   },
-  presionada: { opacity: 0.8 },
   cabecera: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: espacio.m },
   nombre: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 18, flexShrink: 1 },
   montos: { marginTop: espacio.m },
   ahorrado: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 24, letterSpacing: -0.4 },
   objetivo: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 15 },
-  pista: {
-    height: 6,
-    backgroundColor: colores.chip,
-    borderRadius: 3,
-    marginTop: espacio.m,
-    overflow: "hidden",
-  },
-  avance: { height: "100%", backgroundColor: colores.acento, borderRadius: 3 },
+  pista: { marginTop: espacio.m },
   piePorcentaje: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   porcentaje: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 12 },
   falta: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },

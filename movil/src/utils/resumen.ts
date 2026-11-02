@@ -139,7 +139,11 @@ export type PorcionCategoria = {
   fraccion: number;
 };
 
-const SIN_CATEGORIA = "Sin categorizar";
+/** Nombre con que se muestra un movimiento que el clasificador no categorizó. */
+export const SIN_CATEGORIA = "Sin categorizar";
+
+/** Nombre de la porción que agrupa a las categorías menores del gráfico. */
+export const OTROS = "Otros";
 
 /**
  * Suma los cargos por categoría dentro de uno o varios meses.
@@ -184,7 +188,7 @@ export function repartoPorCategoria(
     monto,
     fraccion: monto / total,
   }));
-  if (resto > 0) porciones.push({ categoria: "Otros", monto: resto, fraccion: resto / total });
+  if (resto > 0) porciones.push({ categoria: OTROS, monto: resto, fraccion: resto / total });
 
   return { porciones, total };
 }

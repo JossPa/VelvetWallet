@@ -155,6 +155,9 @@ const estilos = StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,

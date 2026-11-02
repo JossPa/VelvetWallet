@@ -136,6 +136,8 @@ const estilos = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: colores.acentoSuave,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.acentoBorde,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -151,6 +153,9 @@ const estilos = StyleSheet.create({
 
   recuadro: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     padding: espacio.l,
     gap: espacio.s,

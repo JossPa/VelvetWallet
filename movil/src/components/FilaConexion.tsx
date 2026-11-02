@@ -6,8 +6,9 @@
  * permiso vigente no garantiza que lo que se muestra esté actualizado, y RF-35
  * pide decirlo en vez de presentar un total como si estuviera completo.
  */
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { Tocable } from "@/components/Movimiento";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import type { Conexion } from "@/modelo/tipos";
 import { fechaCorta, pesos, tiempoRelativo } from "@/utils/formato";
@@ -58,12 +59,9 @@ export function FilaConexion({ conexion, onReautorizar }: Props) {
           <Text style={estilos.detalle}>{estado.texto}</Text>
         </View>
         {necesitaAccion ? (
-          <Pressable
-            onPress={() => onReautorizar?.(conexion)}
-            style={({ pressed }) => [estilos.boton, pressed && estilos.botonPresionado]}
-          >
+          <Tocable onPress={() => onReautorizar?.(conexion)} style={estilos.boton}>
             <Text style={estilos.botonTexto}>Reautorizar</Text>
-          </Pressable>
+          </Tocable>
         ) : null}
       </View>
 
@@ -113,6 +111,5 @@ const estilos = StyleSheet.create({
     borderRadius: radio.m,
     marginLeft: espacio.m,
   },
-  botonPresionado: { opacity: 0.85 },
   botonTexto: { color: "#FFFFFF", fontFamily: fuente.textoFuerte, fontSize: 14 },
 });

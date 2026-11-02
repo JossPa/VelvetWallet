@@ -15,11 +15,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { BarraAvance } from "@/components/BarraAvance";
 import { Campo } from "@/components/Campo";
+import { Cifra } from "@/components/Cifra";
 import { CurvaProbabilidad } from "@/components/CurvaProbabilidad";
 import { Ficha } from "@/components/Ficha";
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import type { Meta } from "@/modelo/tipos";
@@ -111,11 +114,9 @@ export default function DetalleMeta() {
     <Pantalla titulo={meta.nombre} onAtras={() => router.back()}>
       {/* 1 · Cuánto llevo */}
       <View style={estilos.progreso}>
-        <Text style={estilos.ahorrado}>{pesos(meta.montoAhorrado)}</Text>
+        <Cifra valor={meta.montoAhorrado} style={estilos.ahorrado} />
         <Text style={estilos.objetivo}>de {pesos(meta.montoObjetivo)}</Text>
-        <View style={estilos.pista}>
-          <View style={[estilos.avance, { width: `${Math.min(avance, 100)}%` }]} />
-        </View>
+        <BarraAvance fraccion={meta.avance} alto={8} style={estilos.pista} />
         <View style={estilos.piePorcentaje}>
           <Text style={estilos.porcentaje}>{avance}% reunido</Text>
           <Text style={estilos.falta}>
@@ -176,17 +177,13 @@ export default function DetalleMeta() {
             keyboardType="number-pad"
           />
         </View>
-        <Pressable
+        <Tocable
           onPress={abonar}
           disabled={guardando || !abono}
-          style={({ pressed }) => [
-            estilos.abonoBoton,
-            (guardando || !abono) && estilos.abonoInactivo,
-            pressed && estilos.presionado,
-          ]}
+          style={[estilos.abonoBoton, (guardando || !abono) && estilos.abonoInactivo]}
         >
           <Ionicons name="add" size={24} color="#FFFFFF" />
-        </Pressable>
+        </Tocable>
       </View>
 
       {/* 4 · De dónde salió */}
@@ -207,15 +204,15 @@ export default function DetalleMeta() {
         probabilidad y no como una fecha exacta.
       </Nota>
 
-      <Pressable onPress={borrar} style={estilos.eliminar}>
+      <Tocable onPress={borrar} style={estilos.eliminar}>
         <Text style={estilos.eliminarTexto}>
           {confirmandoBorrado ? "Toca de nuevo para confirmar" : "Eliminar esta meta"}
         </Text>
-      </Pressable>
+      </Tocable>
       {confirmandoBorrado ? (
-        <Pressable onPress={() => setConfirmandoBorrado(false)} style={estilos.cancelar}>
+        <Tocable onPress={() => setConfirmandoBorrado(false)} style={estilos.cancelar}>
           <Text style={estilos.cancelarTexto}>Mejor no</Text>
-        </Pressable>
+        </Tocable>
       ) : null}
     </Pantalla>
   );
@@ -250,14 +247,15 @@ const estilos = StyleSheet.create({
   progreso: { backgroundColor: colores.tarjeta, borderRadius: radio.l, padding: espacio.l },
   ahorrado: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 34, letterSpacing: -0.8 },
   objetivo: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 15, marginTop: 2 },
-  pista: { height: 8, backgroundColor: colores.chip, borderRadius: 4, marginTop: espacio.l, overflow: "hidden" },
-  avance: { height: "100%", backgroundColor: colores.acento, borderRadius: 4 },
+  pista: { marginTop: espacio.l },
   piePorcentaje: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   porcentaje: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 13 },
   falta: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13 },
 
   titularCaja: {
     backgroundColor: colores.acentoSuave,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.acentoBorde,
     borderRadius: radio.l,
     padding: espacio.l,
     gap: 4,
@@ -271,11 +269,15 @@ const estilos = StyleSheet.create({
   plazo: {
     flex: 1,
     backgroundColor: colores.tarjeta,
+    // 1px y no hairline: el borde es el que se pinta de rojo al elegir el
+    // plazo, así que tiene que ocupar el mismo lugar siempre o las tres
+    // tarjetas se mueven cuando cambia la selección.
+    borderWidth: 1,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     paddingVertical: espacio.m,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "transparent",
   },
   plazoDestacado: { borderColor: colores.acento },
   plazoMeses: { color: colores.texto2, fontFamily: fuente.titulo, fontSize: 26, letterSpacing: -0.5 },
@@ -296,7 +298,6 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   abonoInactivo: { opacity: 0.4 },
-  presionado: { opacity: 0.85 },
 
   eliminar: { marginTop: espacio.xl, paddingVertical: espacio.m, alignItems: "center" },
   eliminarTexto: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 15 },

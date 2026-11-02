@@ -13,17 +13,23 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { AvisoClasificacion } from "@/components/AvisoClasificacion";
 import { BarraCategorias } from "@/components/BarraCategorias";
 import { Boton } from "@/components/Boton";
+import { Cifra } from "@/components/Cifra";
 import { Comparacion } from "@/components/Comparacion";
+import { EsqueletoInicio } from "@/components/Esqueleto";
+import { GastoMasGrande } from "@/components/GastoMasGrande";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
 import { GraficoMeses } from "@/components/GraficoMeses";
+import { Aparecer } from "@/components/Movimiento";
 import { PanelFlujo } from "@/components/PanelFlujo";
 import { Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { Superficie } from "@/components/Superficie";
+import { colores, espacio, fuente, movimiento, radio } from "@/constants/tema";
 import { useMovimientos, type VueltaDelBanco } from "@/datos/MovimientosContexto";
 import { marcarVisto, yaSeVio } from "@/datos/primeraVez";
 import { useSesion } from "@/sesion/SesionContexto";
 import { ErrorSincronizacion } from "@/servicios/sincronizacion";
 import { claveMes, nombreMes, pesos } from "@/utils/formato";
+import { categoriaMasGrande, desglosar } from "@/utils/desglose";
 import {
   compararConMesAnterior,
   gastoUltimosMeses,
@@ -103,7 +109,7 @@ function PanelAutorizacion({
 
 export default function Inicio() {
   const router = useRouter();
-  const { movimientos, sincronizando, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, error } =
+  const { movimientos, sincronizando, cargaInicial, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, error } =
     useMovimientos();
   // Vuelta desde el sitio del banco (web): ?banco=vinculado|rechazado|error&motivo=…
   const parametros = useLocalSearchParams<{ banco?: string; motivo?: string }>();
@@ -207,6 +213,17 @@ export default function Inicio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parametros.banco]);
 
+  // La primera carga todavía viene en camino: no se sabe si hay movimientos o
+  // no. Mostrar "Conecta tu primer banco" aquí sería afirmar algo que puede
+  // ser falso, y la pantalla saltaría sola al llegar la respuesta.
+  if (cargaInicial) {
+    return (
+      <Pantalla titulo="Velvet Wallet" marca>
+        <EsqueletoInicio />
+      </Pantalla>
+    );
+  }
+
   // Usuario sin movimientos todavía (p. ej. recién registrado): aún no vinculó
   // ningún banco. Aquí PIDE el permiso explícitamente — no se conecta solo.
   if (movimientos.length === 0) {
@@ -262,34 +279,82 @@ export default function Inicio() {
   const mesesDelPeriodo = new Set(serie.map((g) => g.mes));
   const repartoPeriodo = repartoPorCategoria(movimientos, mesesDelPeriodo);
 
-  return (
-    <Pantalla titulo="Velvet Wallet" marca etiqueta={nombreMes(mes)}>
-      <Text style={estilos.rotulo}>DISPONIBLE ESTE MES</Text>
-      <Text style={[estilos.disponible, resumen.disponible < 0 && estilos.negativo]}>
-        {pesos(resumen.disponible)}
-      </Text>
+  // El gasto más grande del mes, ya desglosado. El panel lo nombra en vez de
+  // dejar al usuario buscando con la vista cuál es la porción más gruesa.
+  const mayor = categoriaMasGrande(movimientos, mes);
+  const desgloseMayor = mayor ? desglosar(movimientos, mayor.categoria, mes) : null;
 
-      <Boton
-        titulo={sincronizando ? "Consultando tu banco…" : "Sincronizar"}
-        onPress={alSincronizar}
-        cargando={sincronizando}
-        secundario
-        style={estilos.sincronizar}
-      />
-      {/* Siempre visible con datos: también para vínculos hechos antes de que
-          se guardara el cliente del banco (sin nombre), para poder cambiarlo. */}
-      <View style={estilos.vinculoFila}>
-        <Text style={estilos.vinculo}>
-          {clienteBanco?.nombre
-            ? `Banco vinculado como ${clienteBanco.nombre} · ${clienteBanco.rut}`
-            : "Banco vinculado"}
-        </Text>
-        {!confirmarDesvincular ? (
-          <Pressable onPress={() => setConfirmarDesvincular(true)} hitSlop={8}>
-            <Text style={estilos.vinculoAccion}>Desvincular</Text>
-          </Pressable>
-        ) : null}
-      </View>
+  /**
+   * Abre el desglose de una categoría manteniendo el período que se está
+   * mirando: desde el anillo va el mes, desde la barra van los seis meses. Si
+   * cambiara de período, las cifras no cuadrarían con las de esta pantalla.
+   */
+  function abrirCategoria(categoria: string, deTodoElPeriodo = false) {
+    router.push({
+      pathname: "/gastos/categoria",
+      params: deTodoElPeriodo
+        ? { nombre: categoria, meses: serie.map((g) => g.mes).join(",") }
+        : { nombre: categoria, mes },
+    });
+  }
+
+  return (
+    <Pantalla
+      titulo="Velvet Wallet"
+      marca
+      etiqueta={nombreMes(mes)}
+      resumen={{
+        rotulo: "DISPONIBLE",
+        valor: pesos(resumen.disponible),
+        negativo: resumen.disponible < 0,
+      }}
+    >
+      {/* La zona héroe es una superficie de nivel 1 que CONTIENE a las
+          tarjetas de ingresos y gastos. Antes eran cinco rectángulos iguales
+          apilados y nada pesaba más que nada; ahora la jerarquía se ve: esto
+          es el resumen del mes, y lo de abajo son sus detalles. */}
+      <Superficie nivel={1} style={estilos.zona}>
+        <Text style={estilos.rotulo}>DISPONIBLE ESTE MES</Text>
+        <Cifra
+          valor={resumen.disponible}
+          style={[estilos.disponible, resumen.disponible < 0 && estilos.negativo]}
+        />
+
+        <Boton
+          titulo={sincronizando ? "Consultando tu banco…" : "Sincronizar"}
+          onPress={alSincronizar}
+          cargando={sincronizando}
+          secundario
+          style={estilos.sincronizar}
+        />
+        {/* Siempre visible con datos: también para vínculos hechos antes de que
+            se guardara el cliente del banco (sin nombre), para poder cambiarlo. */}
+        <View style={estilos.vinculoFila}>
+          <Text style={estilos.vinculo}>
+            {clienteBanco?.nombre
+              ? `Banco vinculado como ${clienteBanco.nombre} · ${clienteBanco.rut}`
+              : "Banco vinculado"}
+          </Text>
+          {!confirmarDesvincular ? (
+            <Pressable onPress={() => setConfirmarDesvincular(true)} hitSlop={8}>
+              <Text style={estilos.vinculoAccion}>Desvincular</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <Aparecer style={estilos.par} demora={movimiento.escalon}>
+          <Superficie nivel={2} style={estilos.tarjeta}>
+            <Text style={estilos.rotuloTarjeta}>INGRESOS</Text>
+            <Cifra valor={resumen.ingresos} style={estilos.cifra} />
+          </Superficie>
+          <Superficie nivel={2} style={estilos.tarjeta}>
+            <Text style={estilos.rotuloTarjeta}>GASTOS</Text>
+            <Cifra valor={resumen.gastos} style={estilos.cifra} />
+            <Text style={estilos.pieTarjeta}>{resumen.cantidadGastos} movimientos</Text>
+          </Superficie>
+        </Aparecer>
+      </Superficie>
+
       {confirmarDesvincular ? (
         <View style={estilos.confirmar}>
           <Text style={estilos.confirmarTexto}>
@@ -325,18 +390,6 @@ export default function Inicio() {
 
       {error ? <Text style={estilos.error}>{error}</Text> : null}
 
-      <View style={estilos.par}>
-        <View style={estilos.tarjeta}>
-          <Text style={estilos.rotuloTarjeta}>INGRESOS</Text>
-          <Text style={estilos.cifra}>{pesos(resumen.ingresos)}</Text>
-        </View>
-        <View style={estilos.tarjeta}>
-          <Text style={estilos.rotuloTarjeta}>GASTOS</Text>
-          <Text style={estilos.cifra}>{pesos(resumen.gastos)}</Text>
-          <Text style={estilos.pieTarjeta}>{resumen.cantidadGastos} movimientos</Text>
-        </View>
-      </View>
-
       {/* Se le pasa `movimientos` para que se recalcule cuando cambian: una
           sincronización o una corrección mueven estas cifras. */}
       <PanelFlujo recalcularCon={movimientos} />
@@ -356,6 +409,7 @@ export default function Inicio() {
             porciones={repartoPeriodo.porciones}
             total={repartoPeriodo.total}
             periodo={`en los últimos ${serie.length} meses`}
+            onSeleccionar={(c) => abrirCategoria(c, true)}
           />
         </>
       ) : null}
@@ -363,7 +417,18 @@ export default function Inicio() {
       {reparto.porciones.length > 0 ? (
         <>
           <Seccion titulo={`En qué se te va · ${nombreMes(mes)}`} />
-          <GraficoCategorias porciones={reparto.porciones} total={reparto.total} />
+          {desgloseMayor ? (
+            <GastoMasGrande
+              desglose={desgloseMayor}
+              periodo={`en ${nombreMes(mes).toLowerCase()}`}
+              onPress={() => abrirCategoria(desgloseMayor.categoria)}
+            />
+          ) : null}
+          <GraficoCategorias
+            porciones={reparto.porciones}
+            total={reparto.total}
+            onSeleccionar={(c) => abrirCategoria(c)}
+          />
         </>
       ) : null}
 
@@ -383,13 +448,28 @@ export default function Inicio() {
   );
 }
 
+/**
+ * Relleno de la zona héroe.
+ *
+ * No sale de la escala de espacios: es el valor que deja las curvas
+ * concéntricas. La tarjeta de adentro vale `radio.l`, y para que su curva sea
+ * paralela a la de la zona tiene que valer el radio de la zona menos todo lo
+ * que las separa — este relleno más el borde de un píxel de la propia zona.
+ * Despejando: relleno = radio.xl − radio.l − 1. Se escribe así y no como "11"
+ * para que al mover cualquiera de los dos radios siga cuadrando solo.
+ */
+const HUECO_ZONA = radio.xl - radio.l - 1;
+
 const estilos = StyleSheet.create({
+  // El relleno de la zona es lo que fija el radio de las tarjetas que lleva
+  // dentro: `radio.xl` menos este hueco tiene que dar `radio.l`. Si se cambia
+  // uno hay que cambiar el otro, o las curvas dejan de ser concéntricas.
+  zona: { padding: HUECO_ZONA, paddingTop: HUECO_ZONA + 2 },
   rotulo: {
     color: colores.texto3,
     fontFamily: fuente.tituloMedio,
     fontSize: 12,
     letterSpacing: 1.4,
-    marginTop: espacio.s,
   },
   disponible: {
     color: colores.texto,
@@ -412,6 +492,9 @@ const estilos = StyleSheet.create({
   // ── panel de consentimiento ──
   consent: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.s,
@@ -424,6 +507,9 @@ const estilos = StyleSheet.create({
   aviso: {
     color: colores.texto,
     backgroundColor: colores.alertaSuave,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.m,
     padding: espacio.m,
     marginTop: espacio.m,
@@ -434,7 +520,16 @@ const estilos = StyleSheet.create({
   consentMotivo: { color: colores.alerta, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19 },
   vinculoFila: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: espacio.s, marginTop: espacio.s, flexWrap: "wrap" },
   vinculo: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12, textAlign: "center" },
-  vinculoAccion: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 12 },
+  // Desvincular es destructivo, y lo destructivo no se pinta de rojo en su
+  // puerta de entrada: el rojo va en la confirmación, que es donde la persona
+  // decide de verdad. Un enlace rojo bajo la cifra principal invita a tocar
+  // justo lo que no queremos que se toque sin pensarlo.
+  vinculoAccion: {
+    color: colores.texto2,
+    fontFamily: fuente.textoFuerte,
+    fontSize: 12,
+    textDecorationLine: "underline",
+  },
   confirmar: { backgroundColor: colores.alertaSuave, borderRadius: radio.m, padding: espacio.m, marginTop: espacio.s, gap: espacio.xs },
   confirmarTexto: { color: colores.texto, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19 },
   confirmarAcciones: { flexDirection: "row", justifyContent: "flex-end", gap: espacio.l },
@@ -445,6 +540,8 @@ const estilos = StyleSheet.create({
   // ── resto ──
   resultado: {
     backgroundColor: colores.acentoSuave,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.acentoBorde,
     borderRadius: radio.m,
     padding: espacio.m,
     marginTop: espacio.m,
@@ -453,13 +550,7 @@ const estilos = StyleSheet.create({
   resultadoTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14 },
   error: { color: colores.acento, fontFamily: fuente.texto, fontSize: 13, marginTop: espacio.m, textAlign: "center" },
   par: { flexDirection: "row", gap: espacio.m, marginTop: espacio.l },
-  tarjeta: {
-    flex: 1,
-    backgroundColor: colores.tarjeta,
-    borderRadius: radio.l,
-    padding: espacio.l,
-    gap: espacio.s,
-  },
+  tarjeta: { flex: 1, padding: espacio.l, gap: espacio.s },
   rotuloTarjeta: { color: colores.texto3, fontFamily: fuente.tituloMedio, fontSize: 12, letterSpacing: 1.2 },
   cifra: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 24, letterSpacing: -0.5, marginTop: espacio.s },
   pieTarjeta: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },

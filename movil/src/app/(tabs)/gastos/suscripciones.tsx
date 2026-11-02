@@ -14,9 +14,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { AvatarComercio } from "@/components/AvatarComercio";
+import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { fechaConAnio, pesos } from "@/utils/formato";
@@ -68,22 +69,18 @@ function Tarjeta({
 
       {s.estado === "detectada" ? (
         <View style={estilos.decidir}>
-          <Pressable
+          <Tocable
             onPress={() => onDecidir("confirmada")}
             disabled={ocupada}
-            style={({ pressed }) => [estilos.boton, estilos.si, pressed && estilos.presionado]}
+            style={[estilos.boton, estilos.si]}
           >
             <Ionicons name="checkmark" size={16} color={colores.ok} />
             <Text style={[estilos.botonTexto, { color: colores.ok }]}>Sí, es fija</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onDecidir("descartada")}
-            disabled={ocupada}
-            style={({ pressed }) => [estilos.boton, pressed && estilos.presionado]}
-          >
+          </Tocable>
+          <Tocable onPress={() => onDecidir("descartada")} disabled={ocupada} style={estilos.boton}>
             <Ionicons name="close" size={16} color={colores.texto3} />
             <Text style={estilos.botonTexto}>No lo es</Text>
-          </Pressable>
+          </Tocable>
         </View>
       ) : (
         <View style={estilos.resuelta}>
@@ -213,6 +210,9 @@ const estilos = StyleSheet.create({
 
   total: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     gap: 2,
@@ -225,6 +225,9 @@ const estilos = StyleSheet.create({
 
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
@@ -256,7 +259,6 @@ const estilos = StyleSheet.create({
     paddingVertical: espacio.m,
   },
   si: { backgroundColor: "#15291F" },
-  presionado: { opacity: 0.7 },
   botonTexto: { color: colores.texto3, fontFamily: fuente.textoFuerte, fontSize: 13.5 },
 
   resuelta: {

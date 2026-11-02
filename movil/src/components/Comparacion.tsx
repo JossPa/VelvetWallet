@@ -47,6 +47,9 @@ export function Comparacion({
 const estilos = StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     paddingHorizontal: espacio.l,
     paddingVertical: espacio.xs,

@@ -54,6 +54,16 @@ type ValorMovimientos = {
   movimientos: Movimiento[];
   novedades: Novedades;
   sincronizando: boolean;
+  /**
+   * La PRIMERA carga del usuario todavía no termina.
+   *
+   * No alcanza con `sincronizando` para esto: esa bandera también se levanta al
+   * resincronizar, cuando ya hay datos en pantalla. Mientras no se distinga
+   * "aún no sé" de "ya pregunté y no hay nada", la app muestra "No hay
+   * movimientos" o "Conecta tu primer banco" a alguien que sí tiene datos —
+   * dice algo falso durante el segundo que tarda la respuesta.
+   */
+  cargaInicial: boolean;
   ultimaSincronizacion: string | null;
   error: string | null;
   /** Vuelve a consultar el backend y fusiona. Devuelve cuántos cambiaron. */
@@ -89,6 +99,9 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
   const actualesRef = useRef<Movimiento[]>([]);
   const [novedades, setNovedades] = useState<Novedades>(SIN_NOVEDADES);
   const [sincronizando, setSincronizando] = useState(false);
+  // Arranca en true cuando ya hay sesión, para que el primer cuadro que se
+  // pinta sean los esqueletos y no un "no hay nada" que todavía no sabemos.
+  const [cargaInicial, setCargaInicial] = useState<boolean>(() => usuario != null);
   const [ultimaSincronizacion, setUltima] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [clienteBanco, setClienteBanco] = useState<{ rut: string; nombre: string } | null>(null);
@@ -134,10 +147,12 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       setNovedades(SIN_NOVEDADES);
       setUltima(null);
       setError(null);
+      setCargaInicial(false);
       return;
     }
 
     setSincronizando(true);
+    setCargaInicial(true);
     setError(null);
     const miGeneracion = ++generacion.current;
     obtenerMovimientos()
@@ -151,7 +166,11 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
         if (vivo) setError(e instanceof Error ? e.message : "No se pudieron cargar los datos.");
       })
       .finally(() => {
-        if (vivo) setSincronizando(false);
+        if (!vivo) return;
+        setSincronizando(false);
+        // Se baja pase lo que pase: si falló, lo que corresponde mostrar es el
+        // error, no esqueletos girando para siempre.
+        setCargaInicial(false);
       });
 
     return () => {
@@ -300,6 +319,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       movimientos,
       novedades,
       sincronizando,
+      cargaInicial,
       ultimaSincronizacion,
       error,
       sincronizar,
@@ -311,7 +331,7 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       corregirCategoria,
       marcarVistas,
     }),
-    [movimientos, novedades, sincronizando, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, conexiones, corregirCategoria, marcarVistas],
+    [movimientos, novedades, sincronizando, cargaInicial, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, conexiones, corregirCategoria, marcarVistas],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

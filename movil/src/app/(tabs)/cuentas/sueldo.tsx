@@ -189,6 +189,9 @@ export default function Sueldo() {
 const estilos = StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     gap: espacio.xs,

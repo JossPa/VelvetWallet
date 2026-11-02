@@ -10,10 +10,14 @@
  *  · Hay una línea de promedio que excluye el mes en curso, para que cada barra
  *    se lea contra algo y no en el vacío.
  */
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Line, Pattern, Path, Rect } from "react-native-svg";
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
+import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { retraso } from "@/utils/animacion";
 import { pesos } from "@/utils/formato";
 import type { GastoDelMes } from "@/utils/resumen";
 
@@ -34,6 +38,76 @@ type Props = {
   seleccionado: string;
   onSeleccionar: (mes: string) => void;
 };
+
+/**
+ * Una columna del gráfico. Crece desde abajo cuando aparece.
+ *
+ * La barra se anima por su alto y no encogiéndola con una escala: escalar
+ * deforma las esquinas redondeadas mientras dura el movimiento, y se nota.
+ * El mes rayado se revela con una ventana que se abre desde el suelo, con el
+ * dibujo anclado abajo, para que el rayado no se estire.
+ */
+function Columna({
+  g,
+  activo,
+  alto,
+  demora,
+  onPress,
+}: {
+  g: GastoDelMes;
+  activo: boolean;
+  alto: number;
+  demora: number;
+  onPress: () => void;
+}) {
+  const reducido = useMovimientoReducido();
+  const crecido = useSharedValue(0);
+
+  useEffect(() => {
+    crecido.value = reducido
+      ? alto
+      : withDelay(demora, withTiming(alto, { duration: tiempos.normal }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alto, reducido]);
+
+  const animado = useAnimatedStyle(() => ({ height: crecido.value }));
+
+  return (
+    <Tocable onPress={onPress} style={estilos.columna}>
+      <View style={estilos.zonaBarra}>
+        {g.parcial ? (
+          // Rayado: el mes va a medias, no es comparable con los otros.
+          <Animated.View style={[estilos.ventana, animado]}>
+            <View style={[estilos.anclado, { height: alto }]}>
+              <Svg width="100%" height={alto}>
+                <Defs>
+                  <Pattern id="rayas" width={6} height={6} patternUnits="userSpaceOnUse">
+                    <Path d="M0 6 L6 0" stroke={colores.acento} strokeWidth={2} />
+                  </Pattern>
+                </Defs>
+                <Rect
+                  x={0} y={0} width="100%" height={alto} rx={4}
+                  fill="url(#rayas)"
+                  stroke={colores.acento}
+                  strokeWidth={activo ? 1.5 : 1}
+                />
+              </Svg>
+            </View>
+          </Animated.View>
+        ) : (
+          <Animated.View
+            style={[
+              estilos.barra,
+              animado,
+              activo ? estilos.barraActiva : estilos.barraInactiva,
+            ]}
+          />
+        )}
+      </View>
+      <Text style={[estilos.mes, activo && estilos.mesActivo]}>{etiqueta(g.mes)}</Text>
+    </Tocable>
+  );
+}
 
 export function GraficoMeses({ serie, promedio, seleccionado, onSeleccionar }: Props) {
   const maximo = Math.max(...serie.map((g) => g.total), promedio, 1);
@@ -56,45 +130,16 @@ export function GraficoMeses({ serie, promedio, seleccionado, onSeleccionar }: P
           </View>
         ) : null}
 
-        {serie.map((g) => {
-          const activo = g.mes === seleccionado;
-          const alto = alturaDe(g.total);
-          return (
-            <Pressable
-              key={g.mes}
-              onPress={() => onSeleccionar(g.mes)}
-              style={({ pressed }) => [estilos.columna, pressed && estilos.presionada]}
-            >
-              <View style={estilos.zonaBarra}>
-                {g.parcial ? (
-                  // Rayado: el mes va a medias, no es comparable con los otros.
-                  <Svg width="100%" height={alto}>
-                    <Defs>
-                      <Pattern id="rayas" width={6} height={6} patternUnits="userSpaceOnUse">
-                        <Path d="M0 6 L6 0" stroke={colores.acento} strokeWidth={2} />
-                      </Pattern>
-                    </Defs>
-                    <Rect
-                      x={0} y={0} width="100%" height={alto} rx={4}
-                      fill="url(#rayas)"
-                      stroke={colores.acento}
-                      strokeWidth={activo ? 1.5 : 1}
-                    />
-                  </Svg>
-                ) : (
-                  <View
-                    style={[
-                      estilos.barra,
-                      { height: alto },
-                      activo ? estilos.barraActiva : estilos.barraInactiva,
-                    ]}
-                  />
-                )}
-              </View>
-              <Text style={[estilos.mes, activo && estilos.mesActivo]}>{etiqueta(g.mes)}</Text>
-            </Pressable>
-          );
-        })}
+        {serie.map((g, i) => (
+          <Columna
+            key={g.mes}
+            g={g}
+            activo={g.mes === seleccionado}
+            alto={alturaDe(g.total)}
+            demora={retraso(i, 45)}
+            onPress={() => onSeleccionar(g.mes)}
+          />
+        ))}
       </View>
 
       <View style={estilos.pie}>
@@ -112,6 +157,9 @@ export function GraficoMeses({ serie, promedio, seleccionado, onSeleccionar }: P
 const estilos = StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
@@ -125,9 +173,11 @@ const estilos = StyleSheet.create({
   },
   lineaPromedio: { position: "absolute", left: 0, right: 0 },
   columna: { flex: 1, alignItems: "center", justifyContent: "flex-end", height: "100%" },
-  presionada: { opacity: 0.7 },
   zonaBarra: { width: "100%", justifyContent: "flex-end", flex: 1 },
   barra: { width: "100%", borderRadius: 4 },
+  /** Ventana que se abre desde el suelo para revelar el mes rayado. */
+  ventana: { width: "100%", overflow: "hidden", justifyContent: "flex-end" },
+  anclado: { position: "absolute", bottom: 0, left: 0, right: 0 },
   barraActiva: { backgroundColor: colores.acento },
   barraInactiva: { backgroundColor: colores.chip },
   mes: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12, marginTop: 6 },

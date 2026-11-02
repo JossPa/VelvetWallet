@@ -51,13 +51,19 @@ const estilos = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colores.tarjeta,
-    borderRadius: radio.m,
+    // 1px y no hairline: este borde además de dibujar la caja indica el foco,
+    // así que tiene que verse. El borde superior va más claro que el resto
+    // para que la caja parezca iluminada desde arriba, igual que las tarjetas.
     borderWidth: 1,
     borderColor: colores.linea,
+    borderTopColor: colores.bordeAlto,
+    borderRadius: radio.m,
     paddingHorizontal: espacio.l,
   },
-  cajaEnfocada: { borderColor: colores.texto3 },
-  cajaError: { borderColor: colores.acento },
+  // Al enfocar o al fallar, el color toma la caja entera: si el borde de
+  // arriba se quedara blanco, el aro de foco se vería incompleto.
+  cajaEnfocada: { borderColor: colores.texto3, borderTopColor: colores.texto3 },
+  cajaError: { borderColor: colores.acento, borderTopColor: colores.acento },
   entrada: {
     flex: 1,
     color: colores.texto,

@@ -3,8 +3,9 @@
  * Se desliza si no caben; útil para listas que salen de los datos, como
  * las categorías presentes en un mes.
  */
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
 
+import { Tocable } from "@/components/Movimiento";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 
 type Opcion<T extends string> = { valor: T; etiqueta: string };
@@ -26,13 +27,13 @@ export function Chips<T extends string>({ opciones, valor, onCambio }: Props<T>)
       {opciones.map((o) => {
         const activa = o.valor === valor;
         return (
-          <Pressable
+          <Tocable
             key={o.valor}
             onPress={() => onCambio(o.valor)}
             style={[estilos.chip, activa && estilos.chipActivo]}
           >
             <Text style={[estilos.texto, activa && estilos.textoActivo]}>{o.etiqueta}</Text>
-          </Pressable>
+          </Tocable>
         );
       })}
     </ScrollView>
