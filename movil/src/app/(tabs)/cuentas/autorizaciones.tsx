@@ -8,6 +8,12 @@
  * Se muestran también los revocados. Un consentimiento que caducó o que la
  * persona retiró es parte de su historial y tiene derecho a verlo: si solo se
  * mostrara lo vigente, no habría forma de comprobar que la revocación ocurrió.
+ *
+ * Pero el historial va **agrupado por finalidad**, no como tarjetas sueltas.
+ * Autorizar y revocar lo mismo varias veces es normal, y cada ciclo tiene que
+ * quedar registrado; mostrados uno al lado del otro, tres ciclos iguales se
+ * leen como un error de duplicación en vez del historial que son. Arriba va el
+ * estado de hoy y debajo, en una línea cada uno, los ciclos anteriores.
  */
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -15,7 +21,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
-import { fechaConAnio } from "@/utils/formato";
+import { fechaConAnio, hora } from "@/utils/formato";
 import {
   obtenerConsentimientos,
   type ConsentimientoBancario,
@@ -35,16 +41,69 @@ function Insignia({ estado }: { estado: string }) {
   return <Text style={[estilos.insignia, { color: e.color }]}>{e.texto}</Text>;
 }
 
+/** ¿Las dos fechas caen el mismo día? Decide si basta con mostrar la hora. */
+function mismoDia(a: string, b: string): boolean {
+  return new Date(a).toDateString() === new Date(b).toDateString();
+}
+
+/**
+ * Un ciclo pasado en una línea.
+ *
+ * Lleva la hora y no solo la fecha porque autorizar y revocar el mismo día es
+ * lo más común, y sin la hora dos ciclos distintos salen escritos igual.
+ */
+function resumirCiclo(c: ConsentimientoTratamiento): string {
+  if (!c.desde) return ESTADOS[c.estado]?.texto ?? c.estado;
+
+  const inicio = `${fechaConAnio(c.desde)}, ${hora(c.desde)}`;
+  if (c.revocado) {
+    return mismoDia(c.desde, c.revocado)
+      ? `${inicio} · revocado a las ${hora(c.revocado)}`
+      : `${inicio} · revocado el ${fechaConAnio(c.revocado)}`;
+  }
+  if (c.estado === "expirado" && c.vence) return `${inicio} · venció el ${fechaConAnio(c.vence)}`;
+  return inicio;
+}
+
+/**
+ * Agrupa los consentimientos de una misma finalidad en un solo bloque.
+ *
+ * El primero es el que manda: lo vigente si lo hay, y si no, el más reciente.
+ * El orden entre finalidades es el que trajo el servidor, para no reordenar la
+ * pantalla sola cada vez que alguien cambia una.
+ */
+function agruparPorFinalidad(filas: ConsentimientoTratamiento[]) {
+  const grupos = new Map<string, ConsentimientoTratamiento[]>();
+  for (const f of filas) {
+    const ciclos = grupos.get(f.finalidad);
+    if (ciclos) ciclos.push(f);
+    else grupos.set(f.finalidad, [f]);
+  }
+
+  return [...grupos.entries()].map(([finalidad, ciclos]) => {
+    const orden = [...ciclos].sort((a, b) => {
+      const aVigente = a.estado === "vigente";
+      const bVigente = b.estado === "vigente";
+      if (aVigente !== bVigente) return aVigente ? -1 : 1;
+      return (b.desde ?? "").localeCompare(a.desde ?? "");
+    });
+    return { finalidad, actual: orden[0], anteriores: orden.slice(1) };
+  });
+}
+
 function Tarjeta({
   titulo,
   estado,
   lineas,
   puntos,
+  anteriores,
 }: {
   titulo: string;
   estado: string;
   lineas: string[];
   puntos?: string[];
+  /** Ciclos previos de la misma autorización, del más nuevo al más viejo. */
+  anteriores?: string[];
 }) {
   return (
     <View style={estilos.tarjeta}>
@@ -71,6 +130,21 @@ function Tarjeta({
           {l}
         </Text>
       ))}
+
+      {anteriores && anteriores.length > 0 ? (
+        <View style={estilos.antes}>
+          <Text style={estilos.antesRotulo}>
+            {anteriores.length === 1 ? "ANTES" : `ANTES · ${anteriores.length} VECES`}
+          </Text>
+          {/* La posición es la clave: dos ciclos del mismo día pueden dar el
+              mismo texto, y el texto no sirve para distinguirlos. */}
+          {anteriores.map((a, i) => (
+            <Text key={i} style={estilos.linea}>
+              {a}
+            </Text>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -144,19 +218,20 @@ export default function Autorizaciones() {
           No has autorizado ninguna finalidad de uso. Tus datos solo se usan para mostrártelos a ti.
         </Nota>
       ) : (
-        datos.tratamiento.map((t, i) => (
+        agruparPorFinalidad(datos.tratamiento).map(({ finalidad, actual, anteriores }) => (
           <Tarjeta
-            key={`${t.finalidad}-${t.desde ?? i}`}
-            titulo={t.titulo}
-            estado={t.estado}
+            key={finalidad}
+            titulo={actual.titulo}
+            estado={actual.estado}
             lineas={[
-              t.desde ? `Autorizado el ${fechaConAnio(t.desde)}` : "",
-              t.revocado
-                ? `Revocado el ${fechaConAnio(t.revocado)}`
-                : t.vence
-                  ? `Vence el ${fechaConAnio(t.vence)}`
+              actual.desde ? `Autorizado el ${fechaConAnio(actual.desde)}` : "",
+              actual.revocado
+                ? `Revocado el ${fechaConAnio(actual.revocado)}`
+                : actual.vence
+                  ? `Vence el ${fechaConAnio(actual.vence)}`
                   : "",
             ].filter(Boolean)}
+            anteriores={anteriores.map(resumirCiclo)}
           />
         ))
       )}
@@ -179,6 +254,9 @@ const estilos = StyleSheet.create({
   },
   tarjeta: {
     backgroundColor: colores.tarjeta,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colores.borde,
+    borderTopColor: colores.bordeAlto,
     borderRadius: radio.l,
     padding: espacio.l,
     marginTop: espacio.m,
@@ -195,5 +273,18 @@ const estilos = StyleSheet.create({
     fontFamily: fuente.texto,
     fontSize: 13,
     marginTop: espacio.s,
+  },
+  antes: {
+    marginTop: espacio.m,
+    paddingTop: espacio.s,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colores.linea,
+  },
+  antesRotulo: {
+    color: colores.texto3,
+    fontFamily: fuente.tituloMedio,
+    fontSize: 10,
+    letterSpacing: 1.1,
+    marginTop: espacio.xs,
   },
 });
