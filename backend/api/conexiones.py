@@ -256,7 +256,9 @@ def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
                 ORDER BY c2.fecha_inicio DESC
                 LIMIT 1
             ) cs ON TRUE
-            WHERE cx.usuario_id = %s
+            -- Solo instituciones del SFA: la cuenta Efectivo de los gastos
+            -- anotados a mano no es un banco que vincular ni desvincular.
+            WHERE cx.usuario_id = %s AND inst.participante_sfa
             ORDER BY inst.nombre
             """,
             (usuario_id,),

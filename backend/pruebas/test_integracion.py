@@ -289,3 +289,94 @@ class TestDerechosDelTitular:
             assert conn.execute(
                 "SELECT count(*) FROM bitacora_auditoria WHERE usuario_id IS NOT NULL"
             ).fetchone()[0] == 0
+
+
+# ─────────────────── gastos en efectivo (RF-13) ───────────────────
+
+class TestGastoEnEfectivo:
+    GASTO = {"monto": 4500, "descripcion": "Almuerzo en la feria",
+             "fecha": "2026-10-15", "categoria": "Restaurantes"}
+
+    @pytest.fixture
+    def usuario(self, api, base_limpia):
+        # Sin banco vinculado: el efectivo no depende de tener uno.
+        return registrar(api, "Usuario X", "x@prueba.cl")
+
+    def test_se_registra_como_cargo_manual_con_la_categoria_elegida(self, api, usuario):
+        r = api.post("/api/movimientos", json=self.GASTO, headers=usuario)
+        assert r.status_code == 201, r.text
+        m = r.json()
+        assert m["monto"] == -4500
+        assert m["origen"] == "manual"
+        assert m["institucion"] == "Efectivo"
+        assert m["comercio"] == "Almuerzo en la feria"
+        assert m["categoria"] == "Restaurantes"
+        assert m["origenClasificacion"] == "usuario"
+        assert m["fecha"].startswith("2026-10-15")
+        assert m["payloadCrudoRef"] is None
+        assert [x["id"] for x in movimientos(api, usuario)] == [m["id"]]
+
+    def test_sin_categoria_queda_por_revisar(self, api, usuario):
+        r = api.post("/api/movimientos", json={**self.GASTO, "categoria": None}, headers=usuario)
+        assert r.status_code == 201
+        assert r.json()["categoria"] is None
+        assert r.json()["estadoCategoria"] == "sin_categoria"
+
+    def test_dos_gastos_iguales_son_dos_gastos(self, api, usuario):
+        a = api.post("/api/movimientos", json=self.GASTO, headers=usuario).json()
+        b = api.post("/api/movimientos", json=self.GASTO, headers=usuario).json()
+        assert a["id"] != b["id"]
+        assert len(movimientos(api, usuario)) == 2
+
+    def test_cuenta_en_el_resumen(self, api, usuario):
+        api.post("/api/movimientos", json=self.GASTO, headers=usuario)
+        assert api.get("/api/resumen", headers=usuario).json()["gastos"] == 4500
+
+    @pytest.mark.parametrize("cambio", [
+        {"monto": 0}, {"monto": -100}, {"descripcion": "   "},
+        {"fecha": "2999-01-01"}, {"fecha": "1990-01-01"},
+    ])
+    def test_rechaza_datos_invalidos(self, api, usuario, cambio):
+        r = api.post("/api/movimientos", json={**self.GASTO, **cambio}, headers=usuario)
+        assert r.status_code == 422
+        assert movimientos(api, usuario) == []
+
+    def test_exige_sesion(self, api, base_limpia):
+        assert api.post("/api/movimientos", json=self.GASTO).status_code == 401
+
+    def test_el_efectivo_no_aparece_como_banco(self, api, usuario):
+        api.post("/api/movimientos", json=self.GASTO, headers=usuario)
+        assert api.get("/api/conexiones", headers=usuario).json()["conexiones"] == []
+
+    def test_se_puede_borrar_y_queda_en_la_bitacora(self, api, usuario):
+        m = api.post("/api/movimientos", json=self.GASTO, headers=usuario).json()
+        r = api.delete(f"/api/movimientos/{m['id']}", headers=usuario)
+        assert r.status_code == 204
+        assert movimientos(api, usuario) == []
+        acciones = {e["accion"] for e in
+                    api.get("/api/privacidad/bitacora", headers=usuario).json()["eventos"]}
+        assert {"movimiento.crear", "movimiento.borrar"} <= acciones
+
+    def test_otro_usuario_no_lo_ve_ni_lo_borra(self, api, usuario):
+        m = api.post("/api/movimientos", json=self.GASTO, headers=usuario).json()
+        otro = registrar(api, "Usuario Y", "y@prueba.cl")
+        assert movimientos(api, otro) == []
+        assert api.delete(f"/api/movimientos/{m['id']}", headers=otro).status_code == 404
+        assert len(movimientos(api, usuario)) == 1
+
+    def test_un_movimiento_del_banco_no_se_borra(self, api, efs, usuario):
+        vincular(api, efs, usuario, *CAMILA)
+        del_banco = next(m for m in movimientos(api, usuario) if m["origen"] == "sfa")
+        r = api.delete(f"/api/movimientos/{del_banco['id']}", headers=usuario)
+        assert r.status_code == 409
+        assert any(m["id"] == del_banco["id"] for m in movimientos(api, usuario))
+
+    def test_convive_con_el_banco_y_no_se_va_al_desvincularlo(self, api, efs, usuario):
+        m = api.post("/api/movimientos", json=self.GASTO, headers=usuario).json()
+        vincular(api, efs, usuario, *CAMILA)
+        conexiones = api.get("/api/conexiones", headers=usuario).json()["conexiones"]
+        assert [c["institucion"] for c in conexiones] != [] and \
+            all(c["institucion"] != "Efectivo" for c in conexiones)
+        for c in conexiones:
+            assert api.delete(f"/api/conexiones/{c['id']}", headers=usuario).status_code == 200
+        assert [x["id"] for x in movimientos(api, usuario)] == [m["id"]]

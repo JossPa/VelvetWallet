@@ -39,6 +39,8 @@ ACCIONES = {
     "banco.desvincular":     "Desvinculaste una institución y se borraron sus datos",
     "cuenta.suprimir":       "Solicitaste eliminar tu cuenta y tus datos",
     "categoria.corregir":    "Corregiste la categoría de un movimiento",
+    "movimiento.crear":      "Registraste un gasto en efectivo",
+    "movimiento.borrar":     "Borraste un gasto que habías registrado",
     "perfil.actualizar":     "Cambiaste tu sueldo declarado",
 }
 
