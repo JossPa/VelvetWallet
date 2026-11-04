@@ -20,13 +20,16 @@ import * as WebBrowser from "expo-web-browser";
 
 import type { Correccion, Movimiento } from "@/modelo/tipos";
 import {
+  borrarGasto as borrarGastoEnServidor,
   conectarBanco,
   desvincularBanco,
   guardarCategoria,
   iniciarVinculacion,
   obtenerConexiones,
   obtenerMovimientos,
+  registrarGasto,
   type ConexionBanco,
+  type NuevoGasto,
 } from "@/servicios/sincronizacion";
 import { useSesion } from "@/sesion/SesionContexto";
 import { fusionar } from "@/utils/fusion";
@@ -84,6 +87,10 @@ type ValorMovimientos = {
   conexiones: ConexionBanco[];
   /** Asigna o corrige la categoría de un movimiento (el usuario en "Por revisar"). */
   corregirCategoria: (id: string, categoria: string) => void;
+  /** Registra un gasto en efectivo (RF-13). Lanza el error si no se pudo guardar. */
+  agregarGasto: (gasto: NuevoGasto) => Promise<Movimiento>;
+  /** Borra un gasto registrado a mano. Lanza el error si no se pudo. */
+  borrarGasto: (id: string) => Promise<void>;
   /** Apaga el destacado y el contador de la pestaña. */
   marcarVistas: () => void;
 };
@@ -293,6 +300,29 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       });
   }, []);
 
+  // Gastos en efectivo. A diferencia de la categoría, no se muestran antes de
+  // que el backend confirme: un gasto que aparece y después desaparece porque
+  // no se guardó es peor que esperar medio segundo. La pantalla muestra el
+  // error y la persona no pierde lo que escribió.
+  const agregarGasto = useCallback(async (gasto: NuevoGasto) => {
+    const nuevo = await registrarGasto(gasto);
+    // Misma forma de orden que entrega el backend: del más reciente al más
+    // antiguo. sort es estable, así que el nuevo queda primero dentro del día.
+    const lista = [nuevo, ...actualesRef.current].sort((a, b) =>
+      b.fecha.slice(0, 10).localeCompare(a.fecha.slice(0, 10)),
+    );
+    actualesRef.current = lista;
+    setMovimientos(lista);
+    return nuevo;
+  }, []);
+
+  const borrarGasto = useCallback(async (id: string) => {
+    await borrarGastoEnServidor(id);
+    const lista = actualesRef.current.filter((m) => m.id !== id);
+    actualesRef.current = lista;
+    setMovimientos(lista);
+  }, []);
+
   const desvincular = useCallback(async () => {
     setSincronizando(true);
     setError(null);
@@ -329,9 +359,11 @@ export function ProveedorMovimientos({ children }: { children: ReactNode }) {
       clienteBanco,
       conexiones,
       corregirCategoria,
+      agregarGasto,
+      borrarGasto,
       marcarVistas,
     }),
-    [movimientos, novedades, sincronizando, cargaInicial, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, conexiones, corregirCategoria, marcarVistas],
+    [movimientos, novedades, sincronizando, cargaInicial, ultimaSincronizacion, error, sincronizar, irAlBanco, completarVinculacion, desvincular, clienteBanco, conexiones, corregirCategoria, agregarGasto, borrarGasto, marcarVistas],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

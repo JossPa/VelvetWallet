@@ -6,8 +6,10 @@
  * aparte y el dato original del banco nunca se modifica (RF-14 / RNF-31).
  */
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { Boton } from "@/components/Boton";
 import { Ficha } from "@/components/Ficha";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
@@ -53,6 +55,12 @@ function tipoCuenta(m: Movimiento, conexiones: Conexion[]): string | undefined {
  * vacío (RNF-33).
  */
 function describirClasificacion(m: Movimiento): string {
+  if (m.origen === "manual") {
+    if (m.categoria === null) return "Sin categoría: elígela en Por revisar";
+    return m.correcciones.some((c) => c.tipo === "recategorizar")
+      ? "Lo corregiste tú"
+      : "La elegiste al registrarlo";
+  }
   if (m.estadoCategoria === "corregida") return "Lo corregiste tú";
   if (m.categoria === null) return "El sistema no alcanzó la confianza mínima";
 
@@ -81,8 +89,12 @@ function resumenCorrecciones(lista: Correccion[]): string {
 export default function DetalleMovimiento() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { movimientos, conexiones } = useMovimientos();
+  const { movimientos, conexiones, borrarGasto } = useMovimientos();
   const m = movimientos.find((x) => x.id === id);
+  // Borrar pide un segundo toque: es lo único irreversible de la pantalla.
+  const [confirmando, setConfirmando] = useState(false);
+  const [borrando, setBorrando] = useState(false);
+  const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
 
   if (!m) {
     return (
@@ -90,6 +102,22 @@ export default function DetalleMovimiento() {
         <Nota>No se encontró el movimiento {id}.</Nota>
       </Pantalla>
     );
+  }
+
+  const esManual = m.origen === "manual";
+
+  async function borrar() {
+    if (!m) return;
+    setBorrando(true);
+    setErrorBorrar(null);
+    try {
+      await borrarGasto(m.id);
+      router.back();
+    } catch (e) {
+      setErrorBorrar(e instanceof Error ? e.message : "No se pudo borrar el gasto.");
+      setBorrando(false);
+      setConfirmando(false);
+    }
   }
 
   const esCargo = m.monto < 0;
@@ -112,7 +140,9 @@ export default function DetalleMovimiento() {
           </View>
         }
         filas={[
-          { etiqueta: "Glosa original", valor: m.glosaOriginal, mono: true },
+          esManual
+            ? { etiqueta: "Descripción", valor: m.glosaOriginal }
+            : { etiqueta: "Glosa original", valor: m.glosaOriginal, mono: true },
           { etiqueta: "Comercio", valor: m.comercio ?? "No identificado", destacar: sinIdentificar },
           { etiqueta: "Categoría", valor: m.categoria ?? "Sin categorizar", destacar: m.categoria === null },
           { etiqueta: "Clasificó", valor: decision, destacar: m.categoria === null },
@@ -140,7 +170,28 @@ export default function DetalleMovimiento() {
         ]}
       />
 
-      <Text style={estilos.pie}>Tu corrección no modifica el dato del banco.</Text>
+      {esManual ? (
+        <>
+          <Seccion titulo="Lo registraste tú" />
+          {confirmando ? (
+            <View style={estilos.confirmar}>
+              <Boton titulo="Sí, borrar este gasto" onPress={borrar} cargando={borrando} />
+              <Boton
+                titulo="Cancelar"
+                onPress={() => setConfirmando(false)}
+                deshabilitado={borrando}
+                secundario
+              />
+            </View>
+          ) : (
+            <Boton titulo="Borrar este gasto" onPress={() => setConfirmando(true)} secundario />
+          )}
+          {errorBorrar ? <Text style={estilos.error}>{errorBorrar}</Text> : null}
+          <Text style={estilos.pie}>Lo anotaste a mano: no viene de ningún banco.</Text>
+        </>
+      ) : (
+        <Text style={estilos.pie}>Tu corrección no modifica el dato del banco.</Text>
+      )}
     </Pantalla>
   );
 }
@@ -163,6 +214,8 @@ const estilos = StyleSheet.create({
     alignItems: "center",
   },
   accionTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 15 },
+  confirmar: { gap: espacio.s },
+  error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   pie: {
     color: colores.texto2,
     fontFamily: fuente.texto,

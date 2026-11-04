@@ -101,11 +101,23 @@ export default function Gastos() {
     );
   }
 
-  // Usuario sin movimientos todavía (p. ej. recién registrado): nada que listar.
+  // Usuario sin movimientos todavía (p. ej. recién registrado): nada que listar,
+  // pero el efectivo se puede anotar sin tener un banco vinculado.
   if (movimientos.length === 0) {
     return (
       <Pantalla titulo="Gastos">
         <Nota>Aún no tienes movimientos. Sincroniza para ver tus gastos aquí.</Nota>
+        <View style={estilos.fijos}>
+          <GrupoDeFilas>
+            <Fila
+              titulo="Registrar gasto en efectivo"
+              detalle="Lo que pagas sin tarjeta no llega del banco"
+              icono="cash-outline"
+              onPress={() => router.push("/gastos/nuevo")}
+              ultima
+            />
+          </GrupoDeFilas>
+        </View>
       </Pantalla>
     );
   }
@@ -136,6 +148,12 @@ export default function Gastos() {
           interesa de ellos es cuánto suman y cada cuánto vuelven. */}
       <View style={estilos.fijos}>
         <GrupoDeFilas>
+          <Fila
+            titulo="Registrar gasto en efectivo"
+            detalle="Lo que pagas sin tarjeta no llega del banco"
+            icono="cash-outline"
+            onPress={() => router.push("/gastos/nuevo")}
+          />
           <Fila
             titulo="Gastos fijos y suscripciones"
             detalle="Cuánto suman y cada cuánto vuelven"

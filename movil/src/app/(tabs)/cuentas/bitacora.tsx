@@ -30,6 +30,8 @@ const ICONO: Record<string, NombreIcono> = {
   "banco.desvincular": "unlink-outline",
   "cuenta.suprimir": "trash-outline",
   "categoria.corregir": "create-outline",
+  "movimiento.crear": "cash-outline",
+  "movimiento.borrar": "remove-circle-outline",
 };
 
 /** Agrupa por día conservando el orden que vino del servidor. */
