@@ -23,6 +23,8 @@ pide "las cuentas" o "los movimientos" y recibe listas limpias.
 """
 from __future__ import annotations
 
+import uuid
+
 import httpx
 
 
@@ -50,11 +52,12 @@ class ClienteSFA:
     # -- autenticación: el punto de extensión para el banco real --------------
     def _headers(self) -> dict:
         """
-        Identificador de interacción que pide FAPI, y —si ya hay token— el
-        Authorization Bearer. Para un banco real, el certificado de cliente
-        (mTLS) se configuraría en el httpx.Client.
+        Identificador de interacción que pide FAPI (un UUID nuevo por solicitud,
+        para correlacionar cada llamada en los logs de ambos lados) y —si ya hay
+        token— el Authorization Bearer. Para un banco real, el certificado de
+        cliente (mTLS) se configuraría en el httpx.Client.
         """
-        h = {"x-fapi-interaction-id": "velvet-ingesta"}
+        h = {"x-fapi-interaction-id": str(uuid.uuid4())}
         if self._token:
             h["Authorization"] = "Bearer %s" % self._token
         return h
@@ -202,7 +205,7 @@ class ClienteSFA:
 
     def obtener_saldo(self, account_id: str) -> dict | None:
         cuerpo = self._get("/accounts/%s/balance" % account_id)
-        return cuerpo["data"].get("balance")
+        return cuerpo["data"].get("currentBalance")
 
     def listar_creditos(self) -> list[dict]:
         """

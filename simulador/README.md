@@ -169,15 +169,34 @@ Para volver al estado inicial basta reiniciar el servidor: los datos se cargan d
 ### Los modelos se generan, no se escriben
 
 ```bash
-python -m datamodel-code-generator \
+pip install "datamodel-code-generator>=0.89"
+python -m datamodel_code_generator \
   --input spec/Accounts.yaml --input-file-type openapi \
   --output app/modelos_sfa.py --target-python-version 3.11 \
-  --use-schema-description --field-constraints
+  --use-schema-description --field-constraints \
+  --output-model-type pydantic_v2.BaseModel
 ```
 
 Dos razones: evita errores al transcribir 29 estructuras a mano, y permite afirmar que los schemas
 **derivan de la especificación oficial**, no de una copia. Si la CMF publica una versión nueva del
 spec, se regenera.
+
+Los endpoints de Cuentas los declaran como `response_model`, así que **FastAPI valida cada
+respuesta contra el estándar**: si una se desvía, el simulador falla en vez de entregar algo mal
+formado. Hace falta la versión 0.89 o superior del generador: las anteriores ponían un `pattern`
+sobre campos `date`, que Pydantic no puede aplicar, y los modelos no servían para validar.
+
+### Conformidad en las APIs de datos
+
+En `/accounts/v1/accounts/...` y `/accounts/v1/loans/...`:
+
+- **`x-fapi-interaction-id` es obligatorio.** Sin él se responde 400, y su valor se devuelve en la
+  respuesta para correlacionar los logs de ambos lados.
+- **Los errores usan el esquema `ResponseError` del estándar**: `{"errors": [{"code", "title",
+  "detail"}]}`. Un parámetro inválido responde **400**, no el 422 de FastAPI.
+
+`/token`, `/par` y `/consents` conservan los errores de OAuth, y `/simulador` no es parte del
+estándar.
 
 ---
 
