@@ -78,6 +78,44 @@ services:
       timeout: 5s
       retries: 5
 
+  # ---------------------------------------------------------------------------
+  # Adminer — visor web de PostgreSQL        http://localhost:8080
+  # ---------------------------------------------------------------------------
+  # Permite ver y consultar las tablas desde el navegador, sin instalar nada ni
+  # escribir SQL en la terminal. Es solo para desarrollo y demostración: no
+  # forma parte del sistema y no se despliega.
+  adminer:
+    image: adminer:5
+    container_name: velvet_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: dracula
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Mongo Express — visor web de MongoDB     http://localhost:8082
+  # ---------------------------------------------------------------------------
+  # Muestra los payloads crudos tal como llegaron de la institución. Puesto al
+  # lado de Adminer deja ver las dos mitades del diseño: el dato crudo sin
+  # esquema fijo en Mongo, y el mismo movimiento ya normalizado en Postgres.
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: velvet_mongo_express
+    restart: unless-stopped
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
 # Volúmenes con nombre: los datos sobreviven a `docker compose down`
 # (pero NO a `docker compose down -v`).
 volumes:
