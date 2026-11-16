@@ -45,7 +45,9 @@ from datetime import date, datetime, timezone, timedelta
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Path, Header, Depends, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pathlib import Path as RutaArchivo
@@ -53,6 +55,13 @@ from pathlib import Path as RutaArchivo
 from pydantic import BaseModel, Field
 
 from app import clientes as C
+# Modelos generados desde spec/Accounts.yaml. Declarados como response_model,
+# FastAPI valida cada respuesta contra el estándar: si una se desvía, falla
+# aquí en vez de llegarle mal formada al participante.
+from app.modelos_sfa import (
+    AccountResponse, AccountsResponse, BalanceResponse,
+    CourrentOverdraftLimitResponse, OverdraftResponse, TransactionsResponse,
+)
 
 # El backend de Velvet Wallet corre en el 8000. La EFS va en el 8001
 # para que se puedan levantar los dos a la vez.
@@ -70,14 +79,93 @@ app = FastAPI(
     root_path="",
 )
 
+# ═══════════════════════════════════════════════════════════════════
+#  Conformidad con el estándar en las APIs de datos
+#
+#  Solo para las APIs de información (Cuentas y Operaciones de Crédito):
+#    · Errores con el cuerpo ResponseError del spec: {"errors": [{code, title, detail}]}
+#      y 400 (no el 422 de FastAPI) cuando un parámetro viene mal.
+#    · x-fapi-interaction-id obligatorio en la solicitud y devuelto en la
+#      respuesta, para correlacionar logs entre participante e institución.
+#  /token, /par y /consents siguen con los errores de OAuth, que es lo que les
+#  corresponde, y /simulador no es parte del estándar.
+# ═══════════════════════════════════════════════════════════════════
+PREFIJOS_SFA = ("/accounts/v1/accounts", "/accounts/v1/loans")
+CABECERA_FAPI = "x-fapi-interaction-id"
+
+TITULOS_ERROR = {
+    400: "Solicitud inválida",
+    401: "No autorizado",
+    403: "Acceso prohibido",
+    404: "Recurso no encontrado",
+    405: "Método no permitido",
+    429: "Demasiadas solicitudes",
+    500: "Error interno del servidor",
+}
+
+
+def es_api_sfa(request: Request) -> bool:
+    return request.url.path.startswith(PREFIJOS_SFA)
+
+
+def error_sfa(status: int, detalle: str, interaccion: str | None = None,
+              cabeceras: dict | None = None) -> JSONResponse:
+    """Respuesta de error con el esquema ResponseError del estándar."""
+    cuerpo = {"errors": [{
+        "code": str(status),
+        "title": TITULOS_ERROR.get(status, "Error"),
+        "detail": str(detalle)[:2048],
+    }]}
+    h = dict(cabeceras or {})
+    if interaccion:
+        h[CABECERA_FAPI] = interaccion
+    return JSONResponse(cuerpo, status_code=status, headers=h,
+                        media_type="application/json; charset=utf-8")
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _error_http(request: Request, exc: StarletteHTTPException):
+    if not es_api_sfa(request):
+        from fastapi.exception_handlers import http_exception_handler
+        return await http_exception_handler(request, exc)
+    return error_sfa(exc.status_code, exc.detail, request.headers.get(CABECERA_FAPI),
+                     getattr(exc, "headers", None))
+
+
+@app.exception_handler(RequestValidationError)
+async def _error_validacion(request: Request, exc: RequestValidationError):
+    if not es_api_sfa(request):
+        from fastapi.exception_handlers import request_validation_exception_handler
+        return await request_validation_exception_handler(request, exc)
+    detalles = "; ".join(
+        "%s: %s" % (".".join(str(p) for p in e.get("loc", ())), e.get("msg", ""))
+        for e in exc.errors()
+    )
+    return error_sfa(400, detalles or "Parámetros inválidos.", request.headers.get(CABECERA_FAPI))
+
+
+@app.middleware("http")
+async def _interaccion_fapi(request: Request, call_next):
+    if request.method == "OPTIONS" or not es_api_sfa(request):
+        return await call_next(request)
+    interaccion = request.headers.get(CABECERA_FAPI, "").strip()
+    if not interaccion:
+        return error_sfa(400, "Falta la cabecera obligatoria %s." % CABECERA_FAPI)
+    respuesta = await call_next(request)
+    respuesta.headers[CABECERA_FAPI] = interaccion
+    return respuesta
+
+
 # Permite que la app (que corre en otro puerto, p. ej. 8081 en web) pida datos
 # a esta API desde el navegador. En desarrollo se abre a todo; un banco real
-# restringiría a los orígenes autorizados.
+# restringiría a los orígenes autorizados. Va después del middleware FAPI para
+# quedar por fuera: así también los errores 400 llevan las cabeceras CORS.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=[CABECERA_FAPI],
 )
 
 
@@ -329,11 +417,15 @@ def ocurridos(movs):
 
 
 def saldo_de(cliente, account_id):
-    """Saldo calculado en vivo: abonos menos cargos (cuadra con /simulador/nuevo)."""
+    """
+    Saldo calculado en vivo: abonos menos cargos (cuadra con /simulador/nuevo).
+    Tiene la forma de CurrentBalance del estándar.
+    """
     total = 0.0
     for m in ocurridos(cliente["movimientos"].get(account_id, [])):
         total += m["amount"] if m["transactionsType"] == "Abono" else -m["amount"]
-    return {"amount": float(round(total)), "currency": "CLP", "type": "Disponible"}
+    return {"amount": float(round(total)), "currency": "CLP",
+            "timestamp": datetime.now(timezone.utc)}
 
 
 def _emitir_acceso(consent_id: str, rut: str, permisos: list[str], expira) -> dict:
@@ -754,7 +846,8 @@ def _canjear_codigo(sol: "SolicitudToken") -> dict:
 
 # ───────────────────────── cuentas (protegidas por token de acceso) ─────────────────────────
 @app.get("/accounts/v1/accounts", tags=["Cuentas"],
-         summary="Listado de cuentas del cliente")
+         summary="Listado de cuentas del cliente",
+         response_model=AccountsResponse, response_model_exclude_none=True)
 def listar_cuentas(
     page: int = Query(1, ge=1),
     pageSize: int = Query(25, ge=1, le=100),
@@ -767,7 +860,8 @@ def listar_cuentas(
 
 
 @app.get("/accounts/v1/accounts/{accountID}", tags=["Cuentas"],
-         summary="Detalle de una cuenta")
+         summary="Detalle de una cuenta",
+         response_model=AccountResponse, response_model_exclude_none=True)
 def detalle_cuenta(accountID: str = Path(...),
                    _acceso: dict | None = Depends(exigir_token_acceso)):
     c = cuenta_o_404(accountID, cliente_del_acceso(_acceso))
@@ -776,18 +870,20 @@ def detalle_cuenta(accountID: str = Path(...),
 
 
 @app.get("/accounts/v1/accounts/{accountID}/balance", tags=["Cuentas"],
-         summary="Saldos de la cuenta")
+         summary="Saldos de la cuenta",
+         response_model=BalanceResponse, response_model_exclude_none=True)
 def saldo_cuenta(accountID: str = Path(...),
                  _acceso: dict | None = Depends(exigir_token_acceso)):
     cliente = cliente_del_acceso(_acceso)
     cuenta_o_404(accountID, cliente)
     s = saldo_de(cliente, accountID)
     _, links, meta = paginar([], 1, 1, "/accounts/%s/balance" % accountID)
-    return {"data": {"balance": s}, "links": links, "meta": meta}
+    return {"data": {"currentBalance": s}, "links": links, "meta": meta}
 
 
 @app.get("/accounts/v1/accounts/{accountID}/transactions", tags=["Cuentas"],
-         summary="Movimientos de la cuenta")
+         summary="Movimientos de la cuenta",
+         response_model=TransactionsResponse, response_model_exclude_none=True)
 def movimientos_cuenta(
     accountID: str = Path(...),
     page: int = Query(1, ge=1),
@@ -824,25 +920,29 @@ def movimientos_cuenta(
     }
 
 
-# Los dos endpoints de sobregiro existen en el estándar pero no los usamos:
-# se declaran para que la EFS sea completa, devolviendo vacío.
+# Los dos endpoints de sobregiro existen en el estándar pero no los usamos.
+# Las cuentas simuladas no tienen línea de sobregiro: el historial va vacío y el
+# límite vigente es cero (el estándar exige el objeto, no permite omitirlo).
 @app.get("/accounts/v1/accounts/{accountID}/overdraft", tags=["Cuentas"],
-         summary="Movimientos de sobregiro")
+         summary="Líneas de sobregiro",
+         response_model=OverdraftResponse, response_model_exclude_none=True)
 def sobregiro(accountID: str = Path(...),
               _acceso: dict | None = Depends(exigir_token_acceso)):
     cuenta_o_404(accountID, cliente_del_acceso(_acceso))
     _, links, meta = paginar([], 1, 1, "/accounts/%s/overdraft" % accountID)
-    return {"data": {"overdraft": []}, "links": links, "meta": meta}
+    return {"data": {"overdraftLimits": []}, "links": links, "meta": meta}
 
 
 @app.get("/accounts/v1/accounts/{accountID}/current-overdraft-limit",
-         tags=["Cuentas"], summary="Límite de sobregiro vigente")
+         tags=["Cuentas"], summary="Límite de sobregiro vigente",
+         response_model=CourrentOverdraftLimitResponse, response_model_exclude_none=True)
 def limite_sobregiro(accountID: str = Path(...),
                      _acceso: dict | None = Depends(exigir_token_acceso)):
     cuenta_o_404(accountID, cliente_del_acceso(_acceso))
     _, links, meta = paginar([], 1, 1,
                              "/accounts/%s/current-overdraft-limit" % accountID)
-    return {"data": {"currentOverdraftLimit": []}, "links": links, "meta": meta}
+    sin_linea = {"amount": 0.0, "currency": "CLP", "usageAmount": 0.0, "usageCurrency": "CLP"}
+    return {"data": {"currentOverdraftLimit": sin_linea}, "links": links, "meta": meta}
 
 
 # ═══════════════════════════════════════════════════════════════════
