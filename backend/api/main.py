@@ -20,6 +20,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .asistente import router as asistente_router
 from .auth import router as auth_router
 from .datos import router as datos_router
 from .conexiones import router as conexiones_router
@@ -96,6 +97,7 @@ app.include_router(suscripciones_router)
 app.include_router(incidentes_router)
 app.include_router(creditos_router)
 app.include_router(flujo_router)
+app.include_router(asistente_router)
 
 
 @app.get("/health", tags=["Operación"], summary="Comprobación de vida")

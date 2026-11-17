@@ -40,6 +40,7 @@ ACCIONES = {
     "cuenta.suprimir":       "Solicitaste eliminar tu cuenta y tus datos",
     "categoria.corregir":    "Corregiste la categoría de un movimiento",
     "perfil.actualizar":     "Cambiaste tu sueldo declarado",
+    "asistente.consultar":   "Le hiciste preguntas al asistente sobre tus datos",
 }
 
 

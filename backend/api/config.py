@@ -35,3 +35,12 @@ TOKEN_DIAS = int(os.getenv("TOKEN_DIAS", "30"))
 RETORNOS_PERMITIDOS = [r.strip() for r in os.getenv(
     "VELVET_RETORNOS_PERMITIDOS", "http://localhost:8081,velvetwallet://,exp://").split(",") if r.strip()]
 RETORNO_POR_DEFECTO = os.getenv("VELVET_RETORNO", "http://localhost:8081/")
+
+# Asistente conversacional. La clave es de Groq (console.groq.com) y va solo en
+# el .env, que no se sube al repo. Sin clave, el asistente responde que no está
+# disponible y el resto de la app funciona igual.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+ASISTENTE_MODELO = os.getenv("ASISTENTE_MODELO", "openai/gpt-oss-120b")
+# Si el principal se queda sin cuota (el plan gratuito limita tokens por modelo,
+# por minuto y por día), se responde con este, que tiene su propia cuota.
+ASISTENTE_MODELO_RESPALDO = os.getenv("ASISTENTE_MODELO_RESPALDO", "openai/gpt-oss-20b")
