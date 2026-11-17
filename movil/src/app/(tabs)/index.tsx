@@ -19,7 +19,8 @@ import { EsqueletoInicio } from "@/components/Esqueleto";
 import { GastoMasGrande } from "@/components/GastoMasGrande";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
 import { GraficoMeses } from "@/components/GraficoMeses";
-import { Aparecer } from "@/components/Movimiento";
+import { Mascota, NOMBRE_MASCOTA } from "@/components/Mascota";
+import { Aparecer, Tocable } from "@/components/Movimiento";
 import { PanelFlujo } from "@/components/PanelFlujo";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { Superficie } from "@/components/Superficie";
@@ -299,6 +300,7 @@ export default function Inicio() {
   }
 
   return (
+    <View style={estilos.contenedor}>
     <Pantalla
       titulo="Velvet Wallet"
       marca
@@ -445,6 +447,18 @@ export default function Inicio() {
         onIr={() => cerrarAviso(true)}
       />
     </Pantalla>
+
+    {/* El asistente flota sobre el inicio y no tiene pestaña propia: no es
+        una sección más de la app, es otra forma de preguntarle a las mismas
+        secciones. */}
+    <Tocable
+      onPress={() => router.push("/asistente")}
+      style={estilos.asistente}
+      accessibilityLabel={`Preguntarle a ${NOMBRE_MASCOTA}`}
+    >
+      <Mascota tamano={38} />
+    </Tocable>
+    </View>
   );
 }
 
@@ -461,6 +475,23 @@ export default function Inicio() {
 const HUECO_ZONA = radio.xl - radio.l - 1;
 
 const estilos = StyleSheet.create({
+  contenedor: { flex: 1 },
+  // Sobre la barra de pestañas (68 px de alto) y con el borde alto más claro,
+  // como toda superficie de la app: la luz cae desde arriba.
+  asistente: {
+    position: "absolute",
+    right: espacio.l,
+    bottom: 68 + espacio.l,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: colores.tarjetaAlta,
+    borderWidth: 1,
+    borderColor: colores.acentoBorde,
+    borderTopColor: colores.bordeVivo,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   // El relleno de la zona es lo que fija el radio de las tarjetas que lleva
   // dentro: `radio.xl` menos este hueco tiene que dar `radio.l`. Si se cambia
   // uno hay que cambiar el otro, o las curvas dejan de ser concéntricas.
