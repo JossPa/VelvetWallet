@@ -32,7 +32,7 @@ C.ARCHIVO_CREADOS = _tmp / "clientes_creados.json"
 M.ARCHIVO_REFRESH = _tmp / "refresh_tokens.json"
 
 API = "/accounts/v1"
-cli = TestClient(M.app)
+cli = TestClient(M.app, headers={"x-fapi-interaction-id": "prueba-clientes"})
 _ok = 0
 
 

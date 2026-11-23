@@ -32,7 +32,8 @@ M.ARCHIVO_REFRESH = _tmp / "refresh_tokens.json"
 
 API = "/accounts/v1"
 VUELTA = M.PARTICIPANTES_REGISTRADOS[M.CLIENTE_ID]["redirect_uris"][0]
-web = TestClient(M.app, follow_redirects=False)
+web = TestClient(M.app, follow_redirects=False,
+                 headers={"x-fapi-interaction-id": "prueba-autorizacion"})
 _ok = 0
 
 
