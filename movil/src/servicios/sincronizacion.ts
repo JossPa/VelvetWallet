@@ -106,6 +106,63 @@ export async function guardarCategoria(id: string, categoria: string): Promise<M
   return (await respuesta.json()) as Movimiento;
 }
 
+/** Lo que la persona anota de un gasto en efectivo (RF-13). */
+export type NuevoGasto = {
+  /** En pesos, positivo: el backend lo guarda como cargo. */
+  monto: number;
+  descripcion: string;
+  /** AAAA-MM-DD */
+  fecha: string;
+  /** null lo deja en Por revisar, como cualquier otro sin categoría. */
+  categoria: string | null;
+};
+
+/** Registra un gasto en efectivo. Devuelve el movimiento ya en el modelo canónico. */
+export async function registrarGasto(gasto: NuevoGasto): Promise<Movimiento> {
+  const token = await tokenActual();
+  if (!token) {
+    throw new ErrorSincronizacion("Tu sesión no está activa. Inicia sesión de nuevo.");
+  }
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API}/api/movimientos`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(gasto),
+    });
+  } catch {
+    throw new ErrorSincronizacion(
+      "No se pudo conectar con el servidor. Revisa que el backend esté corriendo.",
+    );
+  }
+  if (!respuesta.ok) {
+    throw await errorDeRespuesta(respuesta, "No se pudo registrar el gasto.");
+  }
+  return (await respuesta.json()) as Movimiento;
+}
+
+/** Borra un gasto que la persona registró a mano. Los del banco no se borran. */
+export async function borrarGasto(id: string): Promise<void> {
+  const token = await tokenActual();
+  if (!token) {
+    throw new ErrorSincronizacion("Tu sesión no está activa. Inicia sesión de nuevo.");
+  }
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API}/api/movimientos/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new ErrorSincronizacion(
+      "No se pudo conectar con el servidor. Revisa que el backend esté corriendo.",
+    );
+  }
+  if (!respuesta.ok) {
+    throw await errorDeRespuesta(respuesta, "No se pudo borrar el gasto.");
+  }
+}
+
 export type ResultadoConexion = {
   institucion: string;
   /** El cliente del banco con el que quedó vinculada la conexión. */
