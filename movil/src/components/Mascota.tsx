@@ -59,7 +59,16 @@ const poligono = (puntos: [number, number][]) => "M" + puntos.map(([x, y]) => `$
 const MEJILLA_IZQ = poligono(MEJILLA);
 const MEJILLA_DER = poligono(MEJILLA.map(([x, y]) => [120 - x, y]));
 
-export function Mascota({ estado = "escuchando", tamano = 40 }: { estado?: EstadoMascota; tamano?: number }) {
+export function Mascota({
+  estado = "escuchando",
+  tamano = 40,
+  parpadeo = false,
+}: {
+  estado?: EstadoMascota;
+  tamano?: number;
+  /** Ojos cerrados un instante: lo usa `VelviVivo` para parpadear. */
+  parpadeo?: boolean;
+}) {
   // ids únicos por instancia: en la web los degradados viven en un espacio global
   const sufijo = useId().replace(/[^a-zA-Z0-9]/g, "");
   const id = (n: string) => `${n}${sufijo}`;
@@ -157,7 +166,7 @@ export function Mascota({ estado = "escuchando", tamano = 40 }: { estado?: Estad
         <Ellipse cx="60" cy="72" rx="15" ry="11" fill={url("hocico")} />
 
         {/* ojos grandes y brillantes */}
-        {noSabe ? (
+        {noSabe || parpadeo ? (
           <G stroke={OJO} strokeWidth="2.8" strokeLinecap="round" fill="none">
             <Path d="M40 60 Q47 65 54 60" />
             <Path d="M66 60 Q73 65 80 60" />

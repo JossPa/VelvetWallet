@@ -13,13 +13,17 @@
  *  · **Cuándo se abstiene.** Si responde que no tiene el dato, la mascota baja
  *    las orejas: decir "no sé" es una respuesta correcta, no un error.
  *
+ * Velvi está presente en toda la conversación (ver `VelviVivo`): al abrir el
+ * chat aparece grande y flotando; mientras escribes ladea la cabeza; mientras
+ * lee tus datos se balancea; cuando llega la respuesta da un saltito y pasa a la
+ * cabecera; y cada respuesta lleva su cara al lado, para que se lea quién habla.
+ *
  * La conversación vive solo aquí: no se guarda en el teléfono ni en el servidor.
  */
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -29,12 +33,24 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+  ZoomIn,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Boton } from "@/components/Boton";
 import { Mascota, NOMBRE_MASCOTA, type EstadoMascota } from "@/components/Mascota";
-import { Tocable } from "@/components/Movimiento";
+import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
 import { FondoDePantalla, Superficie } from "@/components/Superficie";
+import { VelviVivo } from "@/components/VelviVivo";
 import { colores, espacio, fuente, radio } from "@/constants/tema";
 import { ErrorAsistente, preguntar, type Mensaje } from "@/servicios/asistente";
 import { decidirFinalidad, obtenerFinalidades } from "@/servicios/privacidad";
@@ -63,6 +79,8 @@ export default function Asistente() {
   const [permiso, setPermiso] = useState<Permiso>("revisando");
   const [otorgando, setOtorgando] = useState(false);
   const desplazable = useRef<ScrollView>(null);
+  const reducido = useMovimientoReducido();
+  const entra = reducido ? undefined : FadeInDown.duration(280);
 
   useEffect(() => {
     obtenerFinalidades()
@@ -78,6 +96,9 @@ export default function Asistente() {
     : ultima?.rol === "asistente" && SE_ABSTUVO.test(ultima.texto)
       ? "no_sabe"
       : "escuchando";
+  // Velvi está solo y grande hasta la primera pregunta; después pasa a la cabecera.
+  const presentacion = mensajes.length === 0 && permiso === "otorgado";
+  const respuestas = mensajes.filter((m) => m.rol === "asistente").length;
 
   async function enviar(pregunta: string) {
     const limpia = pregunta.trim();
@@ -128,13 +149,21 @@ export default function Asistente() {
         >
           <Ionicons name="chevron-back" size={26} color={colores.texto} />
         </Pressable>
-        <Mascota estado={estado} tamano={40} />
-        <View style={{ flex: 1 }}>
-          <Text style={estilos.nombre}>{NOMBRE_MASCOTA}</Text>
-          <Text style={estilos.lema}>
-            {pensando ? "Consultando tus datos…" : "Lee tus datos, no los inventa"}
-          </Text>
-        </View>
+        {presentacion ? (
+          <View style={{ flex: 1 }} />
+        ) : (
+          <Animated.View entering={reducido ? undefined : FadeIn.duration(300)} style={estilos.identidad}>
+            <Animated.View entering={reducido ? undefined : ZoomIn.springify().damping(12)}>
+              <VelviVivo estado={estado} tamano={42} reaccion={respuestas} atento={texto.length > 0} />
+            </Animated.View>
+            <View style={{ flex: 1 }}>
+              <Text style={estilos.nombre}>{NOMBRE_MASCOTA}</Text>
+              <Text style={estilos.lema}>
+                {pensando ? "Consultando tus datos…" : "Lee tus datos, no los inventa"}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
       </View>
 
       <KeyboardAvoidingView
@@ -152,7 +181,15 @@ export default function Asistente() {
                      onDetalle={() => router.push("/cuentas/privacidad")} />
           ) : (
             <>
-              <Burbuja rol="asistente"
+              {presentacion ? (
+                <View style={estilos.escenario}>
+                  <VelviVivo estado={estado} tamano={132} atento={texto.length > 0} conHalo />
+                  <Text style={estilos.escenarioNombre}>{NOMBRE_MASCOTA}</Text>
+                  <Text style={estilos.lema}>Lee tus datos, no los inventa</Text>
+                </View>
+              ) : null}
+
+              <Burbuja rol="asistente" conCara={!presentacion}
                 texto={`Hola, soy ${NOMBRE_MASCOTA}. Pregúntame por tus gastos, tu día de pago, tus cobros fijos o tus metas. Las cifras las saco de tus datos; si no tengo una, te lo digo.`} />
 
               {mensajes.length === 0 && permiso === "otorgado" ? (
@@ -166,14 +203,20 @@ export default function Asistente() {
               ) : null}
 
               {mensajes.map((m, i) => (
-                <Burbuja key={i} rol={m.rol} texto={m.texto} consultas={m.consultas} />
+                <Animated.View key={i} entering={entra}>
+                  <Burbuja rol={m.rol} texto={m.texto} consultas={m.consultas}
+                           estado={i === mensajes.length - 1 ? estado : "escuchando"} />
+                </Animated.View>
               ))}
 
               {pensando ? (
-                <View style={[estilos.burbuja, estilos.deAsistente, estilos.pensando]}>
-                  <ActivityIndicator size="small" color={colores.texto2} />
-                  <Text style={estilos.pensandoTexto}>Consultando tus datos…</Text>
-                </View>
+                <Animated.View entering={entra} style={estilos.fila}>
+                  <VelviVivo estado="consultando" tamano={30} />
+                  <View style={[estilos.burbuja, estilos.deAsistente, estilos.pensando]}>
+                    <Puntos />
+                    <Text style={estilos.pensandoTexto}>Leyendo tus datos</Text>
+                  </View>
+                </Animated.View>
               ) : null}
 
               {problema ? (
@@ -213,9 +256,16 @@ export default function Asistente() {
   );
 }
 
-function Burbuja({ rol, texto, consultas }: { rol: Mensaje["rol"]; texto: string; consultas?: string[] }) {
+function Burbuja({ rol, texto, consultas, estado = "escuchando", conCara = true }: {
+  rol: Mensaje["rol"];
+  texto: string;
+  consultas?: string[];
+  estado?: EstadoMascota;
+  /** La cara de Velvi junto a la burbuja: se lee quién habla. */
+  conCara?: boolean;
+}) {
   const propia = rol === "usuario";
-  return (
+  const burbuja = (
     <View style={[estilos.burbuja, propia ? estilos.deUsuario : estilos.deAsistente]}>
       <Text style={propia ? estilos.textoUsuario : estilos.textoAsistente}>{texto}</Text>
       {consultas && consultas.length > 0 ? (
@@ -226,6 +276,34 @@ function Burbuja({ rol, texto, consultas }: { rol: Mensaje["rol"]; texto: string
       ) : null}
     </View>
   );
+  if (propia || !conCara) return burbuja;
+  return (
+    <View style={estilos.fila}>
+      <Mascota estado={estado} tamano={30} />
+      {burbuja}
+    </View>
+  );
+}
+
+/** Tres puntos que laten en secuencia: Velvi está trabajando. */
+function Puntos() {
+  return (
+    <View style={estilos.puntosLatido}>
+      {[0, 1, 2].map((i) => <Punto3 key={i} demora={i * 160} />)}
+    </View>
+  );
+}
+
+function Punto3({ demora }: { demora: number }) {
+  const v = useSharedValue(0.3);
+  useEffect(() => {
+    v.value = withDelay(demora, withRepeat(withSequence(
+      withTiming(1, { duration: 360 }),
+      withTiming(0.3, { duration: 360 }),
+    ), -1));
+  }, [demora, v]);
+  const estilo = useAnimatedStyle(() => ({ opacity: v.value, transform: [{ translateY: (0.3 - v.value) * 4 }] }));
+  return <Animated.View style={[estilos.punto3, estilo]} />;
 }
 
 function Permiso({ onAutorizar, onDetalle, otorgando }: {
@@ -277,7 +355,13 @@ const estilos = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colores.borde,
   },
+  identidad: { flex: 1, flexDirection: "row", alignItems: "center", gap: espacio.m },
   nombre: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 17 },
+  escenario: { alignItems: "center", paddingTop: espacio.l, paddingBottom: espacio.m, gap: 2 },
+  escenarioNombre: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 24, marginTop: espacio.m },
+  fila: { flexDirection: "row", alignItems: "flex-end", gap: espacio.s, maxWidth: "92%" },
+  puntosLatido: { flexDirection: "row", gap: 4, alignItems: "center" },
+  punto3: { width: 6, height: 6, borderRadius: 3, backgroundColor: colores.acento },
   lema: { color: colores.ok, fontFamily: fuente.texto, fontSize: 12 },
 
   hilo: { padding: espacio.l, gap: espacio.m, paddingBottom: espacio.xl },
