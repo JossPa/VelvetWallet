@@ -31,7 +31,7 @@ from datetime import date
 from .herramientas import DEFINICIONES, TITULOS
 
 #: Nombre del personaje que responde en la app.
-MASCOTA = "Chilla"
+MASCOTA = "Velvi"
 
 #: Vueltas máximas modelo → herramienta → modelo. Una pregunta normal usa una
 #: o dos; si no termina en cinco, algo anda mal y es mejor decirlo que girar.

@@ -1,5 +1,5 @@
 /**
- * Asistente conversacional: la persona pregunta con sus palabras y Chilla
+ * Asistente conversacional: la persona pregunta con sus palabras y Velvi
  * responde con las cifras de sus propios datos.
  *
  * Tres cosas que esta pantalla hace visibles a propósito:
