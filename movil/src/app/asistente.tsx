@@ -119,7 +119,13 @@ export default function Asistente() {
     <SafeAreaView style={estilos.area} edges={["top", "bottom"]}>
       <FondoDePantalla />
       <View style={estilos.cabecera}>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Volver">
+        {/* Si el chat se abrió directo (recargando la página o desde un enlace)
+            no hay pantalla anterior: volver lleva al inicio en vez de no hacer nada. */}
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+          hitSlop={12}
+          accessibilityLabel="Volver"
+        >
           <Ionicons name="chevron-back" size={26} color={colores.texto} />
         </Pressable>
         <Mascota estado={estado} tamano={40} />
