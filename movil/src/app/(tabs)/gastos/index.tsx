@@ -17,7 +17,8 @@ import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
 import { Segmentos } from "@/components/Segmentos";
 import { SelectorMes } from "@/components/SelectorMes";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { claveMes, pesos } from "@/utils/formato";
 
@@ -33,6 +34,7 @@ const TODAS = "__todas__";
 const SIN_CATEGORIA = "__sin__";
 
 export default function Gastos() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { movimientos, novedades, cargaInicial, marcarVistas } = useMovimientos();
 
@@ -185,7 +187,7 @@ export default function Gastos() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   fijos: { marginTop: espacio.m },
   resumen: {
     flexDirection: "row",
@@ -196,4 +198,4 @@ const estilos = StyleSheet.create({
   resumenTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13 },
   resumenTotal: { color: colores.texto2, fontFamily: fuente.tituloMedio, fontSize: 15 },
   lista: { marginTop: espacio.s },
-});
+}));

@@ -14,7 +14,8 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from "react-native-svg";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 const ALTO = 150;
 const MARGEN = { arriba: 10, abajo: 22, izquierda: 30, derecha: 10 };
@@ -27,6 +28,8 @@ type Props = {
 };
 
 export function CurvaProbabilidad({ curva, mesDestacado }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const [ancho, setAncho] = useState(0);
 
   // Se recorta el horizonte poco después de que la curva se aplana: veinte
@@ -154,7 +157,7 @@ function marcas(largo: number): number[] {
   return salida;
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -171,4 +174,4 @@ const estilos = StyleSheet.create({
     textAlign: "center",
     marginTop: espacio.xs,
   },
-});
+}));

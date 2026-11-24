@@ -158,18 +158,19 @@ class Repositorio:
     def upsert_cuenta(self, conexion_id: str, usuario_id: str, datos: dict) -> str:
         fila = self.conn.execute(
             """
-            INSERT INTO cuenta (conexion_id, usuario_id, id_externo, tipo,
+            INSERT INTO cuenta (conexion_id, usuario_id, id_externo, tipo, apodo,
                                 moneda, saldo, actualizado_at)
-            VALUES (%(conexion_id)s, %(usuario_id)s, %(id_externo)s, %(tipo)s,
+            VALUES (%(conexion_id)s, %(usuario_id)s, %(id_externo)s, %(tipo)s, %(apodo)s,
                     %(moneda)s, %(saldo)s, now())
             ON CONFLICT (conexion_id, id_externo) WHERE id_externo IS NOT NULL
             DO UPDATE SET saldo          = EXCLUDED.saldo,
                           moneda         = EXCLUDED.moneda,
                           tipo           = EXCLUDED.tipo,
+                          apodo          = EXCLUDED.apodo,
                           actualizado_at = now()
             RETURNING id
             """,
-            {"conexion_id": conexion_id, "usuario_id": usuario_id, **datos},
+            {"conexion_id": conexion_id, "usuario_id": usuario_id, "apodo": None, **datos},
         ).fetchone()
         return fila[0]
 

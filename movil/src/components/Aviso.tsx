@@ -5,7 +5,8 @@
 import { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 
 type Props = {
   children: ReactNode;
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function Aviso({ children, detalle, onPress }: Props) {
+  const estilos = useEstilos();
   const Contenedor = onPress ? Pressable : View;
   return (
     <Contenedor onPress={onPress} style={estilos.caja}>
@@ -26,7 +28,7 @@ export function Aviso({ children, detalle, onPress }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   caja: {
     flexDirection: "row",
     backgroundColor: colores.alertaSuave,
@@ -42,4 +44,4 @@ const estilos = StyleSheet.create({
   textos: { flex: 1, gap: 2 },
   texto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 15 },
   detalle: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 13 },
-});
+}));

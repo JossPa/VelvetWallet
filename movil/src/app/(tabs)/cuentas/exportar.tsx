@@ -17,7 +17,8 @@ import { Platform, StyleSheet, Text, View } from "react-native";
 
 import { Boton } from "@/components/Boton";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { exportarDatos } from "@/servicios/privacidad";
 
 const CONTIENE = [
@@ -30,6 +31,8 @@ const CONTIENE = [
 ];
 
 export default function Exportar() {
+  const estilos = useEstilos();
+  const colores = useColores();
   const router = useRouter();
   const [ocupado, setOcupado] = useState(false);
   const [listo, setListo] = useState<string | null>(null);
@@ -110,7 +113,7 @@ export default function Exportar() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   entrada: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15, lineHeight: 22 },
   tarjeta: { backgroundColor: colores.tarjeta, borderRadius: radio.l, padding: espacio.l, gap: espacio.m },
   fila: { flexDirection: "row", gap: espacio.m, alignItems: "flex-start" },
@@ -126,4 +129,4 @@ const estilos = StyleSheet.create({
     textAlign: "center",
     marginTop: espacio.m,
   },
-});
+}));

@@ -22,7 +22,8 @@ import { type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Tocable } from "@/components/Movimiento";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 type Tono = "normal" | "peligro";
 
@@ -56,6 +57,8 @@ export function Fila({
   ultima,
   expandido,
 }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const peligro = tono === "peligro";
   const chevron =
     expandido === undefined ? "chevron-forward" : expandido ? "chevron-up" : "chevron-down";
@@ -92,10 +95,11 @@ export function Fila({
  * como seis decisiones independientes.
  */
 export function GrupoDeFilas({ children }: { children: ReactNode }) {
+  const estilos = useEstilos();
   return <View style={estilos.grupo}>{children}</View>;
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   grupo: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -128,4 +132,4 @@ const estilos = StyleSheet.create({
   tituloPeligro: { color: colores.texto2, fontFamily: fuente.texto },
   detalle: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5, lineHeight: 17 },
   valor: { color: colores.texto2, fontFamily: fuente.tituloMedio, fontSize: 14 },
-});
+}));

@@ -16,7 +16,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { eliminarCuenta } from "@/servicios/privacidad";
 import { useSesion } from "@/sesion/SesionContexto";
 
@@ -28,6 +29,8 @@ const SE_BORRA = [
 ];
 
 export default function Eliminar() {
+  const estilos = useEstilos();
+  const colores = useColores();
   const router = useRouter();
   const { usuario, salir } = useSesion();
   const [correo, setCorreo] = useState("");
@@ -111,7 +114,7 @@ export default function Eliminar() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   aviso: {
     flexDirection: "row",
     gap: espacio.m,
@@ -138,4 +141,4 @@ const estilos = StyleSheet.create({
   correo: { color: colores.texto, fontFamily: fuente.mono, fontSize: 13.5 },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   boton: { marginTop: espacio.l },
-});
+}));

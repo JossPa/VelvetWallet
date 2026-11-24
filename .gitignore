@@ -46,3 +46,6 @@ desktop.ini
 # Archivos temporales que crea Word/Excel al abrir un documento
 ~$*
 .venv-requirements.txt
+
+# APK compilada (se genera con construir_apk.cmd)
+*.apk

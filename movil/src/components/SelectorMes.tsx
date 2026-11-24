@@ -7,7 +7,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { nombreMes } from "@/utils/formato";
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function SelectorMes({ meses, valor, onCambio }: Props) {
+  const estilos = useEstilos();
   const indice = meses.indexOf(valor);
   const hayAnterior = indice < meses.length - 1; // más antiguo
   const haySiguiente = indice > 0;               // más reciente
@@ -31,6 +33,8 @@ export function SelectorMes({ meses, valor, onCambio }: Props) {
 }
 
 function Flecha({ nombre, activa, onPress }: { nombre: "chevron-back" | "chevron-forward"; activa: boolean; onPress: () => void }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   return (
     <Pressable onPress={onPress} disabled={!activa} hitSlop={8} style={estilos.flecha}>
       <Ionicons name={nombre} size={16} color={activa ? colores.texto : colores.linea} />
@@ -38,7 +42,7 @@ function Flecha({ nombre, activa, onPress }: { nombre: "chevron-back" | "chevron
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   contenedor: {
     flexDirection: "row",
     alignItems: "center",
@@ -55,4 +59,4 @@ const estilos = StyleSheet.create({
     minWidth: 84,
     textAlign: "center",
   },
-});
+}));

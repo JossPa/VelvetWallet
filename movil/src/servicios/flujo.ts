@@ -8,8 +8,8 @@
  * cuánto queda realmente libre hoy y cambia todos los días.
  */
 import { tokenActual } from "@/servicios/auth";
+import { api } from "@/servicios/api";
 
-const API = "http://localhost:8000";
 
 export class ErrorFlujo extends Error {}
 
@@ -60,7 +60,7 @@ export async function obtenerFlujo(): Promise<RespuestaFlujo> {
 
   let respuesta: Response;
   try {
-    respuesta = await fetch(`${API}/api/flujo`, {
+    respuesta = await fetch(`${api()}/api/flujo`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   } catch {

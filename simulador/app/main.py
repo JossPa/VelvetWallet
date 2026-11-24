@@ -1283,3 +1283,13 @@ from app.panel import PANEL_HTML  # noqa: E402
 def panel():
     """Página para manejar la demo desde el navegador (usa los endpoints /simulador/*)."""
     return HTMLResponse(PANEL_HTML)
+
+
+# ───────────────────────── consola de administración ─────────────────────────
+# Control completo de la EFS en /admin (protegido con SFA_ADMIN_CLAVE). Va al
+# final: el módulo lee las variables de este archivo en cada llamada.
+from app import admin  # noqa: E402
+
+app.include_router(admin.router)
+app.include_router(admin.pagina)
+app.middleware("http")(admin.inyectar_fallas)

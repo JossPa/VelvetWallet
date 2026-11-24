@@ -20,7 +20,8 @@ import { Cifra } from "@/components/Cifra";
 import { Ficha } from "@/components/Ficha";
 import { Fila, GrupoDeFilas } from "@/components/Fila";
 import { Nota, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { obtenerFlujo, type RespuestaFlujo } from "@/servicios/flujo";
 import { fechaCorta, pesos } from "@/utils/formato";
 
@@ -28,6 +29,7 @@ import { fechaCorta, pesos } from "@/utils/formato";
 const menos = (monto: number) => `−${pesos(monto)}`;
 
 export function PanelFlujo({ recalcularCon }: { recalcularCon: unknown }) {
+  const estilos = useEstilos();
   const [datos, setDatos] = useState<RespuestaFlujo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [verCargos, setVerCargos] = useState(false);
@@ -148,7 +150,7 @@ export function PanelFlujo({ recalcularCon }: { recalcularCon: unknown }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   encabezado: { gap: espacio.xs, paddingBottom: espacio.m },
   cifra: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 30 },
   negativa: { color: colores.acento },
@@ -165,4 +167,4 @@ const estilos = StyleSheet.create({
     minWidth: 86,
     textAlign: "right",
   },
-});
+}));

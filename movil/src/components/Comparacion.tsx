@@ -6,10 +6,13 @@
  */
 import { StyleSheet, Text, View } from "react-native";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import type { Variacion } from "@/utils/resumen";
 
 function Fila({ v, destacada }: { v: Variacion; destacada?: boolean }) {
+  const colores = useColores();
+  const estilos = useEstilos();
   const signo = v.porcentaje === null ? "" : v.porcentaje > 0 ? "+" : "−";
   const valor = v.porcentaje === null ? "—" : `${signo}${Math.abs(v.porcentaje)}%`;
   const color =
@@ -34,6 +37,7 @@ export function Comparacion({
   variaciones: Variacion[];
   total: Variacion;
 }) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.tarjeta}>
       {variaciones.map((v) => (
@@ -44,7 +48,7 @@ export function Comparacion({
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -66,4 +70,4 @@ const estilos = StyleSheet.create({
   filaDestacada: { borderTopColor: colores.texto3 },
   categoria: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15 },
   valor: { fontFamily: fuente.titulo, fontSize: 16 },
-});
+}));

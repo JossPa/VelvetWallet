@@ -17,7 +17,9 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import type { Paleta } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { fechaConAnio, hora } from "@/utils/formato";
 import {
   marcarIncidenteVisto,
@@ -25,10 +27,11 @@ import {
   type Incidente,
 } from "@/servicios/incidentes";
 
-const GRAVEDAD: Record<string, { texto: string; color: string }> = {
-  alta: { texto: "Gravedad alta", color: colores.acento },
-  media: { texto: "Gravedad media", color: colores.alerta },
-  baja: { texto: "Gravedad baja", color: colores.texto3 },
+// El color va por nombre y se resuelve con la paleta del tema activo.
+const GRAVEDAD: Record<string, { texto: string; color: keyof Paleta }> = {
+  alta: { texto: "Gravedad alta", color: "acento" },
+  media: { texto: "Gravedad media", color: "alerta" },
+  baja: { texto: "Gravedad baja", color: "texto3" },
 };
 
 /** Qué puede hacer la persona. Es lo único accionable del aviso. */
@@ -39,6 +42,7 @@ const QUE_HACER = [
 ];
 
 function Bloque({ titulo, children }: { titulo: string; children: string }) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.bloque}>
       <Text style={estilos.bloqueTitulo}>{titulo}</Text>
@@ -48,14 +52,16 @@ function Bloque({ titulo, children }: { titulo: string; children: string }) {
 }
 
 function Tarjeta({ i, onVisto }: { i: Incidente; onVisto: () => void }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const g = GRAVEDAD[i.gravedad] ?? GRAVEDAD.media;
   const sinLeer = i.visto === null;
 
   return (
     <View style={[estilos.tarjeta, sinLeer && estilos.tarjetaSinLeer]}>
       <View style={estilos.cabecera}>
-        <Ionicons name="shield-outline" size={20} color={g.color} />
-        <Text style={[estilos.gravedad, { color: g.color }]}>{g.texto}</Text>
+        <Ionicons name="shield-outline" size={20} color={colores[g.color]} />
+        <Text style={[estilos.gravedad, { color: colores[g.color] }]}>{g.texto}</Text>
         {sinLeer ? <View style={estilos.punto} /> : null}
       </View>
 
@@ -102,6 +108,8 @@ function Tarjeta({ i, onVisto }: { i: Incidente; onVisto: () => void }) {
 }
 
 export default function Incidentes() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const [incidentes, setIncidentes] = useState<Incidente[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +178,7 @@ export default function Incidentes() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   entrada: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15, lineHeight: 22 },
 
@@ -235,4 +243,4 @@ const estilos = StyleSheet.create({
   },
   botonTexto: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14.5 },
   leido: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5, marginTop: espacio.m },
-});
+}));

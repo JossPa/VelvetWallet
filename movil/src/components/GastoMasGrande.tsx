@@ -15,7 +15,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { AvatarComercio } from "@/components/AvatarComercio";
 import { Cifra } from "@/components/Cifra";
 import { Tocable } from "@/components/Movimiento";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import type { Desglose } from "@/utils/desglose";
 import { fechaCorta, pesos } from "@/utils/formato";
 
@@ -27,6 +28,8 @@ type Props = {
 };
 
 export function GastoMasGrande({ desglose, periodo, onPress }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const { categoria, total, cantidad, fraccionDelGasto, mayor, grupos } = desglose;
   const principal = grupos[0];
 
@@ -70,7 +73,7 @@ export function GastoMasGrande({ desglose, periodo, onPress }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -100,4 +103,4 @@ const estilos = StyleSheet.create({
   nombre: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 15 },
   pie: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5 },
   montoDetalle: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 16 },
-});
+}));

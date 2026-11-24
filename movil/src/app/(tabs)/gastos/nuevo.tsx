@@ -15,7 +15,8 @@ import { Campo } from "@/components/Campo";
 import { Chips } from "@/components/Chips";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
 import { Segmentos } from "@/components/Segmentos";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { CATEGORIAS_DE_GASTO } from "@/datos/categorias";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { anotarMovimiento } from "@/servicios/cargas";
@@ -66,6 +67,7 @@ function aFechaIso(texto: string): string | null {
 }
 
 export default function NuevoMovimiento() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { agregarMovimiento } = useMovimientos();
 
@@ -173,9 +175,9 @@ export default function NuevoMovimiento() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   campos: { gap: espacio.l, marginTop: espacio.l },
   eco: { color: colores.texto3, fontFamily: fuente.textoMedio, fontSize: 13, marginTop: -espacio.m },
   guardar: { marginTop: espacio.l },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
-});
+}));

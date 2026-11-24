@@ -9,7 +9,7 @@ import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, View } from "react-native";
 
-import { colores } from "@/constants/tema";
+import { useColores } from "@/tema/TemaContexto";
 import { contarNovedades, useMovimientos } from "@/datos/MovimientosContexto";
 
 type NombreIcono = keyof typeof Ionicons.glyphMap;
@@ -41,6 +41,7 @@ function FondoDeBarra() {
 }
 
 export default function LayoutPestanas() {
+  const colores = useColores();
   const { novedades } = useMovimientos();
   const sinVer = contarNovedades(novedades);
 

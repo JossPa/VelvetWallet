@@ -9,8 +9,8 @@
  * es fricción evitable cuando el dato ya llegó por el estándar.
  */
 import { tokenActual } from "@/servicios/auth";
+import { api } from "@/servicios/api";
 
-const API = "http://localhost:8000";
 
 export class ErrorPerfil extends Error {}
 
@@ -38,7 +38,7 @@ async function pedir(ruta: string, opciones: RequestInit = {}): Promise<Perfil> 
 
   let respuesta: Response;
   try {
-    respuesta = await fetch(`${API}${ruta}`, {
+    respuesta = await fetch(`${api()}${ruta}`, {
       ...opciones,
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     });

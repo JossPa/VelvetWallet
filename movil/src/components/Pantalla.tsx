@@ -30,7 +30,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
 import { FondoDePantalla } from "@/components/Superficie";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 /** Dónde empieza y dónde termina el relevo entre el título y la barra. */
 const DESDE = 16;
@@ -69,6 +70,8 @@ export function Pantalla({
   resumen,
   children,
 }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const reducido = useMovimientoReducido();
   const y = useSharedValue(0);
 
@@ -156,11 +159,13 @@ export function Pantalla({
 
 /** Rótulo de sección en mayúsculas espaciadas: "TUS DATOS", "CORREGIR". */
 export function Seccion({ titulo }: { titulo: string }) {
+  const estilos = useEstilos();
   return <Text style={estilos.seccion}>{titulo.toUpperCase()}</Text>;
 }
 
 /** Tarjeta gris de texto informativo, como la nota de confianza al pie de Cuentas. */
 export function Nota({ children }: { children: ReactNode }) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.nota}>
       <Text style={estilos.notaTexto}>{children}</Text>
@@ -168,7 +173,7 @@ export function Nota({ children }: { children: ReactNode }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   area: { flex: 1, backgroundColor: colores.fondo },
   // La barra de pestañas ahora flota sobre el contenido (va con desenfoque),
   // así que el scroll tiene que terminar por debajo de ella: 68 de alto más
@@ -266,4 +271,4 @@ const estilos = StyleSheet.create({
     marginTop: espacio.l,
   },
   notaTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, lineHeight: 21 },
-});
+}));

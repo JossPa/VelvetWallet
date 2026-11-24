@@ -6,7 +6,8 @@
 import { ScrollView, StyleSheet, Text } from "react-native";
 
 import { Tocable } from "@/components/Movimiento";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 
 type Opcion<T extends string> = { valor: T; etiqueta: string };
 
@@ -17,6 +18,7 @@ type Props<T extends string> = {
 };
 
 export function Chips<T extends string>({ opciones, valor, onCambio }: Props<T>) {
+  const estilos = useEstilos();
   return (
     <ScrollView
       horizontal
@@ -40,7 +42,7 @@ export function Chips<T extends string>({ opciones, valor, onCambio }: Props<T>)
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   contenedor: { marginHorizontal: -espacio.l, marginBottom: espacio.l },
   fila: { paddingHorizontal: espacio.l, gap: espacio.s },
   chip: {
@@ -54,4 +56,4 @@ const estilos = StyleSheet.create({
   chipActivo: { backgroundColor: colores.acentoSuave, borderColor: colores.acento },
   texto: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 13 },
   textoActivo: { color: colores.acento },
-});
+}));

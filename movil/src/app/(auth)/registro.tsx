@@ -11,11 +11,13 @@ import { StyleSheet, Text } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { MarcoAuth } from "@/components/MarcoAuth";
-import { colores, fuente } from "@/constants/tema";
+import { fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useSesion } from "@/sesion/SesionContexto";
 import { ErrorAuth, emailValido, problemaPassword } from "@/servicios/auth";
 
 export default function Registro() {
+  const estilos = useEstilos();
   const { registrarse } = useSesion();
 
   const [nombre, setNombre] = useState("");
@@ -124,9 +126,9 @@ export default function Registro() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, textAlign: "center" },
   pieTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15 },
   enlace: { color: colores.acento, fontFamily: fuente.textoFuerte },
   aviso: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19, textAlign: "center" },
-});
+}));

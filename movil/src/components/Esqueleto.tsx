@@ -25,7 +25,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useMovimientoReducido } from "@/components/Movimiento";
-import { colores, espacio, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 const OPACIDAD_BAJA = 0.4;
 const OPACIDAD_ALTA = 1;
@@ -42,6 +43,7 @@ export function Bloque({
   curva?: number;
   style?: ViewStyle;
 }) {
+  const colores = useColores();
   const reducido = useMovimientoReducido();
   const pulso = useSharedValue(OPACIDAD_BAJA);
 
@@ -67,6 +69,7 @@ export function Bloque({
 
 /** Tarjeta vacía del alto de una tarjeta de verdad, con bloques dentro. */
 export function TarjetaEsqueleto({ children, style }: { children?: ReactNode; style?: ViewStyle }) {
+  const estilos = useEstilos();
   return <View style={[estilos.tarjeta, style]}>{children}</View>;
 }
 
@@ -78,6 +81,7 @@ export function TarjetaEsqueleto({ children, style }: { children?: ReactNode; st
  * mismo sitio donde la persona ya había puesto el ojo.
  */
 export function EsqueletoInicio() {
+  const estilos = useEstilos();
   return (
     <View style={estilos.raiz}>
       <Bloque ancho={160} alto={12} />
@@ -110,6 +114,7 @@ export function EsqueletoInicio() {
 
 /** Esqueleto de una lista de movimientos: tantas filas como quepan sin mentir. */
 export function EsqueletoLista({ filas = 6 }: { filas?: number }) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.lista}>
       {Array.from({ length: filas }, (_, i) => (
@@ -128,7 +133,7 @@ export function EsqueletoLista({ filas = 6 }: { filas?: number }) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   raiz: { paddingTop: espacio.s },
   cifra: { marginTop: espacio.s },
   boton: { marginTop: espacio.l },
@@ -149,4 +154,4 @@ const estilos = StyleSheet.create({
   lista: { gap: espacio.l, marginTop: espacio.m },
   fila: { flexDirection: "row", alignItems: "center", gap: espacio.m },
   filaTexto: { flex: 1, gap: espacio.s },
-});
+}));

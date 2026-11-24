@@ -41,6 +41,20 @@ Desde la carpeta del proyecto, en Windows:
 Cierra lo que haya quedado corriendo en esos puertos, prepara `.venv` y las
 dependencias solo cuando cambian, abre una ventana por servicio y espera a que
 respondan. Necesita `backend\.env` (credenciales de Neon y Atlas, no está en git).
+También levanta Postgres y Mongo en Docker (abre Docker Desktop si está cerrado).
+
+### El PC como servidor y la APK en el celular
+
+```powershell
+.\abrir_firewall.ps1     # UNA vez, en PowerShell como administrador
+.\construir_apk.cmd      # genera VelvetWallet.apk con la IP actual del PC
+.\iniciar.cmd -Red       # cada vez: todo escuchando en la red Wi-Fi
+```
+
+El celular y el PC deben estar en el mismo Wi-Fi (o el PC en el hotspot del
+celular), y esa red marcada como **Privada** en Windows. Si la IP del PC cambia,
+no hay que recompilar: en la app, inicio de sesión → *Servidor · cambiar*.
+Compilar necesita Java 17 y el Android SDK (`%LOCALAPPDATA%\Android\Sdk`).
 
 ---
 

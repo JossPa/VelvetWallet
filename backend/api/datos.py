@@ -286,7 +286,7 @@ def listar_cuentas(usuario_id: str = Depends(usuario_actual)):
     with _conectar_dict() as conn:
         filas = conn.execute(
             """
-            SELECT c.id, c.id_externo, c.tipo, c.numero_enmascarado,
+            SELECT c.id, c.id_externo, c.tipo, c.apodo, c.numero_enmascarado,
                    c.moneda, c.saldo, c.actualizado_at,
                    inst.nombre AS institucion
             FROM cuenta c
@@ -304,6 +304,7 @@ def listar_cuentas(usuario_id: str = Depends(usuario_actual)):
             "idExterno": r["id_externo"],
             "institucion": r["institucion"],
             "tipo": r["tipo"],
+            "apodo": r["apodo"],
             "numeroEnmascarado": r["numero_enmascarado"],
             "moneda": r["moneda"],
             "saldo": float(r["saldo"]) if r["saldo"] is not None else None,

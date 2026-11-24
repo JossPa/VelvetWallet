@@ -12,7 +12,8 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import type { Movimiento } from "@/modelo/tipos";
 import { fechaCorta, pesos } from "@/utils/formato";
@@ -34,6 +35,7 @@ function Tarjeta({
   todas: string[];
   onElegir: (categoria: string) => void;
 }) {
+  const estilos = useEstilos();
   const [verTodas, setVerTodas] = useState(false);
   const sugeridas = sugerencia.categorias;
   // Al desplegar "Otra…", las sugeridas ya están arriba: no se repiten.
@@ -97,6 +99,7 @@ function Tarjeta({
 }
 
 export default function PorRevisar() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { movimientos, corregirCategoria } = useMovimientos();
 
@@ -137,7 +140,7 @@ export default function PorRevisar() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -178,4 +181,4 @@ const estilos = StyleSheet.create({
     marginTop: espacio.l,
   },
   destacado: { color: colores.texto, fontFamily: fuente.textoFuerte },
-});
+}));

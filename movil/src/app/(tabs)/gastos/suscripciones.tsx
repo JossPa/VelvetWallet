@@ -19,7 +19,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { AvatarComercio } from "@/components/AvatarComercio";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { fechaConAnio, pesos } from "@/utils/formato";
 import {
   decidirSuscripcion,
@@ -45,6 +46,8 @@ function Tarjeta({
   ocupada: boolean;
   onDecidir: (estado: "confirmada" | "descartada") => void;
 }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const descartada = s.estado === "descartada";
 
   return (
@@ -99,6 +102,8 @@ function Tarjeta({
 }
 
 export default function Suscripciones() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const [datos, setDatos] = useState<{
     suscripciones: Suscripcion[];
@@ -205,7 +210,7 @@ export default function Suscripciones() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
 
   total: {
@@ -258,7 +263,7 @@ const estilos = StyleSheet.create({
     borderRadius: radio.m,
     paddingVertical: espacio.m,
   },
-  si: { backgroundColor: "#15291F" },
+  si: { backgroundColor: colores.okSuave },
   botonTexto: { color: colores.texto3, fontFamily: fuente.textoFuerte, fontSize: 13.5 },
 
   resuelta: {
@@ -271,4 +276,4 @@ const estilos = StyleSheet.create({
     borderTopColor: colores.linea,
   },
   resueltaTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 13 },
-});
+}));

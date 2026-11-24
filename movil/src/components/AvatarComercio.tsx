@@ -5,7 +5,8 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colores, fuente, radio } from "@/constants/tema";
+import { fuente, radio } from "@/constants/tema";
+import { useColores } from "@/tema/TemaContexto";
 import { COMERCIOS, LOGOS } from "@/datos/comercios";
 import { tinte } from "@/utils/coloresCategoria";
 
@@ -37,6 +38,7 @@ export function AvatarComercio({
   tamano = 44,
   colorCategoria,
 }: Props) {
+  const colores = useColores();
   const caja = { width: tamano, height: tamano, borderRadius: radio.m };
 
   if (sinIdentificar) {

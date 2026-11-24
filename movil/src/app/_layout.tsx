@@ -16,30 +16,17 @@ import {
   PublicSans_600SemiBold,
 } from "@expo-google-fonts/public-sans";
 import { useFonts } from "expo-font";
-import { DarkTheme, Stack, ThemeProvider, useRouter, useSegments } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-import { colores } from "@/constants/tema";
 import { ProveedorMovimientos } from "@/datos/MovimientosContexto";
 import { ProveedorSesion, useSesion } from "@/sesion/SesionContexto";
+import { ProveedorTema, useTema } from "@/tema/TemaContexto";
 
 SplashScreen.preventAutoHideAsync();
 
-// Partimos del tema oscuro de React Navigation y le ponemos nuestros colores,
-// para que los fondos de transición y las cabeceras nativas calcen con la app.
-const temaVelvet = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: colores.fondo,
-    card: colores.fondo,
-    text: colores.texto,
-    border: colores.linea,
-    primary: colores.acento,
-  },
-};
 
 /**
  * Redirige entre las dos zonas cuando cambia la sesión. Va en un componente
@@ -75,6 +62,25 @@ function Raiz() {
 
   const listo = fuentesListas && !cargando;
 
+  // Partimos del tema claro u oscuro de React Navigation y le ponemos nuestros
+  // colores, para que los fondos de transición y las cabeceras nativas calcen
+  // con la app en los dos temas.
+  const { colores, esquema } = useTema();
+  const temaVelvet = useMemo(() => {
+    const base = esquema === "claro" ? DefaultTheme : DarkTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: colores.fondo,
+        card: colores.fondo,
+        text: colores.texto,
+        border: colores.linea,
+        primary: colores.acento,
+      },
+    };
+  }, [colores, esquema]);
+
   useEffect(() => {
     if (listo) SplashScreen.hideAsync();
   }, [listo]);
@@ -83,7 +89,8 @@ function Raiz() {
 
   return (
     <ThemeProvider value={temaVelvet}>
-      <StatusBar style="light" />
+      {/* Texto de la barra de estado: claro sobre fondo oscuro y al revés. */}
+      <StatusBar style={esquema === "claro" ? "dark" : "light"} />
       <Guardia />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colores.fondo } }}>
         <Stack.Screen name="(auth)" />
@@ -95,10 +102,12 @@ function Raiz() {
 
 export default function LayoutRaiz() {
   return (
-    <ProveedorSesion>
-      <ProveedorMovimientos>
-        <Raiz />
-      </ProveedorMovimientos>
-    </ProveedorSesion>
+    <ProveedorTema>
+      <ProveedorSesion>
+        <ProveedorMovimientos>
+          <Raiz />
+        </ProveedorMovimientos>
+      </ProveedorSesion>
+    </ProveedorTema>
   );
 }

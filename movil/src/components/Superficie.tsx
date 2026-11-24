@@ -25,14 +25,17 @@ import { type ReactNode } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
-import { colores, luz, radio as radios } from "@/constants/tema";
+import { luz, radio as radios } from "@/constants/tema";
+import type { Paleta } from "@/constants/tema";
+import { useColores } from "@/tema/TemaContexto";
 
 export type Nivel = 1 | 2 | 3;
 
-const FONDO: Record<Nivel, string> = {
-  1: colores.zona,
-  2: colores.tarjeta,
-  3: colores.tarjetaAlta,
+// Por nombre: se resuelve con la paleta del tema activo.
+const FONDO: Record<Nivel, keyof Paleta> = {
+  1: "zona",
+  2: "tarjeta",
+  3: "tarjetaAlta",
 };
 
 const INTENSIDAD: Record<Nivel, number> = {
@@ -70,14 +73,15 @@ type Props = {
  * solo necesitan el degradado. Se posiciona absoluta y no intercepta toques.
  */
 export function Luz({ nivel = 2, curva }: { nivel?: Nivel; curva?: number }) {
+  const colores = useColores();
   const c = curva ?? CURVA[nivel];
   return (
     <View style={[StyleSheet.absoluteFill, { borderRadius: c, overflow: "hidden" }]} pointerEvents="none">
       <Svg width="100%" height="100%">
         <Defs>
           <LinearGradient id={`luz${nivel}`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={INTENSIDAD[nivel]} />
-            <Stop offset={luz.alcance} stopColor="#FFFFFF" stopOpacity={0} />
+            <Stop offset="0" stopColor={colores.luz} stopOpacity={INTENSIDAD[nivel]} />
+            <Stop offset={luz.alcance} stopColor={colores.luz} stopOpacity={0} />
           </LinearGradient>
         </Defs>
         <Rect x="0" y="0" width="100%" height="100%" fill={`url(#luz${nivel})`} />
@@ -87,13 +91,14 @@ export function Luz({ nivel = 2, curva }: { nivel?: Nivel; curva?: number }) {
 }
 
 export function Superficie({ nivel = 2, curva, style, children }: Props) {
+  const colores = useColores();
   const c = curva ?? CURVA[nivel];
 
   return (
     <View
       style={[
         {
-          backgroundColor: FONDO[nivel],
+          backgroundColor: colores[FONDO[nivel]],
           borderRadius: c,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: colores.borde,
@@ -121,13 +126,14 @@ export function Superficie({ nivel = 2, curva, style, children }: Props) {
  * iluminado en vez de pegado sobre una lámina negra.
  */
 export function FondoDePantalla() {
+  const colores = useColores();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%">
         <Defs>
           <LinearGradient id="fondoVelvet" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.035} />
-            <Stop offset="0.34" stopColor="#FFFFFF" stopOpacity={0} />
+            <Stop offset="0" stopColor={colores.luz} stopOpacity={0.035} />
+            <Stop offset="0.34" stopColor={colores.luz} stopOpacity={0} />
           </LinearGradient>
           <LinearGradient id="fondoAcento" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={colores.acento} stopOpacity={0.07} />

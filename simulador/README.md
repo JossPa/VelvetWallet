@@ -75,6 +75,18 @@ acceso en las sincronizaciones siguientes **sin volver a pedir la clave**.
 Si una autorización llega sin RUT (versiones anteriores del backend), se atribuye al cliente por
 defecto (Jossue). Para exigir siempre el RUT: `SFA_CLIENTE_POR_DEFECTO=""`.
 
+## Consola de administración (`/admin`)
+
+`http://localhost:8001/admin` (y `:8002/admin` para el Banco Austral) controla la EFS completa
+desde el navegador: clientes (crear, editar nombre y clave, eliminar), cuentas (estado y apodo),
+movimientos (crear cargos o abonos con fecha libre, editar, borrar, confirmar pendientes), créditos
+(crear, pagar, mora, ajustar, borrar), consentimientos y tokens (ver y revocar), configuración en
+caliente (exigir token, cliente por defecto), **fallas simuladas** de la API (error, lentitud o
+caída, para probar RF-07) y restablecer los datos de base sin reiniciar.
+
+Todo `/admin/api/*` pide la cabecera `X-Admin-Clave`, que es la variable `SFA_ADMIN_CLAVE`
+(por defecto `admin`, con aviso en la consola). Igual que `/panel`, no es parte del estándar.
+
 ## Dos bancos a la vez
 
 `SFA_BANCO` elige qué banco es esta EFS (`app/banco.py`). Sin la variable es el de siempre.

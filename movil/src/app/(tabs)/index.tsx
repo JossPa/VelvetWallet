@@ -14,7 +14,6 @@ import { Aviso } from "@/components/Aviso";
 import { AvisoClasificacion } from "@/components/AvisoClasificacion";
 import { BarraCategorias } from "@/components/BarraCategorias";
 import { Boton } from "@/components/Boton";
-import { Chips } from "@/components/Chips";
 import { Cifra } from "@/components/Cifra";
 import { Comparacion } from "@/components/Comparacion";
 import { EsqueletoInicio } from "@/components/Esqueleto";
@@ -22,10 +21,12 @@ import { GastoMasGrande } from "@/components/GastoMasGrande";
 import { GraficoCategorias } from "@/components/GraficoCategorias";
 import { GraficoMeses } from "@/components/GraficoMeses";
 import { Aparecer } from "@/components/Movimiento";
+import { mensajeDeVuelta, PanelAutorizacion } from "@/components/PanelAutorizacion";
 import { PanelFlujo } from "@/components/PanelFlujo";
 import { Pantalla, Seccion } from "@/components/Pantalla";
 import { Superficie } from "@/components/Superficie";
-import { colores, espacio, fuente, movimiento, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useMovimientos, type VueltaDelBanco } from "@/datos/MovimientosContexto";
 import { marcarVisto, yaSeVio } from "@/datos/primeraVez";
 import { useSesion } from "@/sesion/SesionContexto";
@@ -53,7 +54,6 @@ function describirResultado(r: { nuevos: number; actualizados: number }): string
   return partes.length > 0 ? partes.join(" · ") : "Todo al día. No hay movimientos nuevos.";
 }
 
-/** Mensaje para el usuario según cómo volvió del sitio del banco. */
 /** Por qué el dato de un banco no está completo, en pocas palabras. */
 function problemaDe(c: Conexion): string {
   if (c.estado === "sin_respuesta") return "no respondió";
@@ -61,80 +61,8 @@ function problemaDe(c: Conexion): string {
   return "no se actualiza hace rato";
 }
 
-function mensajeDeVuelta(v: VueltaDelBanco): string {
-  if (v.banco === "rechazado") return "Rechazaste el acceso en tu banco. No se compartió nada.";
-  if (v.motivo === "otro_cliente") {
-    return "Este banco ya está vinculado a otro RUT en tu cuenta. Desvincúlalo antes de autorizar con otro.";
-  }
-  if (v.motivo === "expirado") {
-    return "La autorización venció o ya se había usado. Vuelve a intentarlo.";
-  }
-  return "No se pudo completar la vinculación con tu banco. Intenta de nuevo.";
-}
-
-/**
- * Panel de autorización: explica qué se pide y manda al usuario al SITIO DE SU
- * BANCO. Allá inicia sesión con su RUT y su clave y aprueba; Velvet no ve ni
- * guarda esos datos (OAuth del SFA). El banco lo devuelve a la app.
- */
-function PanelAutorizacion({
-  motivo,
-  ocupado,
-  onIrAlBanco,
-  onCancelar,
-  bancos,
-  banco,
-  onElegir,
-}: {
-  motivo?: string | null;
-  ocupado: boolean;
-  onIrAlBanco: () => void;
-  onCancelar?: () => void;
-  /** Los bancos que se pueden elegir. Con uno solo no se muestra la elección. */
-  bancos: string[];
-  banco: string;
-  onElegir: (banco: string) => void;
-}) {
-  return (
-    <View style={estilos.consent}>
-      <Text style={estilos.consentTitulo}>Autorización de acceso</Text>
-      {motivo ? <Text style={estilos.consentMotivo}>{motivo}</Text> : null}
-      {bancos.length > 1 ? (
-        <View style={estilos.elegirBanco}>
-          <Chips
-            opciones={bancos.map((b) => ({ valor: b, etiqueta: b }))}
-            valor={banco}
-            onCambio={onElegir}
-          />
-        </View>
-      ) : null}
-      <Text style={estilos.consentTexto}>
-        Velvet Wallet solicita tu permiso para leer, en tu banco:
-      </Text>
-      <Text style={estilos.consentItem}>•  Tus cuentas y saldos</Text>
-      <Text style={estilos.consentItem}>•  Tus movimientos</Text>
-
-      <Text style={estilos.consentNota}>
-        Te llevaremos al sitio de {banco}. Inicias sesión allá con tu RUT y tu clave y decides si
-        autorizas. Velvet nunca ve tu clave, y puedes revocar el acceso cuando quieras.
-      </Text>
-
-      <Boton
-        titulo={ocupado ? "Abriendo tu banco…" : `Ir a ${banco}`}
-        onPress={onIrAlBanco}
-        cargando={ocupado}
-        style={estilos.autorizar}
-      />
-      {!ocupado && onCancelar ? (
-        <Pressable onPress={onCancelar} style={estilos.cancelar}>
-          <Text style={estilos.cancelarTexto}>Cancelar</Text>
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
-
 export default function Inicio() {
+  const estilos = useEstilos();
   const router = useRouter();
   const {
     movimientos, sincronizando, cargaInicial, sincronizar, irAlBanco, completarVinculacion,
@@ -519,7 +447,7 @@ export default function Inicio() {
  */
 const HUECO_ZONA = radio.xl - radio.l - 1;
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   // El relleno de la zona es lo que fija el radio de las tarjetas que lleva
   // dentro: `radio.xl` menos este hueco tiene que dar `radio.l`. Si se cambia
   // uno hay que cambiar el otro, o las curvas dejan de ser concéntricas.
@@ -548,21 +476,7 @@ const estilos = StyleSheet.create({
     marginBottom: espacio.m,
   },
   sincronizar: { marginTop: espacio.s },
-  // ── panel de consentimiento ──
-  consent: {
-    backgroundColor: colores.tarjeta,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colores.borde,
-    borderTopColor: colores.bordeAlto,
-    borderRadius: radio.l,
-    padding: espacio.l,
-    marginTop: espacio.s,
-    gap: espacio.s,
-  },
-  consentTitulo: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 16, marginBottom: espacio.xs },
-  consentTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, lineHeight: 20 },
-  consentItem: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 14, lineHeight: 22 },
-  consentNota: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12, lineHeight: 18, marginTop: espacio.xs },
+  // ── avisos ──
   aviso: {
     color: colores.texto,
     backgroundColor: colores.alertaSuave,
@@ -576,7 +490,6 @@ const estilos = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
-  consentMotivo: { color: colores.alerta, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19 },
   vinculoFila: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: espacio.s, marginTop: espacio.s, flexWrap: "wrap" },
   vinculo: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12, textAlign: "center" },
   // Desvincular es destructivo, y lo destructivo no se pinta de rojo en su
@@ -593,11 +506,7 @@ const estilos = StyleSheet.create({
   confirmarTexto: { color: colores.texto, fontFamily: fuente.texto, fontSize: 13, lineHeight: 19 },
   confirmarAcciones: { flexDirection: "row", justifyContent: "flex-end", gap: espacio.l },
   confirmarSi: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 14 },
-  autorizar: { marginTop: espacio.m },
-  elegirBanco: { marginTop: espacio.m, marginBottom: -espacio.s },
   avisoBancos: { marginTop: espacio.l },
-  cancelar: { alignItems: "center", paddingVertical: espacio.s, marginTop: espacio.xs },
-  cancelarTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 14 },
   // ── resto ──
   resultado: {
     backgroundColor: colores.acentoSuave,
@@ -615,4 +524,4 @@ const estilos = StyleSheet.create({
   rotuloTarjeta: { color: colores.texto3, fontFamily: fuente.tituloMedio, fontSize: 12, letterSpacing: 1.2 },
   cifra: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 24, letterSpacing: -0.5, marginTop: espacio.s },
   pieTarjeta: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },
-});
+}));

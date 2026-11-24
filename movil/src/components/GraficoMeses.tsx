@@ -16,7 +16,8 @@ import Svg, { Defs, Line, Pattern, Path, Rect } from "react-native-svg";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 
 import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { retraso } from "@/utils/animacion";
 import { pesos } from "@/utils/formato";
 import type { GastoDelMes } from "@/utils/resumen";
@@ -60,6 +61,8 @@ function Columna({
   demora: number;
   onPress: () => void;
 }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const reducido = useMovimientoReducido();
   const crecido = useSharedValue(0);
 
@@ -110,6 +113,8 @@ function Columna({
 }
 
 export function GraficoMeses({ serie, promedio, seleccionado, onSeleccionar }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const maximo = Math.max(...serie.map((g) => g.total), promedio, 1);
   const alturaDe = (total: number) => Math.max((total / maximo) * ALTO, total > 0 ? 3 : 0);
 
@@ -154,7 +159,7 @@ export function GraficoMeses({ serie, promedio, seleccionado, onSeleccionar }: P
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -191,4 +196,4 @@ const estilos = StyleSheet.create({
   },
   pieTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 13 },
   pieNota: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },
-});
+}));

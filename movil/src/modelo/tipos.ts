@@ -91,6 +91,11 @@ export type CuentaConectada = {
   /** Tipo ya legible: "Cuenta Corriente", "Cuenta Vista"… */
   tipo: string;
   /**
+   * Nombre que le da el banco ("Cuenta sueldo", "Ahorro"). Distingue dos
+   * cuentas del mismo tipo en bancos distintos. null si no lo informa.
+   */
+  apodo?: string | null;
+  /**
    * Últimos dígitos, como los entrega la institución. El número completo no se
    * guarda. null si el banco no lo informó.
    */

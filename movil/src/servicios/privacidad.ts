@@ -9,8 +9,8 @@
  * otra cosa. Cada finalidad se consiente, vence y se revoca por su cuenta.
  */
 import { tokenActual } from "@/servicios/auth";
+import { api } from "@/servicios/api";
 
-const API = "http://localhost:8000";
 
 export class ErrorPrivacidad extends Error {}
 
@@ -60,7 +60,7 @@ async function pedir(ruta: string, opciones: RequestInit = {}): Promise<any> {
 
   let r: Response;
   try {
-    r = await fetch(`${API}/api/privacidad${ruta}`, {
+    r = await fetch(`${api()}/api/privacidad${ruta}`, {
       ...opciones,
       headers: {
         "Content-Type": "application/json",

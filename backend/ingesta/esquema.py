@@ -26,6 +26,11 @@ def asegurar(conn) -> None:
         # Columna agregada después del esquema inicial.
         conn.execute("ALTER TABLE transaccion ADD COLUMN IF NOT EXISTS categoria_origen varchar(80)")
 
+        # El apodo que el banco le da a la cuenta ("Cuenta sueldo", "Ahorro"):
+        # con dos cuentas del mismo tipo en bancos distintos, el tipo solo no
+        # alcanza para distinguirlas.
+        conn.execute("ALTER TABLE cuenta ADD COLUMN IF NOT EXISTS apodo varchar(60)")
+
         # RF-09 / RF-12 / RF-13: por dónde entró cada movimiento, y las otras
         # fuentes que trajeron el mismo.
         conn.execute("ALTER TABLE transaccion ADD COLUMN IF NOT EXISTS fuente varchar(20) "

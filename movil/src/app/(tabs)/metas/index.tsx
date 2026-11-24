@@ -15,7 +15,8 @@ import { BarraAvance } from "@/components/BarraAvance";
 import { Boton } from "@/components/Boton";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import type { Meta } from "@/modelo/tipos";
 import { listarMetas } from "@/servicios/metas";
 import { retraso } from "@/utils/animacion";
@@ -23,6 +24,8 @@ import { pesos } from "@/utils/formato";
 import { describirProyeccion, faltaPara } from "@/utils/metas";
 
 export default function Metas() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const [metas, setMetas] = useState<Meta[] | null>(null);
   const [mesesObservados, setMesesObservados] = useState(0);
@@ -100,6 +103,8 @@ export default function Metas() {
 }
 
 function TarjetaMeta({ meta, onPress, demora }: { meta: Meta; onPress: () => void; demora: number }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const resumen = describirProyeccion(meta);
   const avance = Math.round(meta.avance * 100);
   return (
@@ -135,7 +140,7 @@ function TarjetaMeta({ meta, onPress, demora }: { meta: Meta; onPress: () => voi
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   tarjeta: {
     backgroundColor: colores.tarjeta,
@@ -175,4 +180,4 @@ const estilos = StyleSheet.create({
     lineHeight: 21,
     textAlign: "center",
   },
-});
+}));

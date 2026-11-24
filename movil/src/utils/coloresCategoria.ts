@@ -31,6 +31,7 @@ import type { Movimiento } from "@/modelo/tipos";
 import { expandirPartes } from "@/utils/porciones";
 import { colorOtros, paletaCategorias } from "@/constants/tema";
 import { useMovimientos } from "@/datos/MovimientosContexto";
+import { useColores } from "@/tema/TemaContexto";
 import { OTROS, SIN_CATEGORIA } from "@/utils/resumen";
 
 /** Cuántas categorías reciben color propio. El mismo tope que usa el anillo. */
@@ -54,7 +55,7 @@ function esNeutra(categoria: string): boolean {
  * Usar todo el historial y no el mes visible es justamente lo que hace que el
  * color sea estable mientras la persona navega entre meses y pantallas.
  */
-export function construirPaleta(movimientos: Movimiento[]): PaletaDeCategorias {
+export function construirPaleta(movimientos: Movimiento[], otros: string = colorOtros): PaletaDeCategorias {
   const totales = new Map<string, number>();
   for (const m of expandirPartes(movimientos)) {
     if (m.monto >= 0 || m.excluido) continue;
@@ -75,7 +76,7 @@ export function construirPaleta(movimientos: Movimiento[]): PaletaDeCategorias {
   });
 
   return {
-    color: (categoria: string) => asignados.get(categoria) ?? colorOtros,
+    color: (categoria: string) => asignados.get(categoria) ?? otros,
     ranking,
   };
 }
@@ -88,7 +89,9 @@ export function construirPaleta(movimientos: Movimiento[]): PaletaDeCategorias {
  */
 export function usePaletaCategorias(): PaletaDeCategorias {
   const { movimientos } = useMovimientos();
-  return useMemo(() => construirPaleta(movimientos), [movimientos]);
+  // El gris de "Otros" depende del tema: el oscuro se pierde sobre blanco.
+  const { otros } = useColores();
+  return useMemo(() => construirPaleta(movimientos, otros), [movimientos, otros]);
 }
 
 /**

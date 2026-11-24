@@ -19,7 +19,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { BarraAvance } from "@/components/BarraAvance";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { retraso } from "@/utils/animacion";
 import { pesos } from "@/utils/formato";
 import { obtenerCreditos, type Credito } from "@/servicios/creditos";
@@ -32,6 +33,8 @@ function avance(c: Credito): { pagadas: number; total: number; fraccion: number 
 }
 
 function Tarjeta({ c, demora }: { c: Credito; demora: number }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const a = avance(c);
   const terminado = (c.cuotasRestantes ?? 0) === 0;
 
@@ -94,6 +97,8 @@ function Tarjeta({ c, demora }: { c: Credito; demora: number }) {
 }
 
 export default function Deudas() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const [datos, setDatos] = useState<{
     creditos: Credito[];
     cuotaTotalMensual: number;
@@ -169,7 +174,7 @@ export default function Deudas() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
 
   vacio: { alignItems: "center", gap: espacio.m, paddingVertical: espacio.xl },
@@ -213,4 +218,4 @@ const estilos = StyleSheet.create({
   piePista: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   cuotas: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 12.5 },
   restantes: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5 },
-});
+}));

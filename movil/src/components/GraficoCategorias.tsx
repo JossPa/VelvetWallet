@@ -24,7 +24,8 @@ import Animated, {
 
 import { Cifra } from "@/components/Cifra";
 import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { usePaletaCategorias } from "@/utils/coloresCategoria";
 import { type PorcionCategoria } from "@/utils/resumen";
 
@@ -107,6 +108,8 @@ export function GraficoCategorias({
   /** Si se entrega, cada entrada de la leyenda abre el desglose de su categoría. */
   onSeleccionar?: (categoria: string) => void;
 }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const reducido = useMovimientoReducido();
   const avance = useSharedValue(0);
   const unaSola = porciones.length === 1;
@@ -196,7 +199,7 @@ export function GraficoCategorias({
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -220,4 +223,4 @@ const estilos = StyleSheet.create({
   punto: { width: 10, height: 10, borderRadius: 3 },
   nombre: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 14, flex: 1 },
   porcentaje: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 14 },
-});
+}));

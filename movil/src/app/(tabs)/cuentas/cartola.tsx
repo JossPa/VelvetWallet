@@ -17,7 +17,8 @@ import { Campo } from "@/components/Campo";
 import { Chips } from "@/components/Chips";
 import { Ficha } from "@/components/Ficha";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import {
   elegirCartola,
@@ -53,6 +54,7 @@ function plural(n: number, uno: string, varios: string): string {
 }
 
 export default function ImportarCartola() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { conexiones, recargar } = useMovimientos();
 
@@ -250,7 +252,7 @@ export default function ImportarCartola() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   campos: { gap: espacio.m },
   archivo: {
     flexDirection: "row",
@@ -272,4 +274,4 @@ const estilos = StyleSheet.create({
   boton: { marginTop: espacio.l },
   listo: { color: colores.ok, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
-});
+}));

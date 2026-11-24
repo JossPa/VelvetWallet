@@ -13,7 +13,8 @@ import { Boton } from "@/components/Boton";
 import { Ficha } from "@/components/Ficha";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import type { Conexion, Correccion, Movimiento, OrigenMovimiento } from "@/modelo/tipos";
 import { CATEGORIAS_DE_GASTO } from "@/datos/categorias";
@@ -115,6 +116,7 @@ function resumenCorrecciones(lista: Correccion[]): string {
 type Panel = null | "categoria" | "duplicado";
 
 export default function DetalleMovimiento() {
+  const estilos = useEstilos();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { movimientos, conexiones, quitarMovimiento, reemplazarMovimiento, corregirCategoria } =
@@ -361,7 +363,7 @@ export default function DetalleMovimiento() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   encabezado: { paddingTop: espacio.l, paddingBottom: espacio.m, gap: espacio.xs },
   monto: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 40, letterSpacing: -1 },
   subtitulo: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15 },
@@ -431,4 +433,4 @@ const estilos = StyleSheet.create({
     textAlign: "center",
     marginTop: espacio.l,
   },
-});
+}));

@@ -8,7 +8,8 @@ import { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 
 type Props = {
   titulo: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function MarcoAuth({ titulo, bajada, children, pie }: Props) {
+  const estilos = useEstilos();
   return (
     <SafeAreaView style={estilos.area} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
@@ -46,7 +48,7 @@ export function MarcoAuth({ titulo, bajada, children, pie }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   area: { flex: 1, backgroundColor: colores.fondo },
   flexible: { flex: 1 },
   contenido: { flexGrow: 1, padding: espacio.xl, paddingTop: espacio.xl * 2 },
@@ -57,4 +59,4 @@ const estilos = StyleSheet.create({
   bajada: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15, marginTop: espacio.s, lineHeight: 22 },
   cuerpo: { marginTop: espacio.xl, gap: espacio.l },
   pie: { marginTop: "auto", paddingTop: espacio.xl, alignItems: "center" },
-});
+}));

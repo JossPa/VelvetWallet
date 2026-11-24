@@ -23,7 +23,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Boton } from "@/components/Boton";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 type Props = {
   visible: boolean;
@@ -58,6 +59,8 @@ const PASOS = [
 ];
 
 export function AvisoClasificacion({ visible, onDespues, onIr }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDespues}>
       <View style={estilos.fondo}>
@@ -116,7 +119,7 @@ export function AvisoClasificacion({ visible, onDespues, onIr }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   fondo: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.72)",
@@ -174,4 +177,4 @@ const estilos = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
   },
-});
+}));

@@ -14,7 +14,8 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { Nota, Pantalla } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { fechaConAnio, hora } from "@/utils/formato";
 import { obtenerBitacora, type EventoBitacora } from "@/servicios/privacidad";
 
@@ -52,6 +53,8 @@ function porDia(eventos: EventoBitacora[]): [string, EventoBitacora[]][] {
 }
 
 export default function Bitacora() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const [eventos, setEventos] = useState<EventoBitacora[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +127,7 @@ export default function Bitacora() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   entrada: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15, lineHeight: 22 },
   dia: {
@@ -150,4 +153,4 @@ const estilos = StyleSheet.create({
   cuerpo: { flex: 1, gap: 2 },
   descripcion: { color: colores.texto, fontFamily: fuente.textoMedio, fontSize: 14.5 },
   detalle: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12.5 },
-});
+}));

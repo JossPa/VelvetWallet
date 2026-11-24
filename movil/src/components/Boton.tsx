@@ -5,7 +5,8 @@
 import { ActivityIndicator, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 
 import { Tocable } from "@/components/Movimiento";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 type Props = {
   titulo: string;
@@ -18,6 +19,8 @@ type Props = {
 };
 
 export function Boton({ titulo, onPress, cargando, deshabilitado, secundario, style }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const inactivo = deshabilitado || cargando;
 
   return (
@@ -37,7 +40,7 @@ export function Boton({ titulo, onPress, cargando, deshabilitado, secundario, st
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   boton: {
     backgroundColor: colores.acento,
     borderRadius: radio.m,
@@ -56,4 +59,4 @@ const estilos = StyleSheet.create({
   inactivo: { opacity: 0.5 },
   texto: { color: "#FFFFFF", fontFamily: fuente.textoFuerte, fontSize: 16 },
   textoSecundario: { color: colores.texto },
-});
+}));

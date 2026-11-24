@@ -16,7 +16,8 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 import { Nota, Pantalla } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { fechaConAnio } from "@/utils/formato";
 import {
   decidirFinalidad,
@@ -33,6 +34,8 @@ function Tarjeta({
   ocupado: boolean;
   onCambiar: (acepta: boolean) => void;
 }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   return (
     <View style={estilos.tarjeta}>
       <View style={estilos.cabecera}>
@@ -77,6 +80,8 @@ function Tarjeta({
 }
 
 export default function Privacidad() {
+  const estilos = useEstilos();
+  const colores = useColores();
   const router = useRouter();
   const [finalidades, setFinalidades] = useState<Finalidad[] | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -144,7 +149,7 @@ export default function Privacidad() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   entrada: {
     color: colores.texto2,
     fontFamily: fuente.texto,
@@ -195,4 +200,4 @@ const estilos = StyleSheet.create({
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   volver: { marginTop: espacio.l, paddingVertical: espacio.m, alignItems: "center" },
   volverTexto: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 16 },
-});
+}));

@@ -24,7 +24,8 @@ import { Cifra } from "@/components/Cifra";
 import { FilaMovimiento } from "@/components/FilaMovimiento";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { retraso } from "@/utils/animacion";
 import { desglosar, type GrupoDeGasto } from "@/utils/desglose";
@@ -52,6 +53,8 @@ function FilaGrupo({
   /** Retraso de entrada, para que las filas crezcan una tras otra. */
   demora: number;
 }) {
+  const estilos = useEstilos();
+  const colores = useColores();
   return (
     <Tocable onPress={onPress} style={estilos.grupo}>
       <View style={estilos.grupoFila}>
@@ -92,6 +95,7 @@ function FilaGrupo({
 }
 
 export default function Categoria() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { movimientos } = useMovimientos();
   const { nombre, mes, meses } = useLocalSearchParams<{
@@ -223,7 +227,7 @@ export default function Categoria() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   resumen: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -278,4 +282,4 @@ const estilos = StyleSheet.create({
   grupoMonto: { color: colores.texto, fontFamily: fuente.tituloMedio, fontSize: 15.5 },
 
   movimientos: { paddingHorizontal: espacio.m, marginBottom: espacio.m },
-});
+}));

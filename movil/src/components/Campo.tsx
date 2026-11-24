@@ -8,7 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 type Props = TextInputProps & {
   etiqueta: string;
@@ -18,6 +19,8 @@ type Props = TextInputProps & {
 };
 
 export function Campo({ etiqueta, error, secreto, style, ...resto }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const [visible, setVisible] = useState(false);
   const [enfocado, setEnfocado] = useState(false);
 
@@ -44,7 +47,7 @@ export function Campo({ etiqueta, error, secreto, style, ...resto }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   grupo: { gap: espacio.s },
   etiqueta: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 14 },
   caja: {
@@ -75,4 +78,4 @@ const estilos = StyleSheet.create({
   },
   ojo: { padding: espacio.xs },
   error: { color: colores.acento, fontFamily: fuente.texto, fontSize: 13 },
-});
+}));

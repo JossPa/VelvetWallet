@@ -16,7 +16,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Nota, Pantalla } from "@/components/Pantalla";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { crearMeta } from "@/servicios/metas";
 import { pesos } from "@/utils/formato";
 
@@ -37,6 +38,7 @@ function aFecha(texto: string): string | null {
 }
 
 export default function NuevaMeta() {
+  const estilos = useEstilos();
   const router = useRouter();
   const [nombre, setNombre] = useState("");
   const [objetivo, setObjetivo] = useState("");
@@ -141,9 +143,9 @@ export default function NuevaMeta() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   campos: { gap: espacio.l },
   eco: { color: colores.texto3, fontFamily: fuente.textoMedio, fontSize: 13, marginTop: espacio.xs },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   guardar: { marginTop: espacio.l },
-});
+}));

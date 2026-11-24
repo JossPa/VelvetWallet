@@ -4,9 +4,10 @@
  */
 import { Stack } from "expo-router";
 
-import { colores } from "@/constants/tema";
+import { useColores } from "@/tema/TemaContexto";
 
 export default function LayoutCuentas() {
+  const colores = useColores();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colores.fondo } }} />
   );

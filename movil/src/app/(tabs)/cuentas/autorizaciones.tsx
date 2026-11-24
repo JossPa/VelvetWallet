@@ -20,7 +20,9 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import type { Paleta } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { fechaConAnio, hora } from "@/utils/formato";
 import {
   obtenerConsentimientos,
@@ -28,17 +30,20 @@ import {
   type ConsentimientoTratamiento,
 } from "@/servicios/privacidad";
 
-const ESTADOS: Record<string, { texto: string; color: string }> = {
-  vigente: { texto: "Vigente", color: colores.ok },
-  activa: { texto: "Vigente", color: colores.ok },
-  expirado: { texto: "Venció", color: colores.alerta },
-  revocado: { texto: "Lo revocaste", color: colores.texto3 },
-  revocada: { texto: "Lo revocaste", color: colores.texto3 },
+// El color va por nombre y se resuelve con la paleta del tema activo.
+const ESTADOS: Record<string, { texto: string; color: keyof Paleta }> = {
+  vigente: { texto: "Vigente", color: "ok" },
+  activa: { texto: "Vigente", color: "ok" },
+  expirado: { texto: "Venció", color: "alerta" },
+  revocado: { texto: "Lo revocaste", color: "texto3" },
+  revocada: { texto: "Lo revocaste", color: "texto3" },
 };
 
 function Insignia({ estado }: { estado: string }) {
-  const e = ESTADOS[estado] ?? { texto: estado, color: colores.texto3 };
-  return <Text style={[estilos.insignia, { color: e.color }]}>{e.texto}</Text>;
+  const colores = useColores();
+  const estilos = useEstilos();
+  const e = ESTADOS[estado] ?? { texto: estado, color: "texto3" };
+  return <Text style={[estilos.insignia, { color: colores[e.color] }]}>{e.texto}</Text>;
 }
 
 /** ¿Las dos fechas caen el mismo día? Decide si basta con mostrar la hora. */
@@ -105,6 +110,7 @@ function Tarjeta({
   /** Ciclos previos de la misma autorización, del más nuevo al más viejo. */
   anteriores?: string[];
 }) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.tarjeta}>
       <View style={estilos.cabecera}>
@@ -150,6 +156,8 @@ function Tarjeta({
 }
 
 export default function Autorizaciones() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const [datos, setDatos] = useState<{
     bancarios: ConsentimientoBancario[];
@@ -244,7 +252,7 @@ export default function Autorizaciones() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
   entrada: {
     color: colores.texto2,
@@ -287,4 +295,4 @@ const estilos = StyleSheet.create({
     letterSpacing: 1.1,
     marginTop: espacio.xs,
   },
-});
+}));

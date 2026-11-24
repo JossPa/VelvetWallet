@@ -1,11 +1,44 @@
 /**
- * Tema visual de Velvet Wallet — modo oscuro.
+ * Tema visual de Velvet Wallet — modo oscuro y modo claro.
  *
- * Los valores salen de los mockups de Fase 1 (paleta "negro").
- * Ningún componente debe escribir un color a mano: todo se importa de aquí.
+ * Los valores salen de los mockups de Fase 1: la paleta "negro" (Mockups
+ * Oscuro) y la clara (Mockups Claro). Ningún componente escribe un color a
+ * mano ni importa una paleta directamente: los pide con `useColores()` o
+ * `crearEstilos()` (src/tema/TemaContexto.tsx), que entregan la del tema
+ * activo.
  */
 
-export const colores = {
+/** Las dos paletas tienen exactamente las mismas claves. */
+export type Paleta = {
+  fondo: string;
+  zona: string;
+  tarjeta: string;
+  tarjetaAlta: string;
+  chip: string;
+  texto: string;
+  texto2: string;
+  texto3: string;
+  linea: string;
+  borde: string;
+  bordeVivo: string;
+  bordeAlto: string;
+  acento: string;
+  acentoSuave: string;
+  acentoBorde: string;
+  /** Texto sobre un fondo `acento` (botones rojos): blanco en los dos temas. */
+  sobreAcento: string;
+  ok: string;
+  /** Fondo de una acción afirmativa ("Sí, es esto"). */
+  okSuave: string;
+  alerta: string;
+  alertaSuave: string;
+  /** "Otros" en los gráficos de categorías: gris que no compite. */
+  otros: string;
+  /** Color de la luz de las superficies (ver `luz` y Superficie.tsx). */
+  luz: string;
+};
+
+export const paletaOscura: Paleta = {
   fondo: "#0D0D10",       // fondo de pantalla
   zona: "#1A1C21",        // nivel 1: la superficie que CONTIENE a otras
   tarjeta: "#17181C",     // nivel 2: tarjetas y filas sobre el fondo
@@ -46,9 +79,53 @@ export const colores = {
   acentoBorde: "rgba(238,52,80,0.28)",
 
   ok: "#3DD68C",          // conexión al día
+  okSuave: "#15291F",
   alerta: "#E0A33A",      // dato desactualizado, pendiente
   alertaSuave: "#2B2214",
-} as const;
+  sobreAcento: "#FFFFFF",
+  otros: "#4A4D55",
+  luz: "#FFFFFF",
+};
+
+/**
+ * Tema claro (Mockups Claro de Fase 1): fondo gris muy claro, tarjetas blancas.
+ *
+ * El rojo es más oscuro que el del tema oscuro: #EE3450 sobre blanco no llega
+ * al contraste mínimo para texto (WCAG AA, 4.5:1); #C8102E sí. Los bordes son
+ * negro translúcido en vez de blanco, y el canto de ARRIBA es el más tenue:
+ * con luz desde arriba, el borde superior de un objeto claro casi no se ve.
+ */
+export const paletaClara: Paleta = {
+  fondo: "#EEEFF3",
+  zona: "#F7F7FA",
+  tarjeta: "#FFFFFF",
+  tarjetaAlta: "#F4F5F8",
+  chip: "#E7E8ED",
+
+  texto: "#16171B",
+  texto2: "#4E5159",
+  texto3: "#73767E",
+
+  linea: "#E3E4E9",
+  borde: "rgba(16,18,27,0.09)",
+  bordeVivo: "rgba(16,18,27,0.18)",
+  bordeAlto: "rgba(16,18,27,0.05)",
+
+  acento: "#C8102E",
+  acentoSuave: "#FBE6EA",
+  acentoBorde: "rgba(200,16,46,0.24)",
+  sobreAcento: "#FFFFFF",
+
+  ok: "#138A52",
+  okSuave: "#E1F4EA",
+  alerta: "#A15C00",
+  alertaSuave: "#FDF2DA",
+
+  otros: "#C3C5CC",
+  // Sobre blanco la luz no se vería: se usa un blanco que casi no aporta, y
+  // la separación la hacen los bordes.
+  luz: "#FFFFFF",
+};
 
 /**
  * Tiempos y recorridos del movimiento.
@@ -97,6 +174,7 @@ export const fuente = {
  * no compita con las categorías reales.
  */
 export const paletaCategorias = ["#FF9FAC", "#F76A80", "#EE3450", "#C22740", "#8E1F2F"] as const;
+/** Gris de "Otros" del tema oscuro. En los componentes se usa `colores.otros`. */
 export const colorOtros = "#4A4D55";
 
 /**

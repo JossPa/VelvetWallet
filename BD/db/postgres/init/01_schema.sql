@@ -97,6 +97,7 @@ CREATE TABLE cuenta (
     id_externo         varchar(64),
     tipo               varchar(40)            CHECK (tipo IN ('corriente','vista','ahorro','credito','tarjeta','otro')),
     numero_enmascarado varchar(40),
+    apodo              varchar(60),
     moneda             varchar(3)    NOT NULL DEFAULT 'CLP',
     saldo              numeric(15,2),
     actualizado_at     timestamptz
@@ -104,6 +105,7 @@ CREATE TABLE cuenta (
 
 COMMENT ON TABLE  cuenta                    IS 'Cuenta o producto financiero obtenido vía SFA o cartola (RF-05).';
 COMMENT ON COLUMN cuenta.numero_enmascarado IS 'Solo dígitos finales enmascarados. No se almacena el número completo.';
+COMMENT ON COLUMN cuenta.apodo              IS 'Nombre que la institución le da a la cuenta (nickname). NULL si no lo informa.';
 COMMENT ON COLUMN cuenta.id_externo         IS 'accountId tal como lo entrega la institución. Único por conexión. NULL en carga manual.';
 
 -- =============================================================================

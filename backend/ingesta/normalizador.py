@@ -135,6 +135,8 @@ def cuenta_canonica(cuenta: dict, saldo: dict | None) -> dict:
     return {
         "id_externo": cuenta["accountId"],
         "tipo": tipo_cuenta(cuenta.get("accountType")),
+        # Recortado al largo de la columna: es texto libre del banco.
+        "apodo": (cuenta.get("nickname") or "").strip()[:60] or None,
         "moneda": cuenta.get("currency", "CLP"),
         "saldo": Decimal(str(saldo["amount"])) if saldo else None,
     }

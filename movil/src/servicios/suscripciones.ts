@@ -6,8 +6,8 @@
  * decisión de la persona sobre cada una.
  */
 import { tokenActual } from "@/servicios/auth";
+import { api } from "@/servicios/api";
 
-const API = "http://localhost:8000";
 
 export class ErrorSuscripciones extends Error {}
 
@@ -32,7 +32,7 @@ async function pedir(ruta: string, opciones: RequestInit = {}): Promise<any> {
 
   let r: Response;
   try {
-    r = await fetch(`${API}/api/suscripciones${ruta}`, {
+    r = await fetch(`${api()}/api/suscripciones${ruta}`, {
       ...opciones,
       headers: {
         "Content-Type": "application/json",

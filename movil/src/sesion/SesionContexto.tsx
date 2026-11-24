@@ -10,6 +10,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { Credenciales, DatosRegistro, Usuario } from "@/modelo/tipos";
+import { cargarServidor } from "@/servicios/api";
 import * as auth from "@/servicios/auth";
 
 type ValorSesion = {
@@ -34,8 +35,10 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
 
   // Al arrancar: ¿hay una sesión guardada de la vez anterior?
   useEffect(() => {
-    auth
-      .sesionGuardada()
+    // Primero la dirección del servidor (si el usuario la cambió): la sesión
+    // guardada puede necesitar hablar con el backend.
+    cargarServidor()
+      .then(() => auth.sesionGuardada())
       .then((s) => setUsuario(s?.usuario ?? null))
       .finally(() => setCargando(false));
   }, []);

@@ -13,8 +13,8 @@
  */
 import type { Meta } from "@/modelo/tipos";
 import { tokenActual } from "@/servicios/auth";
+import { api } from "@/servicios/api";
 
-const API = "http://localhost:8000";
 
 export class ErrorMetas extends Error {}
 
@@ -26,7 +26,7 @@ async function pedir(ruta: string, metodo = "GET", cuerpo?: Cuerpo): Promise<unk
 
   let r: Response;
   try {
-    r = await fetch(`${API}/api/metas${ruta}`, {
+    r = await fetch(`${api()}/api/metas${ruta}`, {
       method: metodo,
       headers: {
         "Content-Type": "application/json",

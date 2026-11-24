@@ -20,7 +20,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useMovimientoReducido } from "@/components/Movimiento";
-import { colores, movimiento as tiempos } from "@/constants/tema";
+import { movimiento as tiempos } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 
 type Props = {
   /** Cuánto se llena, de 0 a 1. Por encima de 1 se recorta: nadie avanza 120%. */
@@ -36,9 +37,12 @@ export function BarraAvance({
   fraccion,
   alto = 6,
   demora = 0,
-  color = colores.acento,
+  color,
   style,
 }: Props) {
+  const colores = useColores();
+  const relleno = color ?? colores.acento;
+  const estilos = useEstilos();
   const reducido = useMovimientoReducido();
   const tope = Math.min(Math.max(fraccion, 0), 1);
   const llenado = useSharedValue(0);
@@ -57,12 +61,12 @@ export function BarraAvance({
   return (
     <View style={[estilos.pista, { height: alto, borderRadius: curva }, style]}>
       <Animated.View
-        style={[{ height: "100%", backgroundColor: color, borderRadius: curva }, animado]}
+        style={[{ height: "100%", backgroundColor: relleno, borderRadius: curva }, animado]}
       />
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   pista: { backgroundColor: colores.chip, overflow: "hidden" },
-});
+}));

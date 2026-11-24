@@ -21,7 +21,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import {
   guardarSueldo,
   obtenerPerfil,
@@ -46,6 +47,7 @@ function evidencia(d: SueldoDetectado): string {
 }
 
 export default function Sueldo() {
+  const estilos = useEstilos();
   const router = useRouter();
   const { anotarSueldo } = useSesion();
 
@@ -186,7 +188,7 @@ export default function Sueldo() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -216,4 +218,4 @@ const estilos = StyleSheet.create({
   },
   listo: { color: colores.ok, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
-});
+}));

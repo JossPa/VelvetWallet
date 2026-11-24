@@ -327,7 +327,7 @@ def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
 
         cuentas = conn.execute(
             """
-            SELECT conexion_id, id, id_externo, tipo, numero_enmascarado, moneda, saldo
+            SELECT conexion_id, id, id_externo, tipo, apodo, numero_enmascarado, moneda, saldo
             FROM cuenta
             WHERE usuario_id = %s
             ORDER BY tipo, id_externo
@@ -343,6 +343,7 @@ def listar_conexiones(usuario_id: str = Depends(usuario_actual)):
             "idExterno": c["id_externo"],
             "tipo": ("Efectivo" if c["id_externo"] == ID_EFECTIVO
                      else etiqueta_tipo_cuenta(c["tipo"])),
+            "apodo": c["apodo"],
             "numeroEnmascarado": c["numero_enmascarado"],
             "moneda": c["moneda"],
             "saldo": float(c["saldo"]) if c["saldo"] is not None else None,

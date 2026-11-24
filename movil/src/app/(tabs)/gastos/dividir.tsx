@@ -14,7 +14,8 @@ import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { Chips } from "@/components/Chips";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente } from "@/constants/tema";
+import { espacio, fuente } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { CATEGORIAS_DE_GASTO } from "@/datos/categorias";
 import { useMovimientos } from "@/datos/MovimientosContexto";
 import { dividirMovimiento } from "@/servicios/cargas";
@@ -42,6 +43,7 @@ function libre(partes: Borrador[]): string {
 }
 
 export default function Dividir() {
+  const estilos = useEstilos();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { movimientos, reemplazarMovimiento } = useMovimientos();
@@ -153,7 +155,7 @@ export default function Dividir() {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   encabezado: { paddingTop: espacio.m, gap: espacio.xs },
   total: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 36, letterSpacing: -1 },
   comercio: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15 },
@@ -165,4 +167,4 @@ const estilos = StyleSheet.create({
   cuadreFalta: { color: colores.alerta },
   guardar: { marginTop: espacio.m },
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, marginTop: espacio.m },
-});
+}));

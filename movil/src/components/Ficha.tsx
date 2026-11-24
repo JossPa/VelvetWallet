@@ -7,7 +7,8 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 
 export type FilaFicha = {
   etiqueta: string;
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export function Ficha({ filas, encabezado }: Props) {
+  const estilos = useEstilos();
   return (
     <View style={estilos.tarjeta}>
       {encabezado}
@@ -42,7 +44,7 @@ export function Ficha({ filas, encabezado }: Props) {
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -66,4 +68,4 @@ const estilos = StyleSheet.create({
   valor: { color: colores.texto, fontFamily: fuente.textoFuerte, fontSize: 15, flexShrink: 1, textAlign: "right" },
   mono: { fontFamily: fuente.mono, fontSize: 14 },
   destacado: { color: colores.acento },
-});
+}));

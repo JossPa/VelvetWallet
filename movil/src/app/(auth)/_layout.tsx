@@ -3,9 +3,10 @@
  */
 import { Stack } from "expo-router";
 
-import { colores } from "@/constants/tema";
+import { useColores } from "@/tema/TemaContexto";
 
 export default function LayoutAuth() {
+  const colores = useColores();
   return (
     <Stack
       screenOptions={{

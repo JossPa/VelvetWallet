@@ -9,7 +9,8 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { AvatarComercio } from "@/components/AvatarComercio";
 import { Tocable } from "@/components/Movimiento";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import type { Movimiento } from "@/modelo/tipos";
 import { usePaletaCategorias } from "@/utils/coloresCategoria";
 import { fechaLista, pesos } from "@/utils/formato";
@@ -25,6 +26,8 @@ type Props = {
 };
 
 export function FilaMovimiento({ movimiento: m, onPress, novedad, montoAnterior }: Props) {
+  const colores = useColores();
+  const estilos = useEstilos();
   // "Sin identificar" es que no hay comercio reconocido (avatar "?"), cosa
   // distinta de "sin categorizar" (eso lo resuelve el clasificador, aparte).
   const sinIdentificar = !m.comercio;
@@ -86,7 +89,7 @@ export function FilaMovimiento({ movimiento: m, onPress, novedad, montoAnterior 
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   fila: {
     flexDirection: "row",
     alignItems: "center",
@@ -125,4 +128,4 @@ const estilos = StyleSheet.create({
   monto: { color: colores.texto, fontFamily: fuente.titulo, fontSize: 18, letterSpacing: -0.3 },
   montoAtenuado: { color: colores.texto2 },
   montoAnterior: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 12 },
-});
+}));

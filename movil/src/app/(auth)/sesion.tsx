@@ -3,16 +3,19 @@
  */
 import { Link } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
+import { AjusteServidor } from "@/components/AjusteServidor";
 import { Boton } from "@/components/Boton";
 import { Campo } from "@/components/Campo";
 import { MarcoAuth } from "@/components/MarcoAuth";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 import { useSesion } from "@/sesion/SesionContexto";
 import { ErrorAuth, emailValido } from "@/servicios/auth";
 
 export default function IniciarSesion() {
+  const estilos = useEstilos();
   const { entrar } = useSesion();
 
   const [email, setEmail] = useState("");
@@ -79,11 +82,13 @@ export default function IniciarSesion() {
         <Text style={estilos.demoTitulo}>Cuenta de prueba</Text>
         <Text style={estilos.demoTexto}>demo@velvetwallet.cl · velvet2026</Text>
       </View>
+
+      {Platform.OS !== "web" ? <AjusteServidor /> : null}
     </MarcoAuth>
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   error: { color: colores.acento, fontFamily: fuente.textoMedio, fontSize: 14, textAlign: "center" },
   pieTexto: { color: colores.texto2, fontFamily: fuente.texto, fontSize: 15 },
   enlace: { color: colores.acento, fontFamily: fuente.textoFuerte },
@@ -99,4 +104,4 @@ const estilos = StyleSheet.create({
   },
   demoTitulo: { color: colores.texto3, fontFamily: fuente.tituloMedio, fontSize: 11, letterSpacing: 1 },
   demoTexto: { color: colores.texto2, fontFamily: fuente.mono, fontSize: 13 },
-});
+}));

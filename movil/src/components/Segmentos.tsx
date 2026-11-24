@@ -20,7 +20,8 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
-import { colores, espacio, fuente, movimiento as tiempos, radio, radioInterior } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio, radioInterior } from "@/constants/tema";
+import { crearEstilos } from "@/tema/TemaContexto";
 
 const HUECO = 4;
 const CURVA = radioInterior(radio.m, HUECO);
@@ -34,6 +35,7 @@ type Props<T extends string> = {
 };
 
 export function Segmentos<T extends string>({ opciones, valor, onCambio }: Props<T>) {
+  const estilos = useEstilos();
   const reducido = useMovimientoReducido();
   // El ancho se mide en vez de calcularse: así la píldora calza exacto sea
   // cual sea el ancho de la pantalla y cuántas opciones haya.
@@ -79,7 +81,7 @@ export function Segmentos<T extends string>({ opciones, valor, onCambio }: Props
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   contenedor: {
     flexDirection: "row",
     backgroundColor: colores.tarjeta,
@@ -108,4 +110,4 @@ const estilos = StyleSheet.create({
   },
   texto: { color: colores.texto2, fontFamily: fuente.textoMedio, fontSize: 15 },
   textoActivo: { color: colores.texto, fontFamily: fuente.textoFuerte },
-});
+}));

@@ -14,7 +14,8 @@ import { StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { Cifra } from "@/components/Cifra";
-import { colores, espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { espacio, fuente, movimiento as tiempos, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import { Tocable, useMovimientoReducido } from "@/components/Movimiento";
 import { usePaletaCategorias } from "@/utils/coloresCategoria";
 import { pesos } from "@/utils/formato";
@@ -30,6 +31,8 @@ type Props = {
 };
 
 export function BarraCategorias({ porciones, total, periodo, onSeleccionar }: Props) {
+  const estilos = useEstilos();
+  const colores = useColores();
   const reducido = useMovimientoReducido();
   const paleta = usePaletaCategorias();
   const ancho = useSharedValue(0);
@@ -100,7 +103,7 @@ export function BarraCategorias({ porciones, total, periodo, onSeleccionar }: Pr
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   tarjeta: {
     backgroundColor: colores.tarjeta,
     borderWidth: StyleSheet.hairlineWidth,
@@ -136,4 +139,4 @@ const estilos = StyleSheet.create({
     minWidth: 38,
     textAlign: "right",
   },
-});
+}));

@@ -265,3 +265,25 @@ export function compararConMesAnterior(
     },
   };
 }
+
+
+/**
+ * Lo que la persona tiene, sumando todas sus cuentas de todos sus bancos.
+ * Una cuenta sin saldo informado no suma un 0 inventado: se cuenta aparte
+ * para poder decirlo (RF-35).
+ */
+export function totalDeCuentas(conexiones: Conexion[]): { total: number; cuentas: number; sinSaldo: number } {
+  let total = 0;
+  let cuentas = 0;
+  let sinSaldo = 0;
+  for (const c of conexiones) {
+    for (const cu of c.cuentas) {
+      if (cu.saldo === null) sinSaldo += 1;
+      else {
+        total += cu.saldo;
+        cuentas += 1;
+      }
+    }
+  }
+  return { total, cuentas, sinSaldo };
+}

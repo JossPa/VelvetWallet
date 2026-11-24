@@ -24,13 +24,16 @@ import { CurvaProbabilidad } from "@/components/CurvaProbabilidad";
 import { Ficha } from "@/components/Ficha";
 import { Tocable } from "@/components/Movimiento";
 import { Nota, Pantalla, Seccion } from "@/components/Pantalla";
-import { colores, espacio, fuente, radio } from "@/constants/tema";
+import { espacio, fuente, radio } from "@/constants/tema";
+import { crearEstilos, useColores } from "@/tema/TemaContexto";
 import type { Meta } from "@/modelo/tipos";
 import { actualizarMeta, eliminarMeta, listarMetas } from "@/servicios/metas";
 import { fechaConAnio, pesos } from "@/utils/formato";
 import { describirPlazoPropuesto, describirProyeccion, faltaPara } from "@/utils/metas";
 
 export default function DetalleMeta() {
+  const colores = useColores();
+  const estilos = useEstilos();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -229,6 +232,7 @@ function Plazo({
   nota: string;
   destacado?: boolean;
 }) {
+  const estilos = useEstilos();
   return (
     <View style={[estilos.plazo, destacado && estilos.plazoDestacado]}>
       <Text style={[estilos.plazoMeses, destacado && estilos.plazoMesesDestacado]}>
@@ -241,7 +245,7 @@ function Plazo({
   );
 }
 
-const estilos = StyleSheet.create({
+const useEstilos = crearEstilos((colores) => StyleSheet.create({
   cargando: { marginTop: espacio.xl },
 
   progreso: { backgroundColor: colores.tarjeta, borderRadius: radio.l, padding: espacio.l },
@@ -303,4 +307,4 @@ const estilos = StyleSheet.create({
   eliminarTexto: { color: colores.acento, fontFamily: fuente.textoFuerte, fontSize: 15 },
   cancelar: { paddingVertical: espacio.s, alignItems: "center" },
   cancelarTexto: { color: colores.texto3, fontFamily: fuente.texto, fontSize: 14 },
-});
+}));
