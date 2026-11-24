@@ -47,6 +47,7 @@ ACCIONES = {
     "correccion.duplicado":  "Marcaste un movimiento como duplicado",
     "correccion.dividir":    "Repartiste un gasto entre categorías",
     "correccion.deshacer":   "Deshiciste una corrección",
+    "asistente.consultar":   "Le hiciste preguntas al asistente sobre tus datos",
 }
 
 

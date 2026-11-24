@@ -1,0 +1,154 @@
+{
+  "_descripcion": "Caso compartido entre motor/gasto.py (backend) y utils/resumen.ts (app). Las dos implementaciones deben dar exactamente 'esperado'. Incluye un movimiento excluido, uno sin categoría, un abono y un cambio de 0,5% (Entretención) donde Python y JavaScript redondean distinto.",
+  "movimientos": [
+    {
+      "fecha": "2026-10-01T12:00:00-03:00",
+      "monto": -40000,
+      "categoria": "Supermercado",
+      "comercio": "Lider",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-18T12:00:00-03:00",
+      "monto": -25000,
+      "categoria": "Supermercado",
+      "comercio": "Jumbo",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-09T12:00:00-03:00",
+      "monto": -15000,
+      "categoria": "Delivery",
+      "comercio": "Rappi",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-05T12:00:00-03:00",
+      "monto": -200000,
+      "categoria": "Vivienda",
+      "comercio": "Inmobiliaria Los Robles",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-21T12:00:00-03:00",
+      "monto": -8000,
+      "categoria": null,
+      "comercio": null,
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-12T12:00:00-03:00",
+      "monto": -60000,
+      "categoria": "Vestuario",
+      "comercio": "Falabella",
+      "excluido": true
+    },
+    {
+      "fecha": "2026-10-30T12:00:00-03:00",
+      "monto": 850000,
+      "categoria": "Sueldo",
+      "comercio": "Empresa",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-14T12:00:00-03:00",
+      "monto": -12000,
+      "categoria": "Transporte",
+      "comercio": "Uber",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-10-26T12:00:00-03:00",
+      "monto": -8040,
+      "categoria": "Entretención",
+      "comercio": "Cine Hoyts",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-30T12:00:00-03:00",
+      "monto": -50000,
+      "categoria": "Supermercado",
+      "comercio": "Lider",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-12T12:00:00-03:00",
+      "monto": -10000,
+      "categoria": "Delivery",
+      "comercio": "Rappi",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-05T12:00:00-03:00",
+      "monto": -200000,
+      "categoria": "Vivienda",
+      "comercio": "Inmobiliaria Los Robles",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-16T12:00:00-03:00",
+      "monto": -16000,
+      "categoria": "Transporte",
+      "comercio": "Uber",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-22T12:00:00-03:00",
+      "monto": -24000,
+      "categoria": "Salud",
+      "comercio": "Cruz Verde",
+      "excluido": false
+    },
+    {
+      "fecha": "2026-09-27T12:00:00-03:00",
+      "monto": -8000,
+      "categoria": "Entretención",
+      "comercio": "Cine Hoyts",
+      "excluido": false
+    }
+  ],
+  "esperado": {
+    "mes": "2026-10",
+    "gasto_total": 308040,
+    "por_categoria": {
+      "Vivienda": {
+        "monto": 200000,
+        "porcentaje": 65
+      },
+      "Supermercado": {
+        "monto": 65000,
+        "porcentaje": 21
+      },
+      "Delivery": {
+        "monto": 15000,
+        "porcentaje": 5
+      },
+      "Transporte": {
+        "monto": 12000,
+        "porcentaje": 4
+      },
+      "Entretención": {
+        "monto": 8040,
+        "porcentaje": 3
+      },
+      "Sin categorizar": {
+        "monto": 8000,
+        "porcentaje": 3
+      }
+    },
+    "categoria_mas_grande": "Vivienda",
+    "comparacion": {
+      "total_cambio_pct": 0,
+      "por_categoria": {
+        "Salud": -100,
+        "Delivery": 50,
+        "Supermercado": 30,
+        "Transporte": -25,
+        "Entretención": 1,
+        "Vivienda": 0
+      }
+    },
+    "promedio_mensual_6_meses": 308020
+  },
+  "hoy": "2026-11-17"
+}

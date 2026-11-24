@@ -62,7 +62,66 @@ FINALIDADES = {
         ],
         "vigencia_dias": DIAS_VIGENCIA,
     },
+    # El asistente es la única parte de la app que envía datos fuera de Velvet:
+    # el modelo de lenguaje corre en un proveedor externo (Groq). Por eso es una
+    # finalidad aparte y el asistente no responde sin este consentimiento.
+    "asistente_ia": {
+        "titulo": "Responder tus preguntas con el asistente",
+        "resumen": (
+            "Enviar tu pregunta y los totales que hacen falta para responderla a un proveedor "
+            "externo de inteligencia artificial."
+        ),
+        "detalle": [
+            "Cuando le preguntas algo al asistente, tu pregunta se envía a Groq, el proveedor que "
+            "ejecuta el modelo de lenguaje, para entenderla y redactar la respuesta.",
+            "Solo viajan la pregunta y los totales necesarios para responderla: categorías, "
+            "nombres de comercios, montos y fechas. Nunca tu nombre, tu RUT, tu correo ni tus "
+            "claves.",
+            "Las cifras las calcula Velvet con tus datos, no el modelo: por eso coinciden con lo "
+            "que ves en la app.",
+            "Velvet no guarda la conversación: vive en tu teléfono mientras la usas.",
+            "Puedes revocarlo cuando quieras, gratis, desde esta misma pantalla. Es voluntario: "
+            "la aplicación funciona igual si no lo activas.",
+        ],
+        "vigencia_dias": DIAS_VIGENCIA,
+    },
 }
+
+#: Se revisa una vez por proceso; ver `asegurar_esquema`.
+_ESQUEMA_AL_DIA = False
+
+
+def asegurar_esquema(conn) -> None:
+    """
+    Deja que la tabla acepte todas las finalidades del catálogo.
+
+    La columna `finalidad` tiene un CHECK con la lista cerrada de finalidades
+    (01_schema.sql). Una base creada antes de que existiera "asistente_ia"
+    rechazaría el consentimiento nuevo, y recrearla borraría los datos de la
+    demo. Esto actualiza la restricción en el lugar, una sola vez y solo si
+    hace falta.
+    """
+    global _ESQUEMA_AL_DIA
+    if _ESQUEMA_AL_DIA:
+        return
+    fila = conn.execute(
+        """SELECT pg_get_constraintdef(oid) FROM pg_constraint
+           WHERE conname = 'consentimiento_tratamiento_finalidad_check'"""
+    ).fetchone()
+    definicion = (fila[0] if not isinstance(fila, dict) else fila["pg_get_constraintdef"]) if fila else ""
+    if not all(f"'{clave}'" in definicion for clave in FINALIDADES):
+        lista = ", ".join(f"'{clave}'" for clave in FINALIDADES)
+        conn.execute("ALTER TABLE consentimiento_tratamiento "
+                     "DROP CONSTRAINT IF EXISTS consentimiento_tratamiento_finalidad_check")
+        conn.execute("ALTER TABLE consentimiento_tratamiento ADD CONSTRAINT "
+                     f"consentimiento_tratamiento_finalidad_check CHECK (finalidad IN ({lista}))")
+        conn.commit()
+    _ESQUEMA_AL_DIA = True
+
+
+def consentimiento_vigente(conn, usuario_id: str, finalidad: str) -> bool:
+    """Para que otros módulos (el asistente) pregunten sin tocar los detalles."""
+    return _vigente(conn, usuario_id, finalidad) is not None
 
 
 class Decision(BaseModel):
@@ -120,6 +179,7 @@ def decidir(finalidad: str, decision: Decision, peticion: Request,
         raise HTTPException(status_code=404, detail="Finalidad desconocida.")
 
     with db.conectar() as conn:
+        asegurar_esquema(conn)
         # Sea cual sea la decisión, lo vigente se cierra primero. Así nunca hay
         # dos consentimientos activos para la misma finalidad.
         conn.execute(

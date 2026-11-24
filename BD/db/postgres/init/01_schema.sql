@@ -147,7 +147,7 @@ CREATE TABLE consentimiento_tratamiento (
     id               uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
     usuario_id       uuid         NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
     finalidad        varchar(60)  NOT NULL
-                                  CHECK (finalidad IN ('entrenamiento_modelos')),
+                                  CHECK (finalidad IN ('entrenamiento_modelos', 'asistente_ia')),
     estado           varchar(20)  NOT NULL DEFAULT 'vigente'
                                   CHECK (estado IN ('vigente','expirado','revocado')),
     version_texto    varchar(20)  NOT NULL,
