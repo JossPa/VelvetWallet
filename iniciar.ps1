@@ -48,11 +48,20 @@ function Detener-Puertos {
                 $proc = Get-Process -Id $pid_ -ErrorAction SilentlyContinue
                 if ($proc) {
                     Aviso ("Cerrando {0} en el puerto {1} ({2}, PID {3})" -f $Puertos[$puerto], $puerto, $proc.ProcessName, $pid_)
-                    Stop-Process -Id $pid_ -Force -ErrorAction SilentlyContinue
+                    # Con todo su árbol: uvicorn --reload deja un worker hijo
+                    # que hereda el puerto y, si sobrevive, sigue atendiendo
+                    # con el código y el .env viejos.
+                    & taskkill /PID $pid_ /T /F *> $null
                 }
             }
         }
     }
+    # Workers que quedaron huérfanos de cierres anteriores (su padre ya no existe).
+    $todos = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue
+    $vivos = @{}; $todos | ForEach-Object { $vivos[[int]$_.ProcessId] = $true }
+    $todos | Where-Object {
+        $_.Name -eq "python.exe" -and $_.CommandLine -match "multiprocessing.spawn" -and -not $vivos[[int]$_.ParentProcessId]
+    } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
 function Esperar-Servicio($nombre, $url, $segundos) {

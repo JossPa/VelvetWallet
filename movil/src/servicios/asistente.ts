@@ -7,9 +7,8 @@
  * pregunta y se pierde al cerrar la pantalla. Una conversación sobre plata es
  * un dato personal más, y lo más simple para protegerlo es no almacenarlo.
  */
+import { api } from "@/servicios/api";
 import { tokenActual } from "@/servicios/auth";
-
-const API = "http://localhost:8000";
 
 export type Mensaje = {
   rol: "usuario" | "asistente";
@@ -33,7 +32,7 @@ export async function preguntar(historial: Mensaje[]): Promise<Mensaje> {
 
   let r: Response;
   try {
-    r = await fetch(`${API}/api/asistente`, {
+    r = await fetch(`${api()}/api/asistente`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ mensajes: historial.map(({ rol, texto }) => ({ rol, texto })) }),
